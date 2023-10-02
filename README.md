@@ -10,10 +10,10 @@ Contributors / Licensing
 
 Authors:
     
-* Firstname Lastname
+* Nima Shariatzadeh
 * Firstname Lastname
 * Firstname Lastname
 * Firstname Lastname
 * Firstname Lastnmae
 
-Generally everything is LICENSE'D under the ______________.
+Generally everything is LICENSE'D under the MIT License.
