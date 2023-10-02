@@ -10,7 +10,7 @@ Contributors / Licensing
 
 Authors:
     
-* Nima Shariatzadeh
+* Nima Shariatzadeh(shariatz@ualberta.ca)
 * Firstname Lastname
 * Firstname Lastname
 * Firstname Lastname
