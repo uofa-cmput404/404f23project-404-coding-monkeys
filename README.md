@@ -11,7 +11,7 @@ Contributors / Licensing
 Authors:
     
 * Nima Shariatzadeh(shariatz@ualberta.ca)
-* Firstname Lastname
+* Aidan Lynch(alynch1@ualberta.ca)
 * Firstname Lastname
 * Firstname Lastname
 * Firstname Lastnmae
