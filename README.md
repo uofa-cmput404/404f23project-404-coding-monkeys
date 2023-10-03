@@ -12,7 +12,7 @@ Authors:
     
 * Nima Shariatzadeh(shariatz@ualberta.ca)
 * Aidan Lynch(alynch1@ualberta.ca)
-* Firstname Lastname
+* Sophia Ruduke(sruduke@ualberta.ca)
 * Firstname Lastname
 * Firstname Lastnmae
 
