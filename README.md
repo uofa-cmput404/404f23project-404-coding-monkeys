@@ -14,6 +14,5 @@ Authors:
 * Aidan Lynch(alynch1@ualberta.ca)
 * Sophia Ruduke(sruduke@ualberta.ca)
 * Matthew Wood(mwood2@ualberta.ca)
-* Firstname Lastnmae
 
 Generally everything is LICENSE'D under the MIT License.
