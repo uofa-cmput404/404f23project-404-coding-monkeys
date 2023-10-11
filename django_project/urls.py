@@ -19,5 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("accounts/", include("accounts.urls")), # if accounts request, forward to accounts.urls (login, logout, signup)
+    path("accounts/", include("django.contrib.auth.urls")), # include built-in authorization app
     path("", include("pages.urls")), # goto pages.urls if generic request 
 ]
