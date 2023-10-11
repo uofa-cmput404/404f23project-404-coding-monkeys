@@ -16,3 +16,6 @@ Authors:
 * Matthew Wood(mwood2@ualberta.ca)
 
 Generally everything is LICENSE'D under the MIT License.
+
+============================================================
+See DFB pg. 58; reconfigured settings file so all templates can be placed in root /templates/ directory, instead of needing a separate templates folder for every app.
