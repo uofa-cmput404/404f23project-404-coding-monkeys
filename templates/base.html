@@ -1,5 +1,15 @@
 <!-- This is the base template that all other pages will extend from (the banner stuff we want on every page)-->
-<h1>Banner Placeholder</h1>
-
-{% block content %}
-{% endblock content %}
+<!-- DFB pg. 175 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Placeholder Website Banner{% endblock title %}</title>
+</head>
+<body>
+    <main>
+        {% block content %}
+        {% endblock content %}
+    </main>
+</body>
+</html>
