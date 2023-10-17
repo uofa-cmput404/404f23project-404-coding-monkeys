@@ -1,0 +1,17 @@
+<!-- DFB pg. 175 -->
+{% extends "base.html" %}
+
+{% block content %}
+<ul>
+List of Users
+{% for author in authors_list %}
+    <li><a href="{% url 'author_profile' pk=author.pk %}">{{ author.username }}</a></li> <!--gpt 404 error convo--> 
+{% empty %}
+    <li>No users yet. Database must be empty.</li>
+{% endfor %}
+</ul>
+{% endblock content %}
+
+
+
+<!--https://docs.djangoproject.com/en/4.2/ref/class-based-views/generic-display/-->
