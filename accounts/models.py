@@ -9,3 +9,21 @@ class AuthorUser(AbstractUser):
     url = models.URLField() #TODO setup proper page
     github = models.URLField()
     profile_image = models.URLField() #TODO don't know what this should be
+
+class Followers(models.Model):
+    author = models.ForeignKey(AuthorUser, on_delete=models.CASCADE, related_name='author')
+    followers = models.JSONField(default=list)
+
+# This table will delete requests once they have been fulfilled and added to the Follower table
+class FollowRequests(models.Model):
+    summary = models.CharField(max_length=100)
+    # could possible have a boolean for requester and recipient to see if they are local to our node, and instead
+    # of storing an entire dictionary of information it can just be an author id which we will retrieve data from in
+    # the AuthorUser table. Will see.
+    requester = models.JSONField(default=dict)
+    recipient = models.JSONField(default=dict)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    # can only request somebody once
+    class Meta:
+        unique_together = ('requester', 'recipient')
