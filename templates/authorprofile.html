@@ -3,10 +3,10 @@
 {% block content %}
 <h1>Welcome to {{author}}'s profile.</h1>
 {% if user.username == author.username %} <!-- only allow users to update their own profiles; current user username must match that of author-->
-    <h2>Edit Profile</h2> <!--gpt 404 error convo--> 
+    <a href="{% url 'author_edit' pk=author.pk %}">Edit Profile</a>
 {% endif %}
 <h2>Avatar</h2>
-<img src="https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg" style="height:300px;"> 
+<img src="{{ author.profile_image }}" style="height: 300px;"> <!--gpt-->
 <h2>Personal Info</h2>
 <p>TBA</p>
 <h2>Followers</h2>
