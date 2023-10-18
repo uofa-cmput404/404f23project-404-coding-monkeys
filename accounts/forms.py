@@ -5,7 +5,7 @@ from .models import AuthorUser
 class AuthorCreationForm(UserCreationForm):
     class Meta(UserCreationForm):
         model = AuthorUser
-        fields = ("username", "email", "github") # choose which fields should be displayed in sign-up form (password requested by default)
+        fields = ("username", "email", "github", "profile_image") # choose which fields should be displayed in sign-up form (password requested by default)
 
 class AuthorChangeForm(UserChangeForm):
     class Meta:

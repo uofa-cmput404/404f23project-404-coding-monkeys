@@ -8,7 +8,7 @@ class AuthorUser(AbstractUser):
     host = models.GenericIPAddressField(default = "http://127.0.0.1:8000/") # hardcoded localhost for now
     url = models.URLField() #TODO setup proper page
     github = models.URLField()
-    profile_image = models.URLField() #TODO don't know what this should be
+    profile_image = models.URLField(default="https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg") #TODO get proper licence
 
 class Followers(models.Model):
     author = models.ForeignKey(AuthorUser, on_delete=models.CASCADE, related_name='author')
