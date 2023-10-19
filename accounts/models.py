@@ -7,8 +7,8 @@ class AuthorUser(AbstractUser):
     username = models.CharField(max_length=20, unique=True) # https://www.reddit.com/r/django/comments/id2ch0/user_models_username_max_length/
     host = models.GenericIPAddressField(default = "http://127.0.0.1:8000/") # hardcoded localhost for now
     url = models.URLField() #TODO setup proper page
-    github = models.URLField()
-    profile_image = models.URLField(default="https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg") #TODO get proper licence
+    github = models.URLField(null=True, blank=True)
+    profile_image = models.URLField(null=True, blank=True) # optional
 
 class Followers(models.Model):
     author = models.ForeignKey(AuthorUser, on_delete=models.CASCADE, related_name='author')
