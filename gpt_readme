@@ -1,0 +1,52 @@
+This file contains all major usages of AI. The lines in the code where the prompt was used or applied 
+in some way are noted with the corresponding date and prompt #.
+
+EXAMPLE FORMAT:
+AI name - date - prompt #
+Prompt
+Response
+Any notes
+-----
+
+CHATGPT - 2023-10-13 Prompt #1
+
+"im using a generic CreateView and form for my django registration page. 
+I have a certain url field that the user may enter, but if they choose not to, will default to a link I've already set. 
+The problem is the form starts with the default field already  filled in, which is a bit ugly. 
+Is there any way to set this field to the default link ONLY if the user doesn't enter anything for that field, 
+and only after they've submitted the sign up form?"
+
+class RegistrationView(CreateView):
+    model = YourUserModel  # Replace with your actual user model
+    form_class = YourRegistrationForm
+    template_name = 'registration.html'  # Replace with your template
+
+    def form_valid(self, form):
+        # Check if the user provided a value for the URL field
+        if not form.cleaned_data.get('url_field'):
+            # If the field is empty, set it to the default value
+            form.cleaned_data['url_field'] = 'https://example.com'
+
+        # Save the user or perform any other necessary actions
+        return super().form_valid(form)
+
+Notes: adapted to work with profile_image
+-----
+
+CHATGPT - 2023-10-13 Prompt #2
+
+my form_valid() function isn't working; when I look at a user's profile in django admin, the profile_image field is empty, 
+even if they didn't enter one (if they don't enter one, it's supposed to set it as that link I'm setting there)
+
+class SignUpView(CreateView):
+    form_class = AuthorCreationForm
+    success_url = reverse_lazy('login')
+    template_name = "registration/signup.html"
+
+    def form_valid(self, form):
+        if not form.cleaned_data.get('profile_image'):
+            form.instance.profile_image = 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'
+
+        return super().form_valid(form)
+
+Notes: used form.instance.profile_image line to get the previous prompt working properly.
