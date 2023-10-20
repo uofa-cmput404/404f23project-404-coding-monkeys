@@ -16,7 +16,7 @@ class SignUpView(CreateView):
 
         return super().form_valid(form) # save the user or perform any other necessary actions
 
-class AuthorUpdateView(UpdateView): # gpt
+class AuthorUpdateView(UpdateView): 
     model = AuthorUser
     form_class = AuthorUpdateForm
     template_name = 'editprofile.html'

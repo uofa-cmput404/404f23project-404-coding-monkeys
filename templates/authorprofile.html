@@ -4,6 +4,8 @@
 <h1>Welcome to {{author}}'s profile.</h1>
 {% if user.username == author.username %} <!-- only allow users to update their own profiles; current user username must match that of author-->
     <a href="{% url 'author_edit' pk=author.pk %}">Edit Profile</a>
+{% else %} <!-- someone else's profile; allow user to follow them; TODO add logic so this changes to "following" once followed-->
+    <a href="{% url 'author_followed' pk=author.pk %}">Follow</a>
 {% endif %}
 <h2>Avatar</h2>
 <img src="{{ author.profile_image }}" style="height: 300px;"> <!--gpt-->
