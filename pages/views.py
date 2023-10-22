@@ -22,6 +22,11 @@ class AuthorDetailView(DetailView): # basic generic view that just displays temp
     template_name = "authorprofile.html" 
     context_object_name = 'author'
 
+class FollowRequestsListView(ListView): # basic generic view that just displays template
+    model = FollowRequests
+    template_name = "followrequests.html" 
+    context_object_name = 'requests_list'
+
 def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
     # https://stackoverflow.com/questions/74199737/how-to-create-django-model-by-pressing-button - general structure followed for how to create a model instance in db via button press
     # https://stackoverflow.com/questions/28071750/redirecting-a-view-to-another-view-in-django-python - how to redirect in django via url pattern
@@ -64,7 +69,11 @@ def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
     author_json = json.loads(author_json)
     """
 
-class FollowRequestsListView(ListView): # basic generic view that just displays template
-    model = FollowRequests
-    template_name = "followrequests.html" 
-    context_object_name = 'requests_list'
+def accept_fq(self, user_pk, fq_pk): 
+    
+    return redirect('author_profile', pk=user_pk) # redirect to user's profile when finished
+
+def deny_fq(self, pk, fq_pk): # delete friend request; remove the request from FriendRequests table
+    fq = FollowRequests.objects.get(id=fq_pk) # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models how to delete objects from db
+    fq.delete()
+    return redirect('author_profile', pk=pk) # redirect to user's profile when finished
