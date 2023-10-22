@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ul>
+<h1>Follow Requests</h1>
+<p>Note: this page might be removed if we decide to show friend requests on the homepage (considering they want us to
+    send friend requests to the inbox along with any posts anyways).
+</p>
+{% for request in requests_list %}
+    <li>{{request.summary}}</li>
+    <li>{{request.recipient.username}}</li>
+{% empty %}
+    <li>No friend requests yet.</li>
+{% endfor %}
+</ul>
+{% endblock content %}

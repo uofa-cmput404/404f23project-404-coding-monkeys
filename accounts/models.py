@@ -25,6 +25,9 @@ class FollowRequests(models.Model):
     recipient = models.JSONField(default=dict)
     sent_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self): # show summary in django admin view tooltip 
+        return self.summary
+
     # can only request somebody once
     class Meta:
         unique_together = ('requester', 'recipient')

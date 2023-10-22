@@ -63,3 +63,8 @@ def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
     author_json = serializers.serialize("json", [AuthorUser.objects.get(id=pk)])
     author_json = json.loads(author_json)
     """
+
+class FollowRequestsListView(ListView): # basic generic view that just displays template
+    model = FollowRequests
+    template_name = "followrequests.html" 
+    context_object_name = 'requests_list'
