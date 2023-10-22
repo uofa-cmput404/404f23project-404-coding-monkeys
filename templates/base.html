@@ -1,13 +1,30 @@
 <!-- This is the base template that all other pages will extend from (the banner stuff we want on every page)-->
 <!-- DFB pg. 175 -->
+
+{% load static %}
 <!DOCTYPE html>
+
 <html>
 <head>
     <meta charset="utf-8">
     <title>{% block title %}Placeholder Website Banner{% endblock title %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"><!--This is what i used to set the font! used font from google!-->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap" rel="stylesheet">
+
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <link rel="icon" type="image/x-icon" href={% static 'images/website_iconV1.png' %}>
 </head>
 <body>
     <main>
+        <div class="monkey_div">
+            <img src={% static 'images/website_iconV1.png'%} alt="" title = "" width="96.8625" height="117.73125">
+        </div>
+
+
+
         {% block content %}
         {% endblock content %}
     </main>

@@ -1,0 +1,36 @@
+
+
+body{
+
+    font-family: 'Lalezar', sans-serif;
+    font-size: 16px;
+    background-color: #1C1A19;
+    color:#FFD553
+}
+
+a:hover{
+    color:#bdbdbd
+}
+
+a{
+    color:rgb(255, 255, 255)
+}
+
+.user_icon{
+    border-radius: 50%;
+    border-width: 0.2em;
+    border-style: solid;
+    height: 200px;
+    
+
+}
+
+
+.monkey_div{
+    display:flex;
+    justify-content: left;
+    padding-top: 1em;
+    padding-left: 1em;
+    background-color: #FFD553;
+
+}
