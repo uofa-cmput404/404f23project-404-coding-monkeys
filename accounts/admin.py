@@ -4,6 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from .forms import AuthorCreationForm, AuthorChangeForm
 from .models import AuthorUser
 from posts.models import Posts
+from accounts.models import FollowRequests
 
 class CustomUserAdmin(UserAdmin): # give admin access to modifying and creating authors
     add_form = AuthorCreationForm
@@ -15,3 +16,4 @@ class CustomUserAdmin(UserAdmin): # give admin access to modifying and creating 
 
 admin.site.register(AuthorUser, CustomUserAdmin) # register AuthorUser and Admin
 admin.site.register(Posts)
+admin.site.register(FollowRequests)
