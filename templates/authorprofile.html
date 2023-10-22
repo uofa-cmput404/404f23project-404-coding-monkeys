@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 <h1>Welcome to {{author}}'s profile.</h1>
@@ -6,7 +7,7 @@
     <a href="{% url 'author_edit' pk=author.pk %}">Edit Profile</a>
 {% endif %}
 <h2>Avatar</h2>
-<img src="{{ author.profile_image }}" style="height: 300px;"> <!--gpt-->
+<img src="{{ author.profile_image }}" href="{% static 'css/main.css' %}" class="user_icon"> <!--To edit image styling, go to css/main.css-->
 <h2>Personal Info</h2>
 <p>TBA</p>
 <h2>Followers</h2>
