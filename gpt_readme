@@ -1,3 +1,6 @@
+from dataclasses import fields
+
+
 This file contains all major usages of AI. The lines in the code where the prompt was used or applied 
 in some way are noted with the corresponding date and prompt #.
 
@@ -50,3 +53,81 @@ class SignUpView(CreateView):
         return super().form_valid(form)
 
 Notes: used form.instance.profile_image line to get the previous prompt working properly.
+
+-----
+
+CHATGPT - 2023-10-20 Prompt #1
+
+INPUT:
+def follow_author(request, pk):
+    """ user_id = request.user.get_username() # https://stackoverflow.com/questions/16906515/how-to-get-the-username-of-the-logged-in-user-in-django
+    author_id = pk
+
+    # https://www.tutorialspoint.com/how-to-convert-models-data-into-json-in-django
+    # https://stackoverflow.com/questions/4300365/django-database-query-how-to-get-object-by-id
+    user_data = serializers.serialize('json', AuthorUser.objects.get(user_id)) # user requesting follow
+    author_data = serializers.serialize('json', AuthorUser.objects.get(author_id)) # author to follow
+
+    FollowRequests.objects.get_or_create(summary="add proper summary here", requester=user_data, recipient=author_data)
+    
+    return HttpResponse(None) """
+    user = request.user  # Get the current user
+    #author = get_object_or_404(AuthorUser, pk=pk)  # Get the AuthorUser instance with the specified primary key
+
+    # Define a list of fields you want to include in the serialized output
+    wanted_fields = ['type', 'username', 'host', 'url', 'github', 'profile_image']  # Replace with the fields you want
+
+    # https://stackoverflow.com/questions/757022/how-do-you-serialize-a-model-instance-in-django - how to serialize stuff
+    # https://stackoverflow.com/questions/60376352/why-there-is-like-bunch-of-backslash-in-my-json-output - how to fix the backslashes everywhere
+
+    
+    author_json = serializers.serialize("json", [AuthorUser.objects.get(id=pk)])
+    author_json = json.loads(author_json)
+
+    FollowRequests.objects.get_or_create(
+        summary="add proper summary here",
+        #requester=user_data,
+        recipient=author_json
+    )
+
+    return HttpResponse(200)
+
+how do I change this code so I only serialize some, not all, of the AuthorUser fields
+
+OUTPUT:
+def follow_author(request, pk):
+    user = request.user
+
+    # Define a list of fields you want to include in the serialized output
+    wanted_fields = ['type', 'username', 'host', 'url', 'github', 'profile_image']
+
+    # Get the AuthorUser instance with the specified primary key
+    author = get_object_or_404(AuthorUser, pk=pk)
+
+    # Create a dictionary with the selected fields
+    author_data = {
+        'type': author.type,
+        'username': author.username,
+        'host': author.host,
+        'url': author.url,
+        'github': author.github,
+        'profile_image': author.profile_image,
+    }
+
+    # Serialize the custom data dictionary
+    author_json = json.dumps([author_data])
+
+    # Create the FollowRequests object
+    FollowRequests.objects.get_or_create(
+        summary="add proper summary here",
+        requester=user,
+        recipient=author_json
+    )
+
+    return HttpResponse(200)
+
+Notes: used GPT suggestion modification of original code, and took of the approach of using a dictionary to manually select which fields
+to select for JSON (don't need all of them).
+                    
+-----
+
