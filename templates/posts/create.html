@@ -1,12 +1,13 @@
 <!-- DFB pg. 176 -->
 {% extends "base.html" %}
 
-{% block title %}New Post{% endblock title %}
+{% block title %}{% endblock title %}
 
 {% block content %}
-<h2>Fill in the required fields to make a new post</h2>
-<form method="post">{% csrf_token %}
+<h2>New Post</h2>
+<form method="post">
+    {% csrf_token %}
     {{ form.as_p }}
-<button type="submit">Post</button>
+    <button type="submit">Post</button>
 </form>
 {% endblock content %}
