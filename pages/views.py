@@ -1,8 +1,9 @@
 import json
+from venv import create
 from django.http import HttpResponse
 
 from django.views.generic import TemplateView, ListView, DetailView
-from accounts.models import AuthorUser, FollowRequests
+from accounts.models import AuthorUser, FollowRequests, Followers
 
 # wip
 from django.core import serializers
@@ -69,9 +70,33 @@ def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
     author_json = json.loads(author_json)
     """
 
-def accept_fq(self, user_pk, fq_pk): 
+def accept_fq(self, pk, fq_pk): # add requester to user's followers and delete friend request
+    fq = FollowRequests.objects.get(id=fq_pk)
+    requester_information = fq.requester
+    author_information = AuthorUser.objects.get(pk=pk)
     
-    return redirect('author_profile', pk=user_pk) # redirect to user's profile when finished
+    # add requester to user's follower's
+    obj, created = Followers.objects.get_or_create(author=author_information)
+
+    if created: # first follower, simply add json of requester
+        obj.followers = requester_information
+        obj.save()
+
+    elif (not created): # user already has followers, need to append to them
+        obj.followers.update(requester_information) # append requester's information to existing followers
+        obj.save()
+
+    #if not created: # if this was not the first time the user's been followed; we need to append to their followers json
+        # there is no guard here against accepting the same user twice; but the friend request button will be disabled
+        # if you are a follower of this person, so it should be impossible to send a friend request while you're a follower 
+        # of someone (as accepting a second fq would lead to having duplicate followers)
+        #current_followers = obj.followers
+        #current_followers.update('requester_information')
+        #obj.followers = current_followers
+        #x = 1
+        
+    # DELETE FQ WHEN DONE
+    return redirect('author_profile', pk=pk) # redirect to user's profile when finished
 
 def deny_fq(self, pk, fq_pk): # delete friend request; remove the request from FriendRequests table
     fq = FollowRequests.objects.get(id=fq_pk) # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models how to delete objects from db

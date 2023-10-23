@@ -9,7 +9,6 @@
 {% for request in requests_list %}
     {% if user.username == request.recipient.username %} <!--only show requests where user is the recipient-->
         <h3>{{request.requester.username}} wants to follow you.</h3>
-        The request pk is {{request.pk}}
         <a href="{% url 'fq_accept' pk=user.pk fq_pk=request.pk %}">Accept</a> | <a href="{% url 'fq_deny' pk=user.pk fq_pk=request.pk %}">Deny</a> <!--CHATAGPT - 2023-10-22 - Prompt #1-->
     {% endif %}
 {% empty %}

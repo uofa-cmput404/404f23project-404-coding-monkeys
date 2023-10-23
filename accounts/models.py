@@ -15,6 +15,9 @@ class Followers(models.Model):
     author = models.ForeignKey(AuthorUser, on_delete=models.CASCADE, related_name='author')
     followers = models.JSONField(default=list)
 
+    def __str__(self): # show summary in django admin view tooltip 
+        return self.author.username + "'s " + "Followers"
+
 # This table will delete requests once they have been fulfilled and added to the Follower table
 class FollowRequests(models.Model):
     summary = models.CharField(max_length=100)
