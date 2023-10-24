@@ -21,12 +21,19 @@ a{
 }
 
 
+
 .monkey_div{
     display:flex;
     justify-content: left;
     padding-top: 1em;
     padding-left: 1em;
     background-color: #FFD553;
+
+
+    /*position: -webkit-sticky; if you want to make the top heading sticky too, uncomment this!*/
+   /* position: sticky;if you want to make the top heading sticky too, uncomment this!*/
+   /* top:0em;if you want to make the top heading sticky too, uncomment this!*/
+    
 
 }
 
@@ -40,6 +47,7 @@ a{
     display: flex;
     flex-direction: column;
     width: 5%;
+    
     background-color: #2a2a2a;
 }
 
@@ -47,18 +55,106 @@ a{
     display: flex;
     flex-direction: column;
     width: 95%;
-    background-color: #4a4441;
+    background-color: #1C1A19;
 }
 
-.sidebar_button {
-    color: white;
+
+.sidebar_button1 {
+    color: #1C1A19;
+    background-color: #FFD553;
+    border-radius: 10px;
     border-style: none;
-    margin: 10px;
+
+    margin-top: 1em;/*This is more for making sure there is a certain distance between the buttons as you change the window size of your browser*/
+  
+  
+    /*Source: https://gomakethings.com/how-to-create-a-sticky-navigation-with-only-css/ */
+    position: -webkit-sticky;/*This is the bit of code that makes it sticky!*/
+    position: sticky;/*This is the bit of code that makes it sticky!*/
+    top:23%;/*This is the bit of code that sets spacing between buttons*/
+
+    padding: 18px;
     align-self: center;
 }
 
-.sidebar_button:hover {
-    background-color: #626262;
+
+.sidebar_button2 {
+    color: #1C1A19;
+    background-color: #FFD553;
     border-radius: 10px;
-    padding: 10px;
+    border-style: none;
+
+    margin-top: 1em;/*This is more for making sure there is a certain distance between the buttons as you change the window size of your browser*/
+  
+  
+    position: -webkit-sticky;/*This is the bit of code that makes it sticky!*/
+    position: sticky;/*This is the bit of code that makes it sticky!*/
+    top:35%;/*This is the bit of code that sets spacing between buttons*/
+
+    padding: 18px;
+    align-self: center;
 }
+
+
+.sidebar_button3 {
+    color: #1C1A19;
+    background-color: #FFD553;
+    border-radius: 10px;
+    border-style: none;
+
+    margin-top: 1em;/*This is more for making sure there is a certain distance between the buttons as you change the window size of your browser*/
+  
+  
+    position: -webkit-sticky;/*This is the bit of code that makes it sticky!*/
+    position: sticky;/*This is the bit of code that makes it sticky!*/
+    top:47%;/*This is the bit of code that sets spacing between buttons*/
+
+    padding: 18px;
+    align-self: center;
+}
+
+
+.sidebar_button4 {
+    color: #1C1A19;
+    background-color: #FFD553;
+    border-radius: 10px;
+    border-style: none;
+
+    margin-top: 1em;/*This is more for making sure there is a certain distance between the buttons as you change the window size of your browser*/
+  
+    position: -webkit-sticky;/*This is the bit of code that makes it sticky!*/
+    position: sticky;/*This is the bit of code that makes it sticky!*/
+    top:59%;/*This is the bit of code that sets spacing between buttons*/
+
+    padding: 18px;
+    align-self: center;
+}
+
+
+
+
+.sidebar_button1:hover {
+    background-color: #626262;
+    transform: scale(1.15);/*makes it bigger when hovering over it*/
+    border-radius: 10px;
+    padding: 18px;
+}
+.sidebar_button2:hover {
+    background-color: #626262;
+    transform: scale(1.15);/*makes it bigger when hovering over it*/
+    border-radius: 10px;
+    padding: 18px;
+}
+.sidebar_button3:hover {
+    background-color: #626262;
+    transform: scale(1.15);/*makes it bigger when hovering over it*/
+    border-radius: 10px;
+    padding: 18px;
+}
+.sidebar_button4:hover {
+    background-color: #626262;
+    transform: scale(1.15);/*makes it bigger when hovering over it*/
+    border-radius: 10px;
+    padding: 18px;
+}
+
