@@ -1,6 +1,7 @@
 import json
 from django.http import HttpResponse
 
+from django.forms.models import model_to_dict
 from django.views.generic import TemplateView, ListView, DetailView
 from accounts.models import AuthorUser, FollowRequests
 
@@ -63,3 +64,9 @@ def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
     author_json = serializers.serialize("json", [AuthorUser.objects.get(id=pk)])
     author_json = json.loads(author_json)
     """
+
+def view_my_profile(request):
+    user = request.user # get db information of current user
+    author_obj = get_object_or_404(AuthorUser, username=user) # get db information of author to follow
+    author_dict = model_to_dict(author_obj)
+    return redirect('author_profile', pk=author_dict.get("id"))

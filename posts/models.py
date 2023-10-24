@@ -1,4 +1,5 @@
 from django.db import models
+import datetime
 
 class Posts(models.Model):
     title = models.CharField(max_length=100)
@@ -25,9 +26,10 @@ class Posts(models.Model):
     # You should return ~ 5 comments per post.
     # should be sorted newest(first) to oldest(last)
     commentsSrc = models.JSONField(default=dict)
-    published = models.DateTimeField(auto_now_add=True)
+    published = models.DateTimeField(auto_now_add=True, null=True)
     # one of ["PUBLIC","FRIENDS"]
-    visibility = models.CharField(max_length=10)
+    VISIBILITY_OPTIONS = [('PUBLIC', 'Public'), ('FRIENDS', 'Friends-Only'), ('PRIVATE', 'Private'), ('UNLISTED', 'Unlisted')]
+    visibility = models.CharField(max_length=10, choices=VISIBILITY_OPTIONS)
     # unlisted means it is public if you know the post name -- use this for images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
 
