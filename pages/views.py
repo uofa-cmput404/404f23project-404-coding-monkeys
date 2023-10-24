@@ -83,19 +83,10 @@ def accept_fq(self, pk, fq_pk): # add requester to user's followers and delete f
         obj.save()
 
     elif (not created): # user already has followers, need to append to them
-        obj.followers.update(requester_information) # append requester's information to existing followers
+        obj.followers.append(requester_information) # append requester's information to existing followers
         obj.save()
-
-    #if not created: # if this was not the first time the user's been followed; we need to append to their followers json
-        # there is no guard here against accepting the same user twice; but the friend request button will be disabled
-        # if you are a follower of this person, so it should be impossible to send a friend request while you're a follower 
-        # of someone (as accepting a second fq would lead to having duplicate followers)
-        #current_followers = obj.followers
-        #current_followers.update('requester_information')
-        #obj.followers = current_followers
-        #x = 1
         
-    # DELETE FQ WHEN DONE
+    # delete fq when done
     return redirect('author_profile', pk=pk) # redirect to user's profile when finished
 
 def deny_fq(self, pk, fq_pk): # delete friend request; remove the request from FriendRequests table
