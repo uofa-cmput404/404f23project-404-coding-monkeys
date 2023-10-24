@@ -24,9 +24,9 @@ Running Instructions (on the lab machines):
     * You may see an error for "Building wheel for svglib", that is okay
 * Run the project:
     * `python3 manage.py runserver`
-    * This will start a webserver on the lab machine's localhost:8000
+    * This will start a webserver on the lab machine's `localhost:8000`
         * If you are SSH-ing into the lab machine, you will need to forward this port in order to see the site on your device. Vscode makes this very easy.
-* To deactivate the web server, simply hit ctrl-c in the terminal.
+* To deactivate the web server, simply hit `ctrl-c` in the terminal.
 
 
 
