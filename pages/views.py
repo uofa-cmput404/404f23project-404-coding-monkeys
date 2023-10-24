@@ -2,6 +2,7 @@ import json
 from venv import create
 from django.http import HttpResponse
 
+from django.forms.models import model_to_dict
 from django.views.generic import TemplateView, ListView, DetailView
 from accounts.models import AuthorUser, FollowRequests, Followers
 
@@ -93,3 +94,9 @@ def deny_fq(self, pk, fq_pk): # delete friend request; remove the request from F
     fq = FollowRequests.objects.get(id=fq_pk) # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models how to delete objects from db
     fq.delete()
     return redirect('author_profile', pk=pk) # redirect to user's profile when finished
+
+def view_my_profile(request):
+    user = request.user # get db information of current user
+    author_obj = get_object_or_404(AuthorUser, username=user) # get db information of author to follow
+    author_dict = model_to_dict(author_obj)
+    return redirect('author_profile', pk=author_dict.get("id"))

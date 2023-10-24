@@ -1,0 +1,90 @@
+p {
+    margin: 0;
+    padding: 0;
+    color: white;
+}
+
+.post_button {
+    background-color: #FFD553;
+    color: black;
+    border-radius: 25px;
+    border-style: none;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 5px;
+}
+
+/* https://www.w3schools.com/css/css3_buttons.asp */
+.post_button:hover {
+    background-color: #f6ff00;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+.container_flex {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+
+    padding: 20px;
+
+    width: 100vh;
+    height: 60vh;
+
+    background-color: #4a4444;
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    
+    margin: auto;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+button {
+    background-color: transparent;
+    color: white;
+    border-style: none;
+}
+
+button :hover {
+    background-color: #363232;
+    border-radius: 50%;
+}
+
+h1 {
+    font-size: 32px;
+    margin: 0;
+    padding: 0;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form_input {
+    font-size: 20px;
+}
+
+select, input[type=text], textarea {
+    flex: 1;
+    border-radius: 5px;
+    border-style: none;
+    background-color: #363232;
+    color: white;
+    padding: 5px;
+}
+
+select {
+    height: 40px;
+}
+
+input[type=text] {
+    height: 30px;
+    margin-bottom: 5px;
+}
+
+textarea {
+    flex-grow: 1;
+    resize: none;
+}
