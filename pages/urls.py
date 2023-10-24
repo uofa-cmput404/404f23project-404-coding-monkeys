@@ -10,9 +10,9 @@ urlpatterns = [
     path("authors/<int:pk>/", AuthorDetailView.as_view(), name="author_profile"), # display author's profile
     path("authors/<int:pk>/editprofile/", AuthorUpdateView.as_view(), name="author_edit"), # edit user's profile
     path("authors/<int:pk>/followed/", views.follow_author, name="author_followed"), 
-    path("service/authors/<int:pk>/followrequests/", FollowRequestsListView.as_view(), name="author_requests"), 
-    path("service/authors/<int:pk>/followrequests/accept/<int:fq_pk>", views.accept_fq, name="fq_accept"),
-    path("service/authors/<int:pk>/followrequests/deny/<int:fq_pk>", views.deny_fq, name="fq_deny"),
+    path("authors/<int:pk>/followrequests/", FollowRequestsListView.as_view(), name="author_requests"), 
+    path("authors/<int:pk>/followrequests/accept/<int:fq_pk>", views.accept_fq, name="fq_accept"),
+    path("authors/<int:pk>/followrequests/deny/<int:fq_pk>", views.deny_fq, name="fq_deny"),
     path("authors/my_profile", views.view_my_profile, name="my_profile"), # get all authors on server
 ]
 
