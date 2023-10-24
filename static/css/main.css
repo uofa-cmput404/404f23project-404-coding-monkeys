@@ -1,7 +1,4 @@
-
-
 body{
-
     font-family: 'Lalezar', sans-serif;
     font-size: 16px;
     background-color: #1C1A19;
@@ -21,8 +18,6 @@ a{
     border-width: 0.2em;
     border-style: solid;
     height: 200px;
-    
-
 }
 
 
@@ -33,4 +28,37 @@ a{
     padding-left: 1em;
     background-color: #FFD553;
 
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    min-height: 83vh;
+}
+
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 5%;
+    background-color: #2a2a2a;
+}
+
+#content {
+    display: flex;
+    flex-direction: column;
+    width: 95%;
+    background-color: #4a4441;
+}
+
+.sidebar_button {
+    color: white;
+    border-style: none;
+    margin: 10px;
+    align-self: center;
+}
+
+.sidebar_button:hover {
+    background-color: #626262;
+    border-radius: 10px;
+    padding: 10px;
 }

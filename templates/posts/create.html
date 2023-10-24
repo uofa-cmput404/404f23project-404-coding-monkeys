@@ -3,11 +3,44 @@
 
 {% block title %}{% endblock title %}
 
+{% load static %}
+{% block css %}
+<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+{% endblock css %}
+
 {% block content %}
-<h2>New Post</h2>
-<form method="post">
+<form id="popup" method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Post</button>
+    <div class="container_flex">
+        <div class="row-flex">
+            <h1>Create Post</h1>
+            <div style="flex: 1; margin-left: 10px; margin-right:10px; max-width: 2px; background-color: white;"></div>
+            <p class="form_input" style="margin-top:10px;">Who should be able to see your post?</p>
+            <div style="margin-left: 10px; margin-top:5px;">{{ form.visibility }}</div>
+            <div class="grow-flex"></div>
+            <button type="button"><i class="material-symbols-outlined">close</i></button>
+        </div>
+    
+        <div class="row-flex" style="margin-top:15px;">
+            <div class="col-flex" style="width:30%;">
+                <p class="form_input">Title:</p>
+                <p class="form_input">Short Description:</p>
+                <p class="form_input">Categories:</p>
+            </div>
+            <div class="col-flex" style="width:70%;">
+                {{ form.title }}
+                {{ form.description }}
+                {{ form.categories }}
+            </div>
+        </div>
+        <div class=row-flex style="margin-top:15px; height: 100%;">{{ form.content }}</div>
+        <div class="row-flex" style="margin-top:15px;">
+            {{ form.picture }}
+            <div class="grow-flex"></div>
+            <button class="post_button" type="submit">Post</button>
+        </div>
+    </div>
 </form>
 {% endblock content %}

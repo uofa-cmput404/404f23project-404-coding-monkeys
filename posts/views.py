@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import DetailView, CreateView
+from django.forms.models import model_to_dict
 from .models import Posts
 from .forms import CreatePostForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from accounts.models import AuthorUser
 import uuid
 
 class PostCreate(CreateView):
@@ -30,8 +32,7 @@ class PostCreate(CreateView):
             return super().form_invalid(form)
         else:
             #contentType = self.request.POST.get('contentType')
-            
-            author = {} # TODO grab current user as author
+            author = get_author_info(self.request) # convert author object to dictionary
             count = 0
             # will need to determine content type
             contentType = "text/plain"
@@ -41,13 +42,25 @@ class PostCreate(CreateView):
             post = Posts(title=title, uuid=unique_id, description=description, contentType=contentType, content=content, categories=categories, visibility=visibility, author=author, count=count, comments=comments, unlisted=unlisted)
             post.save(force_insert=True)
             
-            return HttpResponseRedirect("../../posts/all/")
+            return redirect('stream')
             # redirect to detail page
             #return HttpResponseRedirect(reverse('posts/detail'), args=(form.instance.author.get("uuid"), post.uuid,))
 
+def get_author_info(request):
+    user = request.user # get db information of current user
+    author_obj = get_object_or_404(AuthorUser, username=user) # get db information of author to follow
+    full_dict = model_to_dict(author_obj) # convert author object to dictionary
+    clean_dict = {"type": "author",
+                    "id": full_dict.get("url"),
+                    "host": full_dict.get("host"),
+                    "displayName": full_dict.get("username"),
+                    "url": full_dict.get("url"),
+                    "github": full_dict.get("github"),
+                    "bio": full_dict.get("bio"),
+                    "profileImage": full_dict.get("profile_image")}
+
+    return clean_dict
+
 def view_posts(request):
     posts = Posts.objects.all().order_by('-published')
-    return render(request, 'posts/detail.html', {'all_posts': posts})
-
-def redir_create(request):
-    return HttpResponseRedirect("../../posts/new/")
+    return render(request, 'posts/dashboard.html', {'all_posts': posts})

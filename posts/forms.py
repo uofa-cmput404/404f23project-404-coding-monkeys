@@ -14,10 +14,7 @@ class CreatePostForm(forms.ModelForm):
 
     picture = forms.ImageField(label='Upload an image', required=False)
 
-    visibility = forms.ChoiceField(
-        choices=Posts.VISIBILITY_OPTIONS,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
+    visibility = forms.ChoiceField(choices=Posts.VISIBILITY_OPTIONS)
 
     # this will eventually become a popup where users can add categories
     categories = forms.CharField(required=True)
