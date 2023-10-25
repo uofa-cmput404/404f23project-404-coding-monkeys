@@ -25,6 +25,7 @@ class PostCreate(CreateView):
         content = form.cleaned_data.get('content')
         categories = form.cleaned_data.get('categories')
         visibility = form.cleaned_data.get('visibility')
+        picture = form.cleaned_data.get('picture')
 
         empty = [element in (None, "") for element in [title, content, visibility]]
         

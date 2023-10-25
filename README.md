@@ -28,6 +28,19 @@ Running Instructions (on the lab machines):
         * If you are SSH-ing into the lab machine, you will need to forward this port in order to see the site on your device. Vscode makes this very easy.
 * To deactivate the web server, simply hit `ctrl-c` in the terminal.
 
+Operating Instructions:
+* To log in for the first time, visit `http://127.0.0.1:8000`
+* Posts:
+    * To see the posts on your feed, visit `http://127.0.0.1:8000/posts/stream/`
+    * To create a post, visit `http://127.0.0.1:8000/posts/new/`
+* To see a list of the users, visit `http://127.0.0.1:8000/authors/`
+
+Helpful info for testing:
+User Logins:
+* Username: TestUser1, Password: helloPassword7&
+* Username: TestUser2, Password: helloPassword7&
+
+
 
 
 Generally everything is LICENSE'D under the MIT License.
