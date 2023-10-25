@@ -40,6 +40,14 @@ User Logins:
 * Username: TestUser1, Password: helloPassword7&
 * Username: TestUser2, Password: helloPassword7&
 
+Helpful info for Database Development:
+* Content types:
+    * Plain text: `"text/plain"` -- UTF-8
+    * Markdown text: `"text/markdown"`-- common mark
+    * Images:
+        * png: `"image/png;base64"` -- images are POSTS. So you might have a user make 2 posts if a post includes an image!
+        * jpeg: `"image/jpeg;base64"`
+    * Other Data: `"application/base64"`
 
 
 
