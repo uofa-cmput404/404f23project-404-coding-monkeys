@@ -5,6 +5,11 @@ body{
     color:#FFD553
 }
 
+button {
+    font-family: 'Lalezar', sans-serif;
+    font-size: 16px;
+}
+
 a:hover{
     color:#bdbdbd
 }
