@@ -75,5 +75,5 @@ def get_author_info(request):
     return clean_dict
 
 def view_posts(request):
-    posts = Posts.objects.filter(unlisted=False).order_by('-published')
+    posts = Posts.objects.order_by('-published')
     return render(request, 'posts/dashboard.html', {'all_posts': posts})

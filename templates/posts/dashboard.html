@@ -13,25 +13,34 @@
 {% block content %}
 
 {% for post in all_posts %}
-    <div class="post" style="margin-top:3em">
-        <section id="post_author">
-            <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
-            <a href="{{ post.author.url }}">{{ post.author.displayName}}</a>
+    {% if not post.unlisted %}
+        <div class="post" style="margin-top:3em">
+            <section id="post_author">
+                <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
+                <a href="{{ post.author.url }}">{{ post.author.displayName}}</a>
+                <div class="flex_grow"></div>
+                <p style="align-self: end;">{{ post.published }}</p>
+            </section>
+            <section id="post_body">
+                <h1>{{ post.title }}</h1>
+                <p>{{ post.content }}</p>
+            </section>
+            {% for image in all_posts %}
+                {% if post.uuid == image.uuid|cut:"_pic" %}
+                    <section id="post_image">
+                        <img src="{{ image.content }}" alt="Image for {{ post.title }}" />
+                    </section>
+                {% endif %}
+            {% endfor %}
             <div class="flex_grow"></div>
-            <p style="align-self: end;">{{ post.published }}</p>
-        </section>
-        <section id="post_body">
-            <h1>{{ post.title }}</h1>
-            <p>{{ post.content }}</p>
-        </section>
-        <div class="flex_grow"></div>
-        <div class="footer">
-            <p class="likes">Likes: {{ post.count}} </p>
-            <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
-            <button type="button"><i class="material-symbols-outlined">favorite</i></button>
-            <button type="button"><i class="material-symbols-outlined">tooltip</i></button>
+            <div class="footer">
+                <p class="likes">Likes: {{ post.count}} </p>
+                <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
+                <button type="button"><i class="material-symbols-outlined">favorite</i></button>
+                <button type="button"><i class="material-symbols-outlined">tooltip</i></button>
+            </div>
         </div>
-    </div>
+    {% endif %}
 {% empty %}
     <div style="padding:10px;">
         <h1 style="text-align: center;">Looks like there's no posts available. Why not make one?</h1>
