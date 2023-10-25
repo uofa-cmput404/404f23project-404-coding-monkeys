@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from accounts.models import AuthorUser
 import uuid
+import base64
 
 class PostCreate(CreateView):
     model = Posts
@@ -26,22 +27,30 @@ class PostCreate(CreateView):
         categories = form.cleaned_data.get('categories')
         visibility = form.cleaned_data.get('visibility')
         picture = form.cleaned_data.get('picture')
+        print(picture)
 
         empty = [element in (None, "") for element in [title, content, visibility]]
         
         if any(empty):
             return super().form_invalid(form)
         else:
+            if picture is not None:
+                #A picture is included in the post
+                pass
+
             #contentType = self.request.POST.get('contentType')
             author = get_author_info(self.request) # convert author object to dictionary
             count = 0
             # will need to determine content type
-            contentType = "text/plain"
+            # contentType = "text/plain"
+            contentType = "image/png;base64"
+            image_base64 = base64.b64encode(picture.read()).decode('utf-8')
+            content = image_base64
             comments = ""
-            unlisted = False if contentType in ('text/markdown', 'text/plain') else True
+            unlisted = False if contentType in ('text/markdown', 'text/plain') else True #make images and other data unlisted so it doesn't show up in a post
 
             post = Posts(title=title, uuid=unique_id, description=description, contentType=contentType, content=content, categories=categories, visibility=visibility, author=author, count=count, comments=comments, unlisted=unlisted)
-            post.save(force_insert=True)
+            # post.save(force_insert=True)
             
             return redirect('stream')
             # redirect to detail page
