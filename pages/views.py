@@ -35,7 +35,7 @@ def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
     user = request.user # get db information of current user
     author = get_object_or_404(AuthorUser, pk=pk) # get db information of author to follow
 
-    user_data = { # user fields to be added to json
+    user_data = { # user fields put in dictionary to be added to json
         'type': user.type,
         'username': user.username,
         'host': user.host,
@@ -44,7 +44,7 @@ def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
         'profile_image': user.profile_image
     }
 
-    author_data = {# author to follow fields to be added to json
+    author_data = {# author put in dictionary to follow fields to be added to json
         'type': author.type,
         'username': author.username,
         'host': author.host,
