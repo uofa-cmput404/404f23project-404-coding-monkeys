@@ -27,34 +27,37 @@ class PostCreate(CreateView):
         categories = form.cleaned_data.get('categories')
         visibility = form.cleaned_data.get('visibility')
         picture = form.cleaned_data.get('picture')
-        print(picture)
 
         empty = [element in (None, "") for element in [title, content, visibility]]
         
         if any(empty):
             return super().form_invalid(form)
         else:
-            if picture is not None:
-                #A picture is included in the post
-                pass
-
-            #contentType = self.request.POST.get('contentType')
+            contentType = "text/plain"
             author = get_author_info(self.request) # convert author object to dictionary
             count = 0
-            # will need to determine content type
-            # contentType = "text/plain"
-            contentType = "image/png;base64"
-            image_base64 = base64.b64encode(picture.read()).decode('utf-8')
-            content = image_base64
             comments = ""
-            unlisted = False if contentType in ('text/markdown', 'text/plain') else True #make images and other data unlisted so it doesn't show up in a post
 
-            post = Posts(title=title, uuid=unique_id, description=description, contentType=contentType, content=content, categories=categories, visibility=visibility, author=author, count=count, comments=comments, unlisted=unlisted)
-            # post.save(force_insert=True)
+            if picture is not None:
+                image_base64 = base64.b64encode(picture.read()).decode('utf-8')
+                unique_id_pic = str(unique_id) + "_pic"
+
+                #Determine content type:
+                if picture.name.endswith(".jpg") or picture.name.endswith(".jpeg"):
+                    contentType_pic = "image/jpeg;base64"
+                elif picture.name.endswith(".png"):
+                    contentType_pic = "image/png;base64"
+                else:
+                    contentType_pic = "application/base64"
+
+                #save the pic as it's own post
+                post_pic = Posts(title=title, uuid=unique_id_pic, description=description, contentType=contentType_pic, content=image_base64, categories=categories, visibility=visibility, author=author, count=count, comments=comments, unlisted=True)
+                post_pic.save(force_insert=True)
+
+            post = Posts(title=title, uuid=unique_id, description=description, contentType=contentType, content=content, categories=categories, visibility=visibility, author=author, count=count, comments=comments, unlisted=False)
+            post.save(force_insert=True)
             
             return redirect('stream')
-            # redirect to detail page
-            #return HttpResponseRedirect(reverse('posts/detail'), args=(form.instance.author.get("uuid"), post.uuid,))
 
 def get_author_info(request):
     user = request.user # get db information of current user
