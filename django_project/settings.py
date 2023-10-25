@@ -131,5 +131,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "accounts.AuthorUser" # tell django to use our custom user
 
-LOGIN_REDIRECT_URL = "home" # new
+LOGIN_REDIRECT_URL = "/posts/stream" # new
 LOGOUT_REDIRECT_URL = "home" # new
