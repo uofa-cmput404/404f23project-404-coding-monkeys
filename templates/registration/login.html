@@ -3,10 +3,30 @@
 
 {% block title %}Log In{% endblock title %}
 
+{% load static %}
+{% block css %}
+<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
+{% endblock css %}
+
 {% block content %}
-<h2>Log In</h2>
+<h2 style="color:white;">User Log In</h2>
 <form method="post">{% csrf_token %}
-    {{ form.as_p }}
-<button type="submit">Log In</button>
+    <div class="row-flex" style="margin-top:15px;">
+        <div class="col-flex" style="width:7%;">
+            <label for="{{ form.username.id_for_label }}">Username:</label>
+            <div style="height:1em;"></div>
+            <label for="{{ form.password.id_for_label }}">Password:</label>
+        </div>
+        <div class="col-flex" style="width:30%;">
+            {{ form.username }}
+            <div style="height:0.5em;"></div>
+            {{ form.password }}
+        </div>
+    </div>
+
+    <div class="row-flex" style="margin-top:2.5em; width: 37%; justify-content: center;">
+        <button style="padding:0; padding-right: 10px; padding-left: 10px;"class="post_button" type="submit">Log In</button>
+    </div>
 </form>
 {% endblock content %}

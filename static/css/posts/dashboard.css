@@ -1,6 +1,9 @@
 
 h1 {
+    margin: 0;
+    padding: 0;
     text-align: left;
+    font-size: 36px;
 }
 
 p {
@@ -72,7 +75,7 @@ p {
 #post_body p {
     text-justify: left;
     align-self: left;
-    font-size: 16px;
+    font-size: 22px;
     color: white;
     white-space: nowrap;
 }
@@ -96,6 +99,8 @@ button {
     width:50px;
     border-radius: 50%;
     margin-left: 10px;
+    background-color: #1C1A19;
+    color:#FFD553
 }
 
 .flex_grow {

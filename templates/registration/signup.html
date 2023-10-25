@@ -3,10 +3,47 @@
 
 {% block title %}Sign Up{% endblock title %}
 
+{% load static %}
+{% block css %}
+<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
+{% endblock css %}
+
 {% block content %}
-<h2>Sign Up</h2>
-<form method="post">{% csrf_token %}
-    {{ form.as_p }}
-<button type="submit">Sign Up</button>
+<h2 style="color:white;">Account Sign Up</h2>
+<form method="post">
+    {% csrf_token %}
+    <div class="row-flex" style="margin-top:15px;">
+        <div class="col-flex" style="width:10%;">
+            <label style="margin-bottom:1em;" for="{{ form.username.id_for_label }}">Username:</label>
+            <label style="margin-bottom:1em;" for="{{ form.email.id_for_label }}">Email:</label>
+            <label style="margin-bottom:1em;" for="{{ form.github.id_for_label }}">Github URL:</label>
+            <label style="margin-bottom:1em;" for="{{ form.profile_image.id_for_label }}">Profile Image URL:</label>
+            <label style="margin-bottom:1em;" for="{{ form.password1.id_for_label }}">Password:</label>
+        </div>
+        <div class="col-flex" style="width:50%;">
+            {{ form.username }}
+            <div style="height:0.5em;"></div>
+            {{ form.email }}
+            {{ form.github }}
+            {{ form.profile_image }}
+            {{ form.password1 }}
+            <small class="form-text text-muted">{{ form.password1.help_text }}</small>
+        </div>
+    </div>
+    <div class="row-flex" style="margin-top:15px;">
+        <div class="col-flex" style="width:10%;">
+            <label for="{{ form.password2.id_for_label }}">Confirm Password:</label>
+        </div>
+        <div class="col-flex" style="width:50%;">
+            {{ form.password2 }}
+            <small class="form-text text-muted">{{ form.password2.help_text }}</small>
+        </div>
+    </div>
+    <div class="row-flex" style="margin-top:2.5em; width: 60%; justify-content: center;">
+        <button class="post_button" type="submit">Sign Up</button>
+    </div>
+    
 </form>
+
 {% endblock content %}
