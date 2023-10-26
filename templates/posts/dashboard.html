@@ -38,7 +38,11 @@
             <div class="footer">
                 <p class="likes">Likes: {{ post.count}} </p>
                 <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
-                <button style="padding-top: 10px;" type="button"><i class="material-symbols-outlined">favorite</i></button>
+                <a href="{% url 'favorite_post' post.uuid %}" style="padding-top: 10px;">
+                    <button type="button">
+                        <i class="material-symbols-outlined">favorite</i>
+                    </button>
+                </a>
                 <button style="padding-top: 10px;"type="button"><i class="material-symbols-outlined">tooltip</i></button>
             </div>
         </div>

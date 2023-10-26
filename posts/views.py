@@ -8,6 +8,7 @@ from django.urls import reverse
 from accounts.models import AuthorUser
 import uuid
 import base64
+from django.http import HttpResponse
 
 class PostCreate(CreateView):
     model = Posts
@@ -77,3 +78,12 @@ def get_author_info(request):
 def view_posts(request):
     posts = Posts.objects.order_by('-published')
     return render(request, 'posts/dashboard.html', {'all_posts': posts})
+
+def favorite_post(request, post_id):
+    print(f"user liked post {post_id}")
+
+    # Implement your favorite logic here
+    # For example, you can add the post to a user's favorites or update its like count
+
+    # Return an appropriate response, such as a success message
+    return HttpResponse("Post favorited successfully")
