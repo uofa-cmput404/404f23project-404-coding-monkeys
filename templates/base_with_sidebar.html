@@ -28,10 +28,14 @@
 
         <div class="container">
             <section id="sidebar">
-                <a class="sidebar_button1" href="{% url 'stream' %}"><i class="material-symbols-outlined">home</i></a>
-                <a class="sidebar_button2" href="{% url 'new_post' %}"><i class="material-symbols-outlined">add_circle</i></a>
-                <a class="sidebar_button3" href="{% url 'my_profile' %}"><i class="material-symbols-outlined">account_circle</i></a>
-                <a class="sidebar_button4" href="{% url 'my_profile' %}"><i class="material-symbols-outlined">person_add</i></a>
+                <a class="sidebar_button" style="top:11%;" href="{% url 'stream' %}"><i class="material-symbols-outlined">home</i></a>
+                <a class="sidebar_button" style="top:23%;" href="{% url 'new_post' %}"><i class="material-symbols-outlined">add_circle</i></a>
+                <div class="divider" style="top:35%;"></div>
+                <a class="sidebar_button" style="top:38%;" href="{% url 'my_profile' %}"><i class="material-symbols-outlined">account_circle</i></a>
+                <a class="sidebar_button" style="top:50%;" href="{% url 'authors_list' %}"><i class="material-symbols-outlined">groups</i></a>
+                <a class="sidebar_button" style="top:62%;" href="{% url 'my_profile' %}"><i class="material-symbols-outlined">person_add</i></a>
+                <div class="divider" style="top:74%;"></div>
+                <a class="logout_button" style="top:77%;" href="{% url 'logout' %}"><i class="material-symbols-outlined" style="color:white;">logout</i></a>
                 <div class="grow-flex"></div>
             </section>
             <section id="content">
