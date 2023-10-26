@@ -8,7 +8,7 @@ from accounts.models import AuthorUser, FollowRequests, Followers
 
 # wip
 from django.core import serializers
-from django.shortcuts import get_object_or_404, redirect 
+from django.shortcuts import get_object_or_404, redirect, render 
 
 # DFB pg. 60
 class HomePageView(TemplateView): # basic generic view that just displays template
@@ -23,6 +23,31 @@ class AuthorDetailView(DetailView): # basic generic view that just displays temp
     model = AuthorUser
     template_name = "authorprofile.html" 
     context_object_name = 'author'
+
+def author_user_detail(request, pk):
+    author_user = AuthorUser.objects.get(pk=pk)
+    try: # author to be viewed has at least one follower
+        followers = Followers.objects.get(author=author_user)
+        num_followers = len(followers.followers)
+        viewing_user = request.user.username
+        already_following = False
+
+        for i in range(0, num_followers):
+            #print(followers.followers[i]['username']) # debug
+            if (followers.followers[i]['username'] == viewing_user): # if the the viewing/logged in user is in the viewed author's followers list, hide follow button
+                already_following = True
+    except: # author to be viewed has no followers (no instance in db yet)
+        already_following = False
+        followers = None # safe?
+
+    # followers.followers[0]['username']
+
+    
+    #for (element in followers.followers):
+        #print(elements)
+        
+
+    return render(request, 'authorprofile.html', {'author': author_user, 'followers': followers, 'already_following': already_following})
 
 class FollowRequestsListView(ListView): # basic generic view that just displays template
     model = FollowRequests
@@ -87,7 +112,8 @@ def accept_fq(self, pk, fq_pk): # add requester to user's followers and delete f
         obj.followers.append(requester_information) # NOTE: there is no guard against adding the same user twice, but the "Follow" button will be disabled
         obj.save()                                  # while a user is in an author's followers list. So it should be impossible for them to send another request.
         
-    # TODO: DELETE FQ WHEN DONE
+    fq = FollowRequests.objects.get(id=fq_pk)
+    fq.delete()
     return redirect('author_profile', pk=pk) # redirect to user's profile when finished
 
 def deny_fq(self, pk, fq_pk): # delete friend request; remove the request from FriendRequests table
