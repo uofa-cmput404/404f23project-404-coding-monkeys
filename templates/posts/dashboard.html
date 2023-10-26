@@ -12,26 +12,38 @@
 
 {% block content %}
 
+<!-- TODO: This is a security risk as all posts are sent to the browser (potentially including non-authorized ones). Edit this so that we only send authorized posts from the server -->
 {% for post in all_posts %}
-    <div class="post" style="margin-top:3em">
-        <section id="post_author">
-            <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
-            <a href="{{ post.author.url }}">{{ post.author.displayName}}</a>
+    {% if not post.unlisted %}
+        <div class="post" style="margin-top:3em">
+            <section id="post_author">
+                <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
+                <a href="{{ post.author.url }}">{{ post.author.displayName}}</a>
+                <div class="flex_grow"></div>
+                <p style="align-self: end;">{{ post.published }}</p>
+            </section>
+            <section id="post_body">
+                <h1>{{ post.title }}</h1>
+                <p>{{ post.content }}</p>
+            </section>
+            {% for image in all_posts %}
+                {% if image.uuid == post.uuid|add:"_pic" %}
+                <!-- for each post, look if there is a corresponding pic post in the list of all posts. If there is, display it along with the parent post -->
+                    <section id="post_image">
+                        <img src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
+                    </section>
+                {% endif %}
+            {% endfor %}
             <div class="flex_grow"></div>
-            <p style="align-self: end;">{{ post.published }}</p>
-        </section>
-        <section id="post_body">
-            <h1>{{ post.title }}</h1>
-            <p>{{ post.content }}</p>
-        </section>
-        <div class="flex_grow"></div>
-        <div class="footer">
-            <p class="likes">Likes: {{ post.count}} </p>
-            <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
-            <button style="padding-top: 10px;" type="button"><i class="material-symbols-outlined">favorite</i></button>
-            <button style="padding-top: 10px;" type="button"><i class="material-symbols-outlined">tooltip</i></button>
+            <div class="footer">
+                <p class="likes">Likes: {{ post.count}} </p>
+                <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
+                <button style="padding-top: 10px;" type="button"><i class="material-symbols-outlined">favorite</i></button>
+                <button style="padding-top: 10px;"type="button"><i class="material-symbols-outlined">tooltip</i></button>
+            </div>
         </div>
-    </div>
+    {% endif %}
+
 {% empty %}
     <div style="padding:10px;">
         <h1 style="text-align: center;">Looks like there's no posts available. Why not make one?</h1>

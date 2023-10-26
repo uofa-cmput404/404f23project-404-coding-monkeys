@@ -11,7 +11,7 @@
 {% endblock css %}
 
 {% block content %}
-<form id="popup" method="post">
+<form id="popup" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="container_flex">
         <div class="row-flex">
