@@ -28,8 +28,7 @@
             {% for image in all_posts %}
                 {% if image.uuid == post.uuid|add:"_pic" %}
                     <section id="post_image">
-                        <img src="data:image/jpeg;base64,{{ image.content }}" alt="Image for {{ post.title }}" />
-                        <p>{{ image.content }}</p>
+                        <img src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
                     </section>
                 {% endif %}
             {% endfor %}
