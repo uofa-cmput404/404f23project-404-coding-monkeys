@@ -12,6 +12,7 @@
 
 {% block content %}
 
+<!-- TODO: This is a security risk as all posts are sent to the browser (potentially including non-authorized ones). Edit this so that we only send authorized posts from the server -->
 {% for post in all_posts %}
     {% if not post.unlisted %}
         <div class="post" style="margin-top:3em">
@@ -27,6 +28,7 @@
             </section>
             {% for image in all_posts %}
                 {% if image.uuid == post.uuid|add:"_pic" %}
+                <!-- for each post, look if there is a corresponding pic post in the list of all posts. If there is, display it along with the parent post -->
                     <section id="post_image">
                         <img src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
                     </section>

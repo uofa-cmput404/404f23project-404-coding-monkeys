@@ -35,6 +35,7 @@ class Posts(models.Model):
 
 # before saving a like we will have to check if the originating post is open to PUBLIC or FRIENDS
 class Likes(models.Model):
+    # TODO: Should we have a field type = "like"?
     context = models.URLField()
     summary = models.CharField(max_length=100)
     # when searching for public things an author has liked, we will filter by author and visibliity = PUBLIC
