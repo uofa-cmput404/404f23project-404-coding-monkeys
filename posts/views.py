@@ -85,7 +85,15 @@ def like_post_handler(request):
     updated_data = "New Data"  # Replace with your actual data
     post_uuid = request.GET.get('post_uuid', None)
     author = get_author_info(request) # convert author object to dictionary
-    
+
+    #read post object from db
+    try:
+        post = Posts.objects.get(uuid=post_uuid)
+    except Posts.DoesNotExist:
+        print(f"Error: Post with UUID:{post_uuid} does not exist.")
+
+    print(post.title)
+
     print(f"Like button pressed for post {post_uuid} by {author['displayName']}")
 
     return JsonResponse({'updated_data': updated_data}) #TODO: use this to update the like count
