@@ -81,37 +81,57 @@ def view_posts(request):
     return render(request, 'posts/dashboard.html', {'all_posts': posts})
 
 def like_post_handler(request):
-    # Your logic to update data goes here
-    updated_data = "New Data"  # Replace with your actual data
-    post_uuid = request.GET.get('post_uuid', None)
-    author = get_author_info(request) # convert author object to dictionary
+    #The user has clicked the like button for a post.
+    print("entered handler")
 
+    post_uuid = request.GET.get('post_uuid', None) #get the post in question
+    author = get_author_info(request) #get the current user
+
+    print("reached step 1")
     #read post object from db
-    try:
-        post = Posts.objects.get(uuid=post_uuid)
-    except Posts.DoesNotExist:
-        print(f"Error: Post with UUID:{post_uuid} does not exist.")
+    try: post = Posts.objects.get(uuid=post_uuid)
+    except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
+
+    print("reached step 2")
+    #get list of all of the current user's likes
+    likes = Likes.objects.filter(author=author)
+    print("reached step 3")
+    alreadyLikedPost = False
+    existingLikeObj = None
+
+    #find out if user has already liked this post
+    for like in likes:
+        if like.liked_object.endswith(post.uuid):
+            #existing user has already liked this post
+            alreadyLikedPost = True
+            existingLikeObj = like
+            break
+
+
+    if alreadyLikedPost:
+        #find like object, delete it
+
+        existingLikeObj.delete()#remove like from db
+
+        #decrement counter
+        post.count = post.count - 1
+        post.save()
     
-    #create and send like object to post creator
-    #First check if user has already liked this post
-        #if so, decrement the like count, and remove the like object
+    else:
+        #create and save new like object
+        likeContext = "TODO: IDK what to put here"
+        likeSummary = f"{author['displayName']} likes your post"
+        likeAuthor = author
+        likeVisibility = "TODO: Idk what to put here"
+        postObjLnk = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}" #TODO: For some reason the post.author["id"] is an empty string instead of a proper id
+        likeObj = Likes(context= likeContext, summary= likeSummary, author=likeAuthor, liked_object= postObjLnk)
+        likeObj.save(force_insert=True)
 
-        #if not, create a new post object and increment the like count
+        #increment the like count
+        post.count = post.count + 1
+        post.save()
+        print(f"User: {author['displayName']} has liked post:{post_uuid}")
     
-    #create and save new like object
-    likeId= uuid.uuid4()
-    likeContext = "TODO: IDK what to put here"
-    likeSummary = f"{author['displayName']} likes your post"
-    likeAuthor = author
-    likeVisibility = "TODO: Idk what to put here"
-    postObjLnk = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}" #TODO: For some reason the post.author["id"] is an empty string instead of a proper id
-    likeObj = Likes(context= likeContext, summary= likeSummary, author=likeAuthor, liked_object= postObjLnk)
-    likeObj.save(force_insert=True)
 
-    #increment the like count
-    post.count = post.count + 1
-    post.save()
-
-    print(f"Like button pressed for post {post_uuid} by {author['displayName']}")
 
     return JsonResponse({'new_post_count': post.count}) #return new post count
