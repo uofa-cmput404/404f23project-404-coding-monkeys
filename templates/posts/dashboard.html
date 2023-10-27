@@ -51,7 +51,7 @@
                 {% if image.uuid == post.uuid|add:"_pic" %}
                 <!-- for each post, look if there is a corresponding pic post in the list of all posts. If there is, display it along with the parent post -->
                     <section id="post_image">
-                        <img src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
+                        <img style="padding-left: 10px;" src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
                     </section>
                 {% endif %}
             {% endfor %}
