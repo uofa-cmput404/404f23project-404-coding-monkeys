@@ -66,7 +66,7 @@ def get_author_info(request):
     author_obj = get_object_or_404(AuthorUser, username=user) # get db information of author to follow
     full_dict = model_to_dict(author_obj) # convert author object to dictionary
     clean_dict = {"type": "author",
-                    "id": full_dict.get("url"),
+                    "id": full_dict.get("id"),
                     "host": full_dict.get("host"),
                     "displayName": full_dict.get("username"),
                     "url": full_dict.get("url"),
