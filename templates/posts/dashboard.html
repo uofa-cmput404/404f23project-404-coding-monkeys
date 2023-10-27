@@ -8,6 +8,27 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/dashboard.css' %} ">
 <script src="{% static '/js/post_popup.js' %}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Script for handling ajax for like button press -->
+<script>
+    $(document).ready(function () {
+        $(".like-button").click(function () {
+            var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
+            $.ajax({
+                url: '{% url "like_post" %}',
+                method: 'GET',
+                data: { post_uuid: post_uuid }, // Pass the post UUID as a parameter
+                success: function (data) {
+                    // Update the like count
+                    $('#result-' + post_uuid).text("Likes: " + data.new_post_count);
+                }
+            });
+        });
+    });
+</script>
+<!-- <script src="{% static '/js/like_button.js' %}"></script> -->
+
 {% endblock css %}
 
 {% block content %}
@@ -30,16 +51,16 @@
                 {% if image.uuid == post.uuid|add:"_pic" %}
                 <!-- for each post, look if there is a corresponding pic post in the list of all posts. If there is, display it along with the parent post -->
                     <section id="post_image">
-                            <img src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
+                        <img style="padding-left: 10px;" src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
                     </section>
                 {% endif %}
             {% endfor %}
             <div class="flex_grow"></div>
             <div class="footer">
-                <p class="likes">{{ post.count}} </p>
+                <p class="likes"id="result-{{ post.uuid }}">Likes: {{ post.count}} </p>
                 <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
                 <span class="material-symbols-outlined">thumb_up</span>
-                <button style="padding-top: 10px;" type="button"><i class="material-symbols-outlined">favorite</i></button>
+                <button style="padding-top: 10px;"type="button"class="like-button"data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">favorite</i></button>
                 <button style="padding-top: 10px;"type="button"><i class="material-symbols-outlined">tooltip</i></button>
             </div>
         </div>

@@ -1,13 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import DetailView, CreateView
 from django.forms.models import model_to_dict
-from .models import Posts
+from .models import Posts, Likes
 from .forms import CreatePostForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from accounts.models import AuthorUser
 import uuid
 import base64
+from django.http import HttpResponse
+from django.http import JsonResponse
 
 class PostCreate(CreateView):
     model = Posts
@@ -64,7 +66,7 @@ def get_author_info(request):
     author_obj = get_object_or_404(AuthorUser, username=user) # get db information of author to follow
     full_dict = model_to_dict(author_obj) # convert author object to dictionary
     clean_dict = {"type": "author",
-                    "id": full_dict.get("url"),
+                    "id": full_dict.get("id"),
                     "host": full_dict.get("host"),
                     "displayName": full_dict.get("username"),
                     "url": full_dict.get("url"),
@@ -77,3 +79,51 @@ def get_author_info(request):
 def view_posts(request):
     posts = Posts.objects.order_by('-published')
     return render(request, 'posts/dashboard.html', {'all_posts': posts})
+
+def like_post_handler(request):
+    #The user has clicked the like button for a post.
+
+    post_uuid = request.GET.get('post_uuid', None) #get the post in question
+    author = get_author_info(request) #get the current user
+
+    #read the post (whose like button the user clicked) object from db
+    try: post = Posts.objects.get(uuid=post_uuid)
+    except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
+
+    #get list of all of the current user's likes
+    likes = Likes.objects.filter(author=author)
+
+    #find out if user has already liked this post
+    alreadyLikedPost = False
+    existingLikeObj = None
+    for like in likes:
+        if like.liked_object.endswith(post.uuid):
+            alreadyLikedPost = True
+            existingLikeObj = like
+            break
+
+    if alreadyLikedPost:
+        existingLikeObj.delete()#remove like from db
+
+        #decrement like counter
+        post.count = post.count - 1 #TODO: post.count is supposed to be the total number of comments, not likes
+        post.save()
+    
+    else:
+        #create and save new like object
+        likeContext = "TODO: IDK what to put here"
+        likeSummary = f"{author['displayName']} likes your post"
+        likeAuthor = author
+        likeVisibility = "TODO: Idk what to put here"
+        postObjLnk = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}" #TODO: For some reason the post.author["id"] is an empty string instead of a proper id
+        likeObj = Likes(context= likeContext, summary= likeSummary, author=likeAuthor, liked_object= postObjLnk)
+        likeObj.save(force_insert=True)
+
+        #increment the like count
+        post.count = post.count + 1
+        post.save()
+        print(f"User: {author['displayName']} has liked post:{post_uuid}")
+    
+
+
+    return JsonResponse({'new_post_count': post.count}) #return new post count
