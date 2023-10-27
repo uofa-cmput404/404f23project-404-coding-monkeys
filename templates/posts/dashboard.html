@@ -9,6 +9,8 @@
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/dashboard.css' %} ">
 <script src="{% static '/js/post_popup.js' %}"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Script for handling ajax for like button press -->
 <script>
     $(document).ready(function () {
         $(".like-button").click(function () {
@@ -57,11 +59,10 @@
             <div class="footer">
                 <p class="likes">Likes: {{ post.count}} </p>
                 <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
-                <button style="padding-top: 10px;"type="button"><i class="material-symbols-outlined">favorite</i></button>
+                <button style="padding-top: 10px;"type="button"class="like-button"data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">favorite</i></button>
                 <button style="padding-top: 10px;"type="button"><i class="material-symbols-outlined">tooltip</i></button>
-                <button class="like-button" data-post-uuid="{{ post.uuid }}">Update Data</button>
             </div>
-            <div id="result">Initial Data</div>
+            <!-- <div id="result">Initial Data</div> -->
         </div>
     {% endif %}
 

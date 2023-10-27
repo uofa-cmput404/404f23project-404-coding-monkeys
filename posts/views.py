@@ -84,7 +84,8 @@ def like_post_handler(request):
     # Your logic to update data goes here
     updated_data = "New Data"  # Replace with your actual data
     post_uuid = request.GET.get('post_uuid', None)
-    print(post_uuid)
-    print("update data function called")
+    author = get_author_info(request) # convert author object to dictionary
+    
+    print(f"Like button pressed for post {post_uuid} by {author['displayName']}")
 
-    return JsonResponse({'updated_data': updated_data})
+    return JsonResponse({'updated_data': updated_data}) #TODO: use this to update the like count
