@@ -82,39 +82,31 @@ def view_posts(request):
 
 def like_post_handler(request):
     #The user has clicked the like button for a post.
-    print("entered handler")
 
     post_uuid = request.GET.get('post_uuid', None) #get the post in question
     author = get_author_info(request) #get the current user
 
-    print("reached step 1")
-    #read post object from db
+    #read the post (whose like button the user clicked) object from db
     try: post = Posts.objects.get(uuid=post_uuid)
     except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
 
-    print("reached step 2")
     #get list of all of the current user's likes
     likes = Likes.objects.filter(author=author)
-    print("reached step 3")
-    alreadyLikedPost = False
-    existingLikeObj = None
 
     #find out if user has already liked this post
+    alreadyLikedPost = False
+    existingLikeObj = None
     for like in likes:
         if like.liked_object.endswith(post.uuid):
-            #existing user has already liked this post
             alreadyLikedPost = True
             existingLikeObj = like
             break
 
-
     if alreadyLikedPost:
-        #find like object, delete it
-
         existingLikeObj.delete()#remove like from db
 
-        #decrement counter
-        post.count = post.count - 1
+        #decrement like counter
+        post.count = post.count - 1 #TODO: post.count is supposed to be the total number of comments, not likes
         post.save()
     
     else:
