@@ -91,8 +91,12 @@ def like_post_handler(request):
         post = Posts.objects.get(uuid=post_uuid)
     except Posts.DoesNotExist:
         print(f"Error: Post with UUID:{post_uuid} does not exist.")
+    
+    #create and send like object to post creator
 
-    print(post.title)
+    #increment the like count
+    post.count = post.count + 1
+    post.save()
 
     print(f"Like button pressed for post {post_uuid} by {author['displayName']}")
 
