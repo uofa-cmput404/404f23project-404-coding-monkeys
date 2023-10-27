@@ -51,7 +51,7 @@ a{
 #sidebar {
     display: flex;
     flex-direction: column;
-    width: 5%;
+    width: 5em;
     
     background-color: #2a2a2a;
 }
@@ -81,14 +81,14 @@ a{
 
 .sidebar_button:hover, .logout_button:hover {
     background-color: #626262;
-    transform: scale(1.15);/*makes it bigger when hovering over it*/
+    transform: scale(1.12);/*makes it bigger when hovering over it*/
     border-radius: 10px;
     padding: 18px;
 }
 
 .divider {
     margin-top: 1em;/*This is more for making sure there is a certain distance between the buttons as you change the window size of your browser*/
-    background-color: white;
+    background-color: #1C1A19;
     padding: 2px;
 
     /*Source: https://gomakethings.com/how-to-create-a-sticky-navigation-with-only-css/ */
@@ -97,7 +97,7 @@ a{
 }
 
 .logout_button {
-    background-color: #1C1A19;
+    background-color: #2a2a2a;
 }
 
 .logout_button:hover {
