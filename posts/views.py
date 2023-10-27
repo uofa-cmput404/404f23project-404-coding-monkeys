@@ -80,7 +80,7 @@ def view_posts(request):
     posts = Posts.objects.order_by('-published')
     return render(request, 'posts/dashboard.html', {'all_posts': posts})
 
-def update_data(request):
+def like_post_handler(request):
     # Your logic to update data goes here
     updated_data = "New Data"  # Replace with your actual data
     post_uuid = request.GET.get('post_uuid', None)
