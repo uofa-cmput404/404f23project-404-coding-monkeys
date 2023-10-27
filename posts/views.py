@@ -100,4 +100,4 @@ def like_post_handler(request):
 
     print(f"Like button pressed for post {post_uuid} by {author['displayName']}")
 
-    return JsonResponse({'updated_data': updated_data}) #TODO: use this to update the like count
+    return JsonResponse({'new_post_count': post.count}) #return new post count
