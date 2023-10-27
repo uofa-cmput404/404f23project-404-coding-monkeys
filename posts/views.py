@@ -83,6 +83,8 @@ def view_posts(request):
 def update_data(request):
     # Your logic to update data goes here
     updated_data = "New Data"  # Replace with your actual data
+    post_uuid = request.GET.get('post_uuid', None)
+    print(post_uuid)
     print("update data function called")
 
     return JsonResponse({'updated_data': updated_data})
