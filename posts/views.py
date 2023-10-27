@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import DetailView, CreateView
 from django.forms.models import model_to_dict
-from .models import Posts
+from .models import Posts, Likes
 from .forms import CreatePostForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -93,6 +93,20 @@ def like_post_handler(request):
         print(f"Error: Post with UUID:{post_uuid} does not exist.")
     
     #create and send like object to post creator
+    #First check if user has already liked this post
+        #if so, decrement the like count, and remove the like object
+
+        #if not, create a new post object and increment the like count
+    
+    #create and save new like object
+    likeId= uuid.uuid4()
+    likeContext = "TODO: IDK what to put here"
+    likeSummary = f"{author['displayName']} likes your post"
+    likeAuthor = author
+    likeVisibility = "TODO: Idk what to put here"
+    postObjLnk = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}" #TODO: For some reason the post.author["id"] is an empty string instead of a proper id
+    likeObj = Likes(context= likeContext, summary= likeSummary, author=likeAuthor, liked_object= postObjLnk)
+    likeObj.save(force_insert=True)
 
     #increment the like count
     post.count = post.count + 1
