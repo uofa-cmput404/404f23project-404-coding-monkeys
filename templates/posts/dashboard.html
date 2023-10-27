@@ -24,20 +24,21 @@
             </section>
             <section id="post_body">
                 <h1>{{ post.title }}</h1>
-                <p>{{ post.content }}</p>
+                <p class="body_style">{{ post.content }}</p>
             </section>
             {% for image in all_posts %}
                 {% if image.uuid == post.uuid|add:"_pic" %}
                 <!-- for each post, look if there is a corresponding pic post in the list of all posts. If there is, display it along with the parent post -->
                     <section id="post_image">
-                        <img src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
+                            <img src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
                     </section>
                 {% endif %}
             {% endfor %}
             <div class="flex_grow"></div>
             <div class="footer">
-                <p class="likes">Likes: {{ post.count}} </p>
+                <p class="likes">{{ post.count}} </p>
                 <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
+                <span class="material-symbols-outlined">thumb_up</span>
                 <button style="padding-top: 10px;" type="button"><i class="material-symbols-outlined">favorite</i></button>
                 <button style="padding-top: 10px;"type="button"><i class="material-symbols-outlined">tooltip</i></button>
             </div>
