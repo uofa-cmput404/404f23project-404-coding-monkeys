@@ -11,8 +11,11 @@ from django.core import serializers
 from django.shortcuts import get_object_or_404, redirect, render 
 
 # DFB pg. 60
-class HomePageView(TemplateView): # basic generic view that just displays template
-    template_name = "home.html" 
+def home_page_view(request): # basic generic view that just displays template
+    if (request.user.is_authenticated): # if user is logged in, immediately redirect to posts stream
+        return redirect('stream')
+    
+    return render(request, 'home.html') # otherwise they're not logged in, and should be prompted with the homepage to login or signup
 
 class ListProfilesView(ListView): # basic generic view that just displays template
     model = AuthorUser
