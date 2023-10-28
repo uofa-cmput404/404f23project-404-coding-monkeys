@@ -13,7 +13,7 @@ urlpatterns = [
     path("authors/<int:pk>/followrequests/", FollowRequestsListView.as_view(), name="author_requests"), 
     path("authors/<int:pk>/followrequests/accept/<int:fq_pk>", views.accept_fq, name="fq_accept"),
     path("authors/<int:pk>/followrequests/deny/<int:fq_pk>", views.deny_fq, name="fq_deny"),
-    path("authors/my_profile", views.view_my_profile, name="my_profile"), # get all authors on server
+    #path("authors/my_profile", views.view_my_profile, name="my_profile"), # get all authors on server
 ]
 
 #TODO are the urls supposed to have a terminating /? Because when I try service/authors/ it gives me a 404. Adding terminating / for now.
