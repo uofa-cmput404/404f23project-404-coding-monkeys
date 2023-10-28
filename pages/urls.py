@@ -1,11 +1,11 @@
 # DFB pg. 61
 from django.urls import path
-from .views import HomePageView, ListProfilesView, AuthorDetailView, FollowRequestsListView
+from .views import ListProfilesView, AuthorDetailView, FollowRequestsListView
 from accounts.views import AuthorUpdateView
 from . import views  # need this for follow to work 
 
 urlpatterns = [
-    path("", HomePageView.as_view(), name="home"), # display HomePageView
+    path("", views.home_page_view, name="home"), # display HomePageView
     path("authors/", ListProfilesView.as_view(), name="authors_list"), # display list of users on server; is this the exact url they want?
     path("authors/<int:pk>/", views.author_user_detail, name="author_profile"), # display author's profile
     path("authors/<int:pk>/editprofile/", AuthorUpdateView.as_view(), name="author_edit"), # edit user's profile
