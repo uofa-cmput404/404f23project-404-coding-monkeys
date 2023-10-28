@@ -114,12 +114,12 @@ def accept_fq(self, pk, fq_pk): # add requester to user's followers and delete f
         
     fq = FollowRequests.objects.get(id=fq_pk)
     fq.delete()
-    return redirect('author_profile', pk=pk) # redirect to user's profile when finished
+    return redirect('author_requests', pk=pk) # redirect back to friend request page when finished
 
 def deny_fq(self, pk, fq_pk): # delete friend request; remove the request from FriendRequests table
     fq = FollowRequests.objects.get(id=fq_pk) # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models how to delete objects from db
     fq.delete()
-    return redirect('author_profile', pk=pk) # redirect to user's profile when finished
+    return redirect('author_requests', pk=pk) # redirect back to friend request page when finished
 
 def view_my_profile(request):
     user = request.user # get db information of current user
