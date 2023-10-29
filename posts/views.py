@@ -61,6 +61,20 @@ class PostCreate(CreateView):
             
             return redirect('stream')
 
+def edit_post(request):
+    post_uuid = request.GET.get('post_uuid', None) #get the post in question
+    author = get_author_info(request) #get the current user
+
+    #read the post (whose like button the user clicked) object from db
+    try:
+        post = Posts.objects.get(uuid=post_uuid)
+        return render(request, 'posts/create.html', model_to_dict(post))
+    except Posts.DoesNotExist: 
+        print(f"Error: Post with UUID:{post_uuid} does not exist.")
+    
+    
+
+
 def get_author_info(request):
     user = request.user # get db information of current user
     author_obj = get_object_or_404(AuthorUser, username=user) # get db information of author to follow

@@ -118,13 +118,49 @@ p {
     border-radius: 8px;
 }
 
-button {
+button, .context_button {
     height:50px;
     width:50px;
     border-radius: 50%;
     margin-left: 10px;
     background-color: #1C1A19;
     color:#FFD553
+}
+
+.context_button {
+    background-color: transparent;
+    border-style: none;
+}
+
+.context_menu {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    margin: 0;
+
+    visibility: hidden;
+}
+
+.context_menu_item {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    vertical-align: middle;
+
+    background-color: #6e6864;
+    border-radius: 1em;
+    vertical-align: middle;
+
+    width: 8em;
+    margin-left: 5px;
+    padding: 5px;
+    height: 40px;
+}
+
+.context_menu_item a {
+    text-decoration: none;
+    font-size: 20px;
 }
 
 .flex_grow {
