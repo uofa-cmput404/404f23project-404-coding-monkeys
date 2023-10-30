@@ -1,7 +1,6 @@
 # API Documentation
 
 ## Authors
----
 
 | Key           | Description                                         |
 | ------------- | --------------------------------------------------- |
@@ -14,9 +13,9 @@
 | profileImage  | Image from a public domain |
 
 ### List
-**Request URL**: `http://service/api/authors/
-**Method:** GET
-**Description:** Returns a JSON-encoded list containing local author information
+**Request URL**: `http://service/api/authors/  
+**Method:** GET  
+**Description:** Returns a JSON-encoded list containing local author information  
 **Example Response Body:**
 ```
 {
@@ -45,9 +44,9 @@
 ```
 
 ### View
-**Request URL**: `http://service/api/authors/{id}/`
-**Method:** GET
-**Description:** Returns a single JSON-encoded object containing information for the provided author id.
+**Request URL**: `http://service/api/authors/{id}/`  
+**Method:** GET  
+**Description:** Returns a single JSON-encoded object containing information for the provided author id.  
 **Example Response Body:**
 ```
 {
@@ -63,9 +62,9 @@
 
 
 ### Modify
-**Request URL**: `http://service/api/authors/{id}/`
-**Method:** POST
-**Description:** Modify existing authors.
+**Request URL**: `http://service/api/authors/{id}/`  
+**Method:** POST  
+**Description:** Modify existing authors.  
 **Example Request Body:**
 ```
 {
