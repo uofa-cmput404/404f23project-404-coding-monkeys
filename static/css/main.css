@@ -20,6 +20,7 @@ a{
 
 .user_icon{
     border-radius: 50%;
+    width:200px;
     border-width: 0.2em;
     border-style: solid;
     height: 200px;
@@ -45,7 +46,7 @@ a{
 .container {
     display: flex;
     flex-direction: row;
-    min-height: 83vh;
+    min-height: 100vh;
 }
 
 #sidebar {

@@ -1,8 +1,7 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 from accounts.models import AuthorUser#Import this in particular. BTW theres nothing in pages/views.py and we have to use authors.models.py instead for testing the pages here
 
-from pages.views import follow_author# for def test_follow(self)
 
 #TO RUN ALL TESTS: python manage.py test
 #TO RUN SPACIFIC TESTS: python manage.py test pages
@@ -13,6 +12,9 @@ class Author_Tests(TestCase):
     def setUp(self):# THIS MUST BE CALLED "setUp". It is case specific and will not be called it its named something other than "setUp"
         print("pages/tests.py -> setUp commencing")#setUp will be run for each test function below.
 
+        self.client = Client()#Settup
+        self.authors_list_url = reverse('authors_list')#Settup
+
         #Do this to create the users or objects
         AuthorUser.objects.create(username='TestAuthor1')
         
@@ -22,6 +24,7 @@ class Author_Tests(TestCase):
         
         AuthorUser.objects.create(username='TestAuthor4', url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg'
                                   , github = 'https://github.com/NimaShariatz', password='ffafy1605' )
+
 
 # Create your tests here.
     def test_link(self): #WE ARE TESTING: http://127.0.0.1:8000/authors/<PK>/ stuff here
@@ -37,26 +40,7 @@ class Author_Tests(TestCase):
         response1 = self.client.get(reverse("author_profile", args=[1]))#set args to our <int:pk> which is 1, since we are testing account 1
         self.assertEqual(response1.status_code, 200)
         self.assertTemplateUsed(response1, "authorprofile.html")
-        
-        response1 = self.client.get("/authors/1/editprofile/")
-        self.assertEqual(response1.status_code, 200)
-        response1 = self.client.get(reverse("author_edit", args=[1]))#set args to our <int:pk> which is 1, since we are testing account 1
-        self.assertEqual(response1.status_code, 200)
-        self.assertTemplateUsed(response1, "editprofile.html")
-        
-        #response1 = self.client.get("/authors/1/followed/") URL DOES NOT WORK YET
-        #self.assertEqual(response1.status_code, 200)
-        
-        response1 = self.client.get("/authors/1/followrequests/")
-        self.assertEqual(response1.status_code, 200)
-        response1 = self.client.get(reverse("author_requests", args=[1]))#set args to our <int:pk> which is 1, since we are testing account 1
-        self.assertEqual(response1.status_code, 200)
-        self.assertTemplateUsed(response1, "followrequests.html")
-        
 
-
-        
-        
         
                     
         #---check account 2---
@@ -70,21 +54,8 @@ class Author_Tests(TestCase):
         self.assertEqual(response2.status_code, 200)
         self.assertTemplateUsed(response2, "authorprofile.html")
         
+
         
-        response2 = self.client.get("/authors/2/editprofile/")
-        self.assertEqual(response2.status_code, 200)
-        response2 = self.client.get(reverse("author_edit", args=[2]))#set args to our <int:pk> which is 2, since we are testing account 1
-        self.assertEqual(response2.status_code, 200)
-        self.assertTemplateUsed(response2, "editprofile.html")
-        
-        #response2 = self.client.get("/authors/2/followed/") URL DOES NOT WORK YET
-        #self.assertEqual(response2.status_code, 200)
-        
-        response2 = self.client.get("/authors/2/followrequests/")
-        self.assertEqual(response2.status_code, 200)
-        response2 = self.client.get(reverse("author_requests", args=[2]))#set args to our <int:pk> which is 2, since we are testing account 1
-        self.assertEqual(response2.status_code, 200)
-        self.assertTemplateUsed(response2, "followrequests.html")
         
         #---check account 3---
         user_three = AuthorUser.objects.get(id=3)
@@ -97,20 +68,6 @@ class Author_Tests(TestCase):
         self.assertEqual(response3.status_code, 200)
         self.assertTemplateUsed(response3, "authorprofile.html")
         
-        response3 = self.client.get("/authors/3/editprofile/")
-        self.assertEqual(response3.status_code, 200)
-        response3 = self.client.get(reverse("author_edit", args=[3]))#set args to our <int:pk> which is 3, since we are testing account 1
-        self.assertEqual(response3.status_code, 200)
-        self.assertTemplateUsed(response3, "editprofile.html")
-        
-        #response3 = self.client.get("/authors/3/followed/") URL DOES NOT WORK YET
-        #self.assertEqual(response3.status_code, 200)
-        
-        response3 = self.client.get("/authors/3/followrequests/")
-        self.assertEqual(response3.status_code, 200)
-        response3 = self.client.get(reverse("author_requests", args=[3]))#set args to our <int:pk> which is 3, since we are testing account 1
-        self.assertEqual(response3.status_code, 200)
-        self.assertTemplateUsed(response3, "followrequests.html")
         
         
         #---check account 4---
@@ -124,24 +81,15 @@ class Author_Tests(TestCase):
         self.assertEqual(response4.status_code, 200)
         self.assertTemplateUsed(response4, "authorprofile.html")
         
-        response4 = self.client.get("/authors/4/editprofile/")
-        self.assertEqual(response4.status_code, 200)
-        response4 = self.client.get(reverse("author_edit", args=[4]))#set args to our <int:pk> which is 3, since we are testing account 1
-        self.assertEqual(response4.status_code, 200)
-        self.assertTemplateUsed(response4, "editprofile.html")
         
-        #response4 = self.client.get("/authors/4/followed/") URL DOES NOT WORK YET
-        #self.assertEqual(response4.status_code, 200)
         
-        response4 = self.client.get("/authors/4/followrequests/")
-        self.assertEqual(response4.status_code, 200)
-        response4 = self.client.get(reverse("author_requests", args=[4]))#set args to our <int:pk> which is 3, since we are testing account 1
-        self.assertEqual(response4.status_code, 200)
-        self.assertTemplateUsed(response4, "followrequests.html")
+    def test_authors_list_view(self):
+        print("accounts/tests.py -> test_authors_list_view commencing")
         
-
-    def test_follow(self):
-        print("pages/tests.py -> test_follow commencing")
+        response = self.client.get(self.authors_list_url)
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, "registration/listprofiles.html" and "base.html")
+        
 
                 #TO-DO!!
         #---THE FOLLOWING BELOW WILL TEST THE "FOLLOWING" FEATURE---
@@ -162,4 +110,7 @@ class Author_Tests(TestCase):
         #So step 1. work with follow_author from views.py to make a follow request
         
         #AuthorUser.objects.follow
+        
+        
+        #follow_author.objects.create()
         

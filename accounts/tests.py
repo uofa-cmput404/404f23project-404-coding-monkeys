@@ -1,6 +1,8 @@
-from django.test import TestCase
-from django.urls import reverse
-from .models import AuthorUser#Import this in particular
+from django.test import TestCase, Client
+from django.urls import reverse, resolve
+from .models import AuthorUser
+from accounts.views import SignUpView
+
 
 #TO RUN ALL TESTS: python manage.py test
 #TO RUN SPACIFIC TESTS: python manage.py test accounts
@@ -12,6 +14,9 @@ class Author_Tests(TestCase):
     
     def setUp(self):# THIS MUST BE CALLED "setUp". It is case specific and will not be called it its named something other than "setUp"
         print("accounts/tests.py -> setUp commencing")#setUp will be run again for each test function below.
+
+        self.client = Client()#Settup
+        self.signup_url = reverse('signup')#Settup
 
         #Do this to create the users or objects
         AuthorUser.objects.create(username='TestAuthor1')
@@ -25,6 +30,7 @@ class Author_Tests(TestCase):
 # Create your tests here.
     def test_author(self):
         print("accounts/tests.py -> test_author commencing")
+    
         
         user_one= AuthorUser.objects.get(username="TestAuthor1")
         user_two = AuthorUser.objects.get(username="TestAuthor2")
@@ -53,13 +59,27 @@ class Author_Tests(TestCase):
         self.assertEqual(user_four.url, "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg")
         self.assertEqual(user_four.github, "https://github.com/NimaShariatz")
         
+      
+      
+      
         
     def test_link(self):#http://127.0.0.1:8000/accounts/signup/
         
         print("accounts/tests.py -> test_link commencing")
+        
         response1 = self.client.get("/accounts/signup/")
         self.assertEqual(response1.status_code, 200)
         
         response2 = self.client.get(reverse("signup"))#"signup" comes from the name given to the URL at accounts/urls.py
         self.assertEqual(response2.status_code, 200)
         self.assertTemplateUsed(response2, "registration/signup.html")#checks if the HTML page used is this one.
+        
+        
+        
+        
+    def test_signup_view(self):
+        print("accounts/tests.py -> test_signup_view commencing")
+        
+        response = self.client.get(self.signup_url)
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, "registration/signup.html")
