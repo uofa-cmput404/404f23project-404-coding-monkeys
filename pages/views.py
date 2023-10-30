@@ -12,6 +12,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponseForbidden
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .seralizers import AuthorUserSerializer
 
 # DFB pg. 60
 def home_page_view(request): # basic generic view that just displays template
@@ -143,3 +146,26 @@ def view_my_profile(request):
     author_obj = get_object_or_404(AuthorUser, username=user) # get db information of author to follow
     author_dict = model_to_dict(author_obj)
     return redirect('author_profile', pk=author_dict.get("id"))
+
+@api_view(['GET', 'POST'])
+def get_author(request, pk):
+    if request.method == "GET":
+        author = get_object_or_404(AuthorUser, pk=pk)
+        serializer = AuthorUserSerializer(author, many=False)
+        return Response(serializer.data)
+    elif request.method == "POST":
+        author = get_object_or_404(AuthorUser, pk=pk)
+        serializer = AuthorUserSerializer(author, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.update(author, serializer.validated_data)
+            return Response(serializer.data)
+
+        return Response(status=400, data=serializer.errors)
+
+@api_view(['GET'])
+def get_authors(request):
+    authors = AuthorUser.objects.all()
+    serializer = AuthorUserSerializer(authors, many=True)
+    response = {"type": "authors", "items": serializer.data}
+    return Response(response)

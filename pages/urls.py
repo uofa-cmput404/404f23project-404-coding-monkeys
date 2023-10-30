@@ -13,4 +13,7 @@ urlpatterns = [
     path("authors/<int:pk>/followrequests/", FollowRequestsListView.as_view(), name="author_requests"), # lists given user's friend requests; sensitive
     path("authors/<int:pk>/followrequests/accept/<int:fq_pk>/", views.accept_fq, name="fq_accept"), # dummy url for accepting a friend request
     path("authors/<int:pk>/followrequests/deny/<int:fq_pk>/", views.deny_fq, name="fq_deny"), # dummy url for denying a friend request
+
+    path("api/authors/<int:pk>/", views.get_author, name="get_author"), # get author by id
+    path("api/authors/", views.get_authors, name="get_authors"), # get all authors
 ]

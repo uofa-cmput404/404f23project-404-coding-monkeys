@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'pages.apps.PagesConfig', # add pages (placeholder) app to project
     'accounts.apps.AccountsConfig', # add accounts app to project (handles users)
     'posts.apps.PostsConfig', # add posts (placeholder) app to project
