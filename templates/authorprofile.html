@@ -1,26 +1,27 @@
-{% extends "base.html" %}
+{% extends "base_with_sidebar.html" %}
 {% load static %}
 
 {% block content %}
-<h1>Welcome to {{author}}'s profile.</h1>
-{% if user.username == author.username %} <!-- only allow users to update their own profiles; current user username must match that of author-->
-    <a href="{% url 'author_edit' pk=author.pk %}">Edit Profile</a>
-{% else %} <!-- someone else's profile-->
-  {% if already_following == True %} <!--if user already following this user, hide follow button-->
-    <p>Following</p>
-  {% else %} <!--not following this user; show follow button-->
-    <a href="{% url 'author_followed' pk=author.pk %}">Follow</a>
+<div style="padding:25px;">
+  <h1>Welcome to {{author}}'s profile.</h1>
+  {% if user.username == author.username %} <!-- only allow users to update their own profiles; current user username must match that of author-->
+      <a href="{% url 'author_edit' pk=author.pk %}">Edit Profile</a>
+  {% else %} <!-- someone else's profile-->
+    {% if already_following == True %} <!--if user already following this user, hide follow button-->
+      <p>Following</p>
+    {% else %} <!--not following this user; show follow button-->
+      <a href="{% url 'author_followed' pk=author.pk %}">Follow</a>
+    {% endif %}
   {% endif %}
-{% endif %}
-<h2>Avatar</h2>
-<img src="{{ author.profile_image }}" href="{% static 'css/main.css' %}" class="user_icon"> <!--To edit image styling, go to css/main.css-->
-<h2>Personal Info</h2>
-<p>TBA</p>
-<h2>Followers</h2>
-<ul>
-  {% for follower in followers.followers %}
-    <li>{{ follower.username }}</li>
-  {% endfor %}
-</ul>
-  
+  <h2>Avatar</h2>
+  <img src="{{ author.profile_image }}" href="{% static 'css/main.css' %}" class="user_icon" style="width: 200px; height:200px;"> <!--To edit image styling, go to css/main.css-->
+  <h2>Personal Info</h2>
+  <p>TBA</p>
+  <h2>Followers</h2>
+  <ul>
+    {% for follower in followers.followers %}
+      <li>{{ follower.username }}</li>
+    {% endfor %}
+  </ul>
+</div>
 {% endblock content %}

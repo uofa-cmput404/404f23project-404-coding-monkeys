@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/dashboard.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <script src="{% static '/js/post_popup.js' %}"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -21,21 +22,12 @@
                 data: { post_uuid: post_uuid }, // Pass the post UUID as a parameter
                 success: function (data) {
                     // Update the like count
+                    console.log(data);
                     $('#result-' + post_uuid).text("Likes: " + data.new_post_count);
                 }
             });
         });
     });
-
-    function openContext() {
-        current = document.getElementById("context_menu").style.visibility
-        if (current == "visible") {
-            document.getElementById("context_menu").style.visibility = "hidden";
-        }
-        else {
-            document.getElementById("context_menu").style.visibility = "visible";
-        }
-    }
 
 </script>
 <!-- <script src="{% static '/js/like_button.js' %}"></script> -->
@@ -76,10 +68,18 @@
                 {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->
                     <div class="flex_grow"></div>
                     <div class="context_menu" id="context_menu">
-                        <div class="context_menu_item"><button style="padding-top: 10px;" type="button" data-post-uuid="{{ post.uuid }}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit Post</button></div>
-                        <div class="context_menu_item"><button style="padding-top: 10px;" type="button" data-post-uuid="{{ post.uuid }}"><i style="margin-right:5px;" class="material-symbols-outlined">delete</i>Delete Post</button></div>
+                        <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author.id %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
+                        <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
                     </div>
-                    <button onclick="openContext()" style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined">more_vert</i></button>
+                    <dialog class="modal" id="modal">
+                        <div class="col-flex">
+                        <p style="color:white; font-size: 32px;">Are you sure you want to delete this post?</p>
+                        <div class="row-flex" style="justify-content: center; align-items: center;">
+                            <div class="popup_button" style="margin-right:20px;"><button style="margin: 0; padding: 0;" class="close_button" type="button">Cancel</button></div>
+                            <div class="popup_button"><a style="margin: 0; padding: 0;" href="{% url 'delete_post' post_uuid=post.uuid author_id=post.author.id %}">Confirm</a></div>
+                        </div>
+                    </dialog>
+                    <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
                 {% endif %}
             </div>
         </div>
@@ -88,10 +88,47 @@
 {% empty %}
     <div style="padding:10px;">
         <h1 style="text-align: center;">Looks like there's no posts available. Why not make one?</h1>
-        <div style="text-align: center;"><a  href="{% url 'new_post' %}" class="no_post_button">Make a Post</a></div>
+        <div style="text-align: center;"><a href="{% url 'new_post' %}" class="no_post_button">Make a Post</a></div>
         <div class="flex_grow"></div>
     </div>
 {% endfor %}
 
+<script>
+    const context_menus = document.querySelectorAll(".context_menu");
+    const context_openers = document.querySelectorAll(".context_button");
+
+    for (let i = 0; i < context_openers.length; i++) {
+        const opener = context_openers[i];
+        const menu = context_menus[i];
+
+        opener.addEventListener("click", () => {
+            const computedStyle = getComputedStyle(menu);
+            if (computedStyle.visibility == "visible") {
+                menu.style.visibility = "hidden";
+            }
+            else {
+                menu.style.visibility = "visible";
+            }
+        });
+    };
+
+    const open_modals = document.querySelectorAll(".delete_button");
+    const modals = document.querySelectorAll(".modal");
+    const close_modals = document.querySelectorAll(".close_button");
+
+    for (let i = 0; i < open_modals.length; i++) {
+        const open_modal = open_modals[i];
+        const modal = modals[i];
+        const close_modal = close_modals[i];
+
+        open_modal.addEventListener("click", () => {
+            modal.showModal();
+        });
+
+        close_modal.addEventListener("click", () => {
+            modal.close();
+        });
+    };
+</script>
 
 {% endblock content %}

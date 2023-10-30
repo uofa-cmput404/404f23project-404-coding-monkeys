@@ -148,22 +148,85 @@ button, .context_button {
     align-items: center;
     vertical-align: middle;
 
-    background-color: #6e6864;
+    background-color: white;
     border-radius: 1em;
     vertical-align: middle;
 
-    width: 8em;
-    margin-left: 5px;
-    padding: 5px;
+    width: 6em;
+    margin-left: 2px;
+    padding: 2px;
     height: 40px;
+
+    box-shadow: 10px 10px 5px rgb(24, 23, 23)
 }
 
-.context_menu_item a {
+.context_menu_item:hover{
+    background-color: rgba(255, 255, 255, 0.745);
+}
+
+.context_menu_item i {
+    margin: 0;
+    padding: 0;
+    color: black;
+
+    height: 30px;
+    width: 30px;
+}
+
+.context_menu_item a, .context_menu_item a:hover, .context_menu_item button {
+    margin: 0;
+    padding: 0;
     text-decoration: none;
     font-size: 20px;
+    color: black;
 }
 
 .flex_grow {
     display: flex;
     flex-grow: 1;
+}
+
+.modal {
+    z-index: -1;
+    background-color: #191919;
+    border-radius: 2em;
+    color: white;
+    box-shadow: 10px 10px 5px rgb(82, 79, 79);
+    border-width: 1px;
+}
+
+.modal::backdrop {
+    background: black;
+    opacity: 0.5;
+}
+
+.popup_button {
+    border-radius: 2em;
+    background-color: #525151;
+    border-style: none;
+    color: white;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 6em;
+    height: 3em;
+
+    padding: 2px;
+    box-shadow: 10px 10px 5px rgb(24, 23, 23)
+}
+
+.popup_button button, .popup_button a, .popup_button a:hover{
+    text-decoration: none;
+    color: #FFD553;
+}
+
+.popup_button:hover {
+    background-color: #878686;
+}
+
+.delete_button, .close_button {
+    background-color: transparent;
+    border-style: none;
 }

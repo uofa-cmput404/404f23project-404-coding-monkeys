@@ -99,3 +99,8 @@ textarea {
     flex-grow: 1;
     resize: none;
 }
+
+.author_list {
+    display: none;
+    flex-direction: column;
+}

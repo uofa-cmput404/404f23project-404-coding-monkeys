@@ -8,21 +8,48 @@
 <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
 {% endblock css %}
 
 {% block content %}
 <form id="popup" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="container_flex">
-        <div class="row-flex">
-            <h1>Create Post</h1>
+        <div class="row-flex" style="justify-content: space-evenly;">
+            <h1 style="margin-top:15px;">Create Post</h1>
             <div style="flex: 1; margin-left: 10px; margin-right:10px; max-width: 2px; background-color: white;"></div>
-            <p class="form_input" style="margin-top:10px;">Who should be able to see your post?</p>
-            <div style="margin-left: 10px; margin-top:5px;">{{ form.visibility }}</div>
-            <div class="grow-flex"></div>
-            <button type="button"><i class="material-symbols-outlined">close</i></button>
+            <div class="col-flex" style="align-items: center; justify-content: center;">
+                <p class="form_input" style="margin-top:10px;">Who should be able to see your post?</p>
+                <div style="margin-left: 10px; margin-top:5px;">{{ form.visibility }}</div>
+            </div>
+            
+            <div id="author_list" class="author_list" style="margin-left: 10px; align-items: center; justify-content: center;">
+                <p class="form_input" style="margin-top:10px;">Share with:</p>
+                <select id="author_dropdown" name="author_list" style="margin-left: 10px; margin-top:5px;">
+                    {% for author in author_list %}
+                        <option value="{{ author.id }}">{{ author.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <script>
+                // https://stackoverflow.com/questions/18437761/how-to-make-text-appear-when-you-choose-a-certain-option
+                document.getElementById("{{ form.visibility.id_for_label }}").addEventListener("change", function() {
+                    if (this.value == "PRIVATE") {
+                        document.getElementById("author_list").style.display = "flex";
+                    } else {
+                        document.getElementById("author_list").style.display = "none";
+                    }
+                });
+                
+                document.getElementById("author_dropdown").addEventListener("change", function() {
+                    document.getElementById("{{ form.sharedWith.id_for_label }}").value = this.value;
+                });
+            </script>
+            
+            <!-- <div class="grow-flex"></div>
+            <button type="button"><i class="material-symbols-outlined">close</i></button> -->
         </div>
-    
         <div class="row-flex" style="margin-top:15px;">
             <div class="col-flex" style="width:30%;">
                 <p class="form_input">Title:</p>
