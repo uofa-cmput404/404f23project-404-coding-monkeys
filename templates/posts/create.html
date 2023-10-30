@@ -12,6 +12,39 @@
 {% endblock css %}
 
 {% block content %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // https://stackoverflow.com/questions/18437761/how-to-make-text-appear-when-you-choose-a-certain-option
+        const visibilityField = document.getElementById("{{ form.visibility.id_for_label }}");
+        const authorList = document.getElementById("author_list");
+        const authorDropdown = document.getElementById("author_dropdown");
+        const sharedWith = document.getElementById("{{ form.sharedWith.id_for_label }}");
+
+        sharedWith.style.display = "none";
+
+        // Check the initial value
+        if (visibilityField.value === "PRIVATE") {
+            authorList.style.display = "flex";
+            authorDropdown.value = sharedWith.value;
+        } else {
+            authorList.style.display = "none";
+        }
+
+        // Add an event listener for changes
+        visibilityField.addEventListener("change", function () {
+            if (this.value === "PRIVATE") {
+                authorList.style.display = "flex";
+            } else {
+                authorList.style.display = "none";
+            }
+        });
+
+        document.getElementById("author_dropdown").addEventListener("change", function() {
+            document.getElementById("{{ form.sharedWith.id_for_label }}").value = this.value;
+        });
+    });
+</script>
+
 <form id="popup" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="container_flex">
@@ -23,6 +56,7 @@
                 <div style="margin-left: 10px; margin-top:5px;">{{ form.visibility }}</div>
             </div>
             
+            {{ form.sharedWith }}
             <div id="author_list" class="author_list" style="margin-left: 10px; align-items: center; justify-content: center;">
                 <p class="form_input" style="margin-top:10px;">Share with:</p>
                 <select id="author_dropdown" name="author_list" style="margin-left: 10px; margin-top:5px;">
@@ -33,18 +67,7 @@
             </div>
 
             <script>
-                // https://stackoverflow.com/questions/18437761/how-to-make-text-appear-when-you-choose-a-certain-option
-                document.getElementById("{{ form.visibility.id_for_label }}").addEventListener("change", function() {
-                    if (this.value == "PRIVATE") {
-                        document.getElementById("author_list").style.display = "flex";
-                    } else {
-                        document.getElementById("author_list").style.display = "none";
-                    }
-                });
                 
-                document.getElementById("author_dropdown").addEventListener("change", function() {
-                    document.getElementById("{{ form.sharedWith.id_for_label }}").value = this.value;
-                });
             </script>
             
             <!-- <div class="grow-flex"></div>

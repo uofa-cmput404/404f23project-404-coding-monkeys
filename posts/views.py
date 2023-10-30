@@ -68,7 +68,7 @@ def update_or_create_post(request, post_uuid):
     post.categories = request.POST.get('categories')
     post.visibility = request.POST.get('visibility')
 
-    if request.POST.get('author_list'):
+    if request.POST.get('author_list') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('author_list')
         post.sharedWith = get_author_info(selected_author_id)
 
@@ -114,6 +114,9 @@ def edit_post(request, author_id, post_uuid):
                 'visibility': post.visibility,
                 'picture': ''
             }
+
+            if post.visibility == "PRIVATE":
+                form_data['sharedWith'] = post.sharedWith['id']
 
             return make_new_post(request, PostForm(initial=form_data))
         except Posts.DoesNotExist: 
