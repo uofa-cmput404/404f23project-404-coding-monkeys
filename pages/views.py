@@ -77,6 +77,7 @@ def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
 
     user_data = { # user fields put in dictionary to be added to json
         'type': user.type,
+        'id': user.id,
         'username': user.username,
         'host': user.host,
         'url': user.url,
@@ -86,6 +87,7 @@ def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
 
     author_data = {# author put in dictionary to follow fields to be added to json
         'type': author.type,
+        'id': author.id,
         'username': author.username,
         'host': author.host,
         'url': author.url,
