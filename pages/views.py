@@ -9,10 +9,16 @@ from accounts.models import AuthorUser, FollowRequests, Followers
 # wip
 from django.core import serializers
 from django.shortcuts import get_object_or_404, redirect, render 
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import HttpResponseForbidden
+
 
 # DFB pg. 60
-class HomePageView(TemplateView): # basic generic view that just displays template
-    template_name = "home.html" 
+def home_page_view(request): # basic generic view that just displays template
+    if (request.user.is_authenticated): # if user is logged in, immediately redirect to posts stream
+        return redirect('stream')
+    
+    return render(request, 'home.html') # otherwise they're not logged in, and should be prompted with the homepage to login or signup
 
 class ListProfilesView(ListView): # basic generic view that just displays template
     model = AuthorUser
@@ -49,10 +55,19 @@ def author_user_detail(request, pk):
 
     return render(request, 'authorprofile.html', {'author': author_user, 'followers': followers, 'already_following': already_following})
 
-class FollowRequestsListView(ListView): # basic generic view that just displays template
+class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView): # basic generic view that just displays template
     model = FollowRequests
     template_name = "followrequests.html" 
     context_object_name = 'requests_list'
+
+    def test_func(self): # CHATGPT - 2023-10-30 Prompt #1
+        user_id = self.kwargs.get('pk')  # Assuming 'pk' is the user ID in the URL.
+        return self.request.user.id == user_id
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden("You do not have permission to access this page.")
+
+    
 
 def follow_author(request, pk): # CHATGPT - 2023-10-20 Prompt #1
     # https://stackoverflow.com/questions/74199737/how-to-create-django-model-by-pressing-button - general structure followed for how to create a model instance in db via button press

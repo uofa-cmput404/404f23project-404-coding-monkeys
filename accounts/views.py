@@ -4,6 +4,8 @@ from django.views.generic import CreateView, UpdateView
 from accounts.models import AuthorUser
 from .forms import AuthorCreationForm
 from accounts.forms import AuthorUpdateForm
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import HttpResponseForbidden
 
 class SignUpView(CreateView):
     form_class = AuthorCreationForm
@@ -16,10 +18,17 @@ class SignUpView(CreateView):
 
         return super().form_valid(form) # save the user or perform any other necessary actions
 
-class AuthorUpdateView(UpdateView): 
+class AuthorUpdateView(LoginRequiredMixin, UserPassesTestMixin,UpdateView): 
     model = AuthorUser
     form_class = AuthorUpdateForm
     template_name = 'editprofile.html'
+
+    def test_func(self): # CHATGPT - 2023-10-30 Prompt #1
+        user_id = self.kwargs.get('pk')  # Assuming 'pk' is the user ID in the URL.
+        return self.request.user.id == user_id
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden("You do not have permission to access this page.")
     
     def get_success_url(self): # gpt
         return reverse_lazy('author_profile', kwargs={'pk': self.object.pk})

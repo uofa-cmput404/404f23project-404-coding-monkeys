@@ -128,7 +128,7 @@ to select for JSON (don't need all of them).
                     
 -----
 
-CHATAGPT - 2023-10-22 - Prompt #1
+CHATGPT - 2023-10-22 - Prompt #1
 
 INPUT:
 # DFB pg. 61
@@ -161,3 +161,55 @@ OUTPUT:
 {% endfor %}
 
 Note: used for guidance on how to return multiple values from template, and setup the placeholders in the url properly.
+
+-----
+
+CHATAGPT - 2023-10-30 - Prompt #1
+
+INPUT:
+class FollowRequestsListView(ListView): # basic generic view that just displays template
+    model = FollowRequests
+    template_name = "followrequests.html" 
+    context_object_name = 'requests_list'
+
+User
+# DFB pg. 61
+from django.urls import path
+from .views import ListProfilesView, AuthorDetailView, FollowRequestsListView
+from accounts.views import AuthorUpdateView
+from . import views
+
+urlpatterns = [
+    path("", views.home_page_view, name="home"), # display homepage if you're not logged in/registered
+    path("authors/", ListProfilesView.as_view(), name="authors_list"), # display list of users on server
+    path("authors/<int:pk>/", views.author_user_detail, name="author_profile"), # display given author's profile
+    path("authors/<int:pk>/editprofile/", AuthorUpdateView.as_view(), name="author_edit"), # edit user's profile; sensitive
+    path("authors/<int:pk>/followed/", views.follow_author, name="author_followed"), # dummy url for sending follow requests
+    path("authors/<int:pk>/followrequests/", FollowRequestsListView.as_view(), name="author_requests"), # lists given user's friend requests; sensitive
+    path("authors/<int:pk>/followrequests/accept/<int:fq_pk>/", views.accept_fq, name="fq_accept"), # dummy url for accepting a friend request
+    path("authors/<int:pk>/followrequests/deny/<int:fq_pk>/", views.deny_fq, name="fq_deny"), # dummy url for denying a friend request
+]
+
+I want to modify my FollowRequests view so the user gets a 403 if they try to access another user's follow requests page (ex. user #5 should not be allowed to access authors/11/followrequests/)
+
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import HttpResponseForbidden
+
+class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = FollowRequests
+    template_name = "followrequests.html"
+    context_object_name = 'requests_list'
+
+    def test_func(self):
+        # Implement your permission check here
+        # Return True if the user can access the follow requests, and False if not.
+
+        user_id = self.kwargs.get('pk')  # Assuming 'pk' is the user ID in the URL.
+        return self.request.user.id == user_id
+
+    def handle_no_permission(self):
+        # This method is called when the user fails the permission check.
+        return HttpResponseForbidden("You do not have permission to access this page.")
+
+
+Note: used suggestions as-is for overriding test_func to check if the user is allowed to view a given fq list

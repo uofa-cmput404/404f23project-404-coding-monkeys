@@ -99,13 +99,14 @@ p {
 .likes {
     background-color: #1C1A19;
     border-radius:50%;
-    height: 40px;
-    width: 40px;
-    line-height: 40px;
+    height: 30px;
+    width: 30px;
+    line-height: 31px;
     display: inline-block;
     text-align: center;
-    margin-right: 6px;
-    font-size: 26px;
+    padding:10px;
+    font-size: 25px;
+    
 
 
 }

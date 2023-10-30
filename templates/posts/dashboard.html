@@ -22,8 +22,7 @@
                 data: { post_uuid: post_uuid }, // Pass the post UUID as a parameter
                 success: function (data) {
                     // Update the like count
-                    console.log(data);
-                    $('#result-' + post_uuid).text("Likes: " + data.new_post_count);
+                    $('#result-' + post_uuid).text(data.new_post_count);
                 }
             });
         });
@@ -60,9 +59,9 @@
             {% endfor %}
             <div class="flex_grow"></div>
             <div class="footer">
-                <p class="likes"id="result-{{ post.uuid }}">Likes: {{ post.count}} </p>
+                <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span>
+                <p class="likes"id="result-{{ post.uuid }}">{{ post.count}} </p>
                 <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
-                <span class="material-symbols-outlined">thumb_up</span>
                 <button style="padding-top: 10px;" type="button"class="like-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">favorite</i></button>
                 <button style="padding-top: 10px;" type="button"><i class="material-symbols-outlined">tooltip</i></button>
                 {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->

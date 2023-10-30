@@ -1,6 +1,29 @@
+{% extends "base_with_sidebar.html" %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock title %}
+
+
+{% block css %}
+<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
+{% endblock css %}
+
+
+
+
+{% block content %}
+<h2 style="color:white;">Edit Profile</h2>
+
+
+
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Update Profile</button>
-  </form>
-<!--gpt-->
+    
+
+    <div class="row-flex" style="margin-top:2.5em; margin-left: 1em; width: 37%; justify-content: left;">
+      <button type="submit" style="padding:0; font-size:18px; padding-right: 10px; padding-left: 10px;" class="post_button";>Update Profile</button>
+    </div>
+</form>
+{% endblock content %}
