@@ -13,17 +13,35 @@
 
 
 {% block content %}
-<h2 style="color:white;">Edit Profile</h2>
+<h1 style="color:white; padding:0.6em">Edit Profile</h1>
+
+<form method="post" style="margin-left:1em; background-color:#4a4444; border-style:dashed dashed dashed dashed; border-color:#FFD553;">
+  {% csrf_token %}
+  <div class="row-flex" style="margin-top:35px; justify-content:left; padding-left:100px;">
+    <div class="col-flex" style="width:13%; font-size:20px; margin-top:20px;">
+        <label style="margin-bottom:2em; margin-top:1em;" for="{{ form.username.id_for_label }}">Username:</label>
+        <label style="margin-bottom:2em; margin-top:1em;" for="{{ form.email.id_for_label }}">Email:</label>
+        <label style="margin-bottom:2em; margin-top:1em;" for="{{ form.github.id_for_label }}">Github URL:</label>
+        <label style="margin-bottom:2em; margin-top:1em;" for="{{ form.profile_image.id_for_label }}">Profile Image URL:</label>
 
 
-
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    
-
-    <div class="row-flex" style="margin-top:2.5em; margin-left: 1em; width: 37%; justify-content: left;">
-      <button type="submit" style="padding:0; font-size:18px; padding-right: 10px; padding-left: 10px;" class="post_button";>Update Profile</button>
     </div>
+
+    <div class="col-flex" style="width:50%; margin-top:20px;">
+      {{ form.username }}
+      <div style="margin-top:1em;"></div>
+      {{ form.email }}
+      {{ form.github }}
+      {{ form.profile_image }}
+    </div>
+
+
+  </div>
+
+  <div class="row-flex" style="margin-right:1.0em; padding-bottom:3em; justify-content:left; padding-left:100px;">
+    <button type="submit" style="padding:0; font-size:22px; padding-right: 10px; padding-left: 10px;" class="post_button";>Update Profile</button>
+  </div>
+
 </form>
+
 {% endblock content %}
