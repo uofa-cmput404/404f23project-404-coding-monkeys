@@ -1,7 +1,27 @@
 {% extends "base_with_sidebar.html" %}
 {% load static %}
 
+{% block css %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock css %}
+
 {% block content %}
+
+<script>
+  $(document).ready(function () {
+    $("#followButton").click(function () {
+      $.ajax({
+        url: '{% url "author_followed" pk=author.pk %}',
+        method: 'GET',
+        success: function (data) {
+          // Update the like count
+          $('#followButton').text("Requested");
+        }
+      });
+    });
+  });
+</script>
+
 <div style="padding:25px;">
   <h1>Welcome to {{author}}'s profile.</h1>
   {% if user.username == author.username %} <!-- only allow users to update their own profiles; current user username must match that of author-->
@@ -10,7 +30,7 @@
     {% if already_following == True %} <!--if user already following this user, hide follow button-->
       <p>Following</p>
     {% else %} <!--not following this user; show follow button-->
-      <a href="{% url 'author_followed' pk=author.pk %}">Follow</a>
+      <button id="followButton" type="button">Follow</button>
     {% endif %}
   {% endif %}
   <h2>Avatar</h2>

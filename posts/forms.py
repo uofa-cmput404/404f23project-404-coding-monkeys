@@ -13,7 +13,10 @@ class PostForm(forms.ModelForm):
 
     description = forms.CharField(required=False, max_length=100)
 
-    content = forms.Textarea()
+    content = forms.CharField(
+        widget=forms.Textarea,
+        required=False
+    )
 
     picture = forms.ImageField(label='Upload an image', required=False)
 
@@ -22,5 +25,5 @@ class PostForm(forms.ModelForm):
     sharedWith = forms.CharField(required=False)
 
     # this will eventually become a popup where users can add categories
-    categories = forms.CharField(required=True)
+    categories = forms.CharField(required=False)
 
