@@ -3,6 +3,8 @@
 
 {% block css %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
 {% endblock css %}
 
 {% block content %}
@@ -14,7 +16,6 @@
         url: '{% url "author_followed" pk=author.pk %}',
         method: 'GET',
         success: function (data) {
-          // Update the like count
           $('#followButton').text("Requested");
         }
       });
@@ -22,19 +23,6 @@
   });
 </script>
 
-<div style="padding:25px;">
-  <h1>Welcome to {{author}}'s profile.</h1>
-
-{% block title %} {{author.username}}'s profile  {% endblock title %}
-
-{% block css %}
-<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
-<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
-{% endblock css %}
-
-
-
-{% block content %}
 <div style="padding:25px; background-color:#2a2a2a; margin:1em; border-style:solid; border-color:#FFD553; border-radius:5px;">
   <h1 style="margin-left:0.5em;">Welcome to {{author}}'s profile.</h1>
   {% if user.username == author.username %} <!-- only allow users to update their own profiles; current user username must match that of author-->

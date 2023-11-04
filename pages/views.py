@@ -1,4 +1,6 @@
 import json
+import requests
+import enum
 from venv import create
 from django.http import HttpResponse
 
@@ -14,7 +16,7 @@ from django.http import HttpResponseForbidden
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .seralizers import AuthorUserSerializer
+from .seralizers import AuthorUserSerializer, FollowerSerializer, FollowerListSerializer
 
 # DFB pg. 60
 def home_page_view(request): # basic generic view that just displays template
@@ -148,7 +150,7 @@ def view_my_profile(request):
     return redirect('author_profile', pk=author_dict.get("id"))
 
 @api_view(['GET', 'POST'])
-def get_author(request, pk):
+def api_single_author(request, pk):
     if request.method == "GET":
         author = get_object_or_404(AuthorUser, pk=pk)
         serializer = AuthorUserSerializer(author, many=False)
@@ -164,8 +166,65 @@ def get_author(request, pk):
         return Response(status=400, data=serializer.errors)
 
 @api_view(['GET'])
-def get_authors(request):
+def api_all_authors(request):
     authors = AuthorUser.objects.all()
     serializer = AuthorUserSerializer(authors, many=True)
     response = {"type": "authors", "items": serializer.data}
     return Response(response)
+
+@api_view(['GET'])
+def api_follow_list(request, pk):
+    author = get_object_or_404(AuthorUser, pk=pk)
+    try: 
+        followers = Followers.objects.get(author=author)
+        serializer = FollowerSerializer(followers.followers, many=True)
+        response = {"type": "followers", "items": serializer.data}
+    # case if author has no followers yet
+    except Followers.DoesNotExist:
+        response = {"type": "followers", "items": []}
+    except:
+        return Response(status=500, data="Something went wrong")
+    
+    return Response(response)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def api_foreign_follower(request, pk, foreign_author_id):
+    author = get_object_or_404(AuthorUser, pk=pk)
+    noFollowers = False
+    found = False
+
+    try:
+        followers = Followers.objects.get(author=author)
+
+        for f in followers.followers:
+            if f['id'] == foreign_author_id:
+                found = True
+    
+    except Followers.DoesNotExist:
+        noFollowers = True
+    except:
+        return Response(status=500, data="Something went wrong")
+            
+    if request.method == "GET":
+        if found:
+            response = {"type": "follower", "result": True}
+        else:
+            response = {"type": "follower", "result": False}
+        
+        return Response(response)
+    
+    elif request.method == "PUT":
+        
+        if not request.user.is_authenticated:
+            return Response(status=401, data="You must be logged in to follow someone")
+        
+        if found:
+            return Response(status=400, data="You are already following this user")
+        
+        if noFollowers:
+            followers = Followers.objects.create(author=author, followers=[get_author_info(foreign_author_id)])
+            followers.save()
+            return Response(status=201, data="You are now following this user")
+        
+    elif request.method == "DELETE":
+        pass
