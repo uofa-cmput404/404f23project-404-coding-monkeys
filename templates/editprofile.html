@@ -13,12 +13,14 @@
 
 
 {% block content %}
-<h1 style="color:white; padding:0.6em">Edit Profile</h1>
 
-<form method="post" style="margin-left:1em; background-color:#4a4444; border-style:dashed dashed dashed dashed; border-color:#FFD553;">
+
+
+<form method="post" style="margin:1em; background-color:#4a4444; border-style:solid; border-color:#FFD553; border-radius:5px;">
+  <h1 style="color:white; padding:0.6em">Edit Profile</h1>
   {% csrf_token %}
-  <div class="row-flex" style="margin-top:35px; justify-content:left; padding-left:100px;">
-    <div class="col-flex" style="width:13%; font-size:20px; margin-top:20px;">
+  <div class="row-flex" style="margin-top:5px; justify-content:left; padding-left:80px;">
+    <div class="col-flex" style="width:13%; font-size:20px; margin-top:10px; background-color:#1C1A19; padding:20px; border-top-left-radius:5px; border-bottom-left-radius:5px;">
         <label style="margin-bottom:2em; margin-top:1em;" for="{{ form.username.id_for_label }}">Username:</label>
         <label style="margin-bottom:2em; margin-top:1em;" for="{{ form.email.id_for_label }}">Email:</label>
         <label style="margin-bottom:2em; margin-top:1em;" for="{{ form.github.id_for_label }}">Github URL:</label>
@@ -27,7 +29,7 @@
 
     </div>
 
-    <div class="col-flex" style="width:50%; margin-top:20px;">
+    <div class="col-flex" style="width:50%; margin-top:10px; background-color:#1C1A19; padding:20px; border-top-right-radius:5px; border-bottom-right-radius:5px;">
       {{ form.username }}
       <div style="margin-top:1em;"></div>
       {{ form.email }}
@@ -38,7 +40,7 @@
 
   </div>
 
-  <div class="row-flex" style="margin-right:1.0em; padding-bottom:3em; justify-content:left; padding-left:100px;">
+  <div class="row-flex" style="margin-right:1.0em; padding-bottom:3em; justify-content:left; padding-left:80px; margin-top:20px;">
     <button type="submit" style="padding:0; font-size:22px; padding-right: 10px; padding-left: 10px;" class="post_button";>Update Profile</button>
   </div>
 

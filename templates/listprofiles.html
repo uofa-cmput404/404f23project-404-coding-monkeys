@@ -1,11 +1,27 @@
 <!-- DFB pg. 175 -->
 {% extends "base_with_sidebar.html" %}
+{% load static %}
+
+
+{% block title %} Users {% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
+{% endblock css %}
+
+
 
 {% block content %}
 <ul>
-List of Users
+<h2 style="padding-left:5px; padding-bottom:10px;"><u>List of Users</u></h2>
 {% for author in authors_list %}
-    <li><a href="{% url 'author_profile' pk=author.pk %}">{{ author.username }}</a></li> <!--gpt 404 error convo--> 
+    <div class="userProfile_followers" style="display: flex; flex-direction: column; padding:10px;">
+        <a href="{% url 'author_profile' pk=author.pk %}" style="max-width:56px; max-height: 56px;"> <!--This is so that you can click on profile icon as a link!-->
+            <li> <img src="{{ author.profile_image }}" class="user_icon" style="width: 50px; height:50px; border-color:#FFD553;"> </li>
+        </a>
+        <li><a href="{% url 'author_profile' pk=author.pk %}">{{ author.username }}</a></li>
+    </div>
 {% empty %}
     <li>No users yet. Database must be empty.</li>
 {% endfor %}

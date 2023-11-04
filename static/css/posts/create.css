@@ -104,3 +104,15 @@ textarea {
     display: none;
     flex-direction: column;
 }
+
+
+.userProfile_followers{
+    max-width: 700px; 
+    color:white;
+    border-width: 3px;
+    border-style: solid none solid none;
+    border-bottom:0;
+    border-image: linear-gradient(to right, #2a2a2a, #1C1A19) 1;
+    /*see https://codyhouse.co/nuggets/css-gradient-borders for border gradience*/
+    
+}

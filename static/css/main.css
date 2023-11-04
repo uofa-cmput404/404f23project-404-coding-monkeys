@@ -70,8 +70,8 @@ a{
     background-color: #FFD553;
     border-radius: 10px;
     border-style: none;
-
-    margin-top: 1em;/*This is more for making sure there is a certain distance between the buttons as you change the window size of your browser*/
+    
+    margin-top: 0;/*This is more for making sure there is a certain distance between the buttons as you change the window size of your browser*/
   
     /*Source: https://gomakethings.com/how-to-create-a-sticky-navigation-with-only-css/ */
     position: -webkit-sticky;/*This is the bit of code that makes it sticky!*/
