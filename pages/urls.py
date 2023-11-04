@@ -16,14 +16,14 @@ urlpatterns = [
     path("authors/<int:pk>/followrequests/deny/<int:fq_pk>/", views.deny_fq, name="fq_deny"), # dummy url for denying a friend request
 
     # Author API Calls
-    path("authors/<int:pk>/", views.api_single_author, name="api_single_author"),
-    path("authors/", views.api_all_authors, name="api_all_authors"),
+    path("authors/<int:pk>", views.api_single_author, name="api_single_author"),
+    path("authors", views.api_all_authors, name="api_all_authors"),
 
     # Follower API Calls
-    path("authors/<int:pk>/followers/", views.api_follow_list, name="api_follow_list"),
-    path("authors/<int:pk>/followers/<int:foreign_author_id>/", views.api_foreign_follower, name="api_foreign_follower"),
+    path("authors/<int:pk>/followers", views.api_follow_list, name="api_follow_list"),
+    path("authors/<int:pk>/followers/<int:foreign_author_id>", views.api_foreign_follower, name="api_foreign_follower"),
 
     # Post API Calls
-    path("authors/<int:pk>/posts/<int:post_id>/", post_views.api_posts, name="api_posts"),
-    path("authors/<int:pk>/posts/", post_views.api_post_creation, name="api_post_creation")
+    path("authors/<int:pk>/posts/<int:post_id>", post_views.api_posts, name="api_posts"),
+    path("authors/<int:pk>/posts", post_views.api_post_creation, name="api_post_creation")
 ]

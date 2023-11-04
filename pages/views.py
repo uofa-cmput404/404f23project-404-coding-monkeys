@@ -1,5 +1,4 @@
 import json
-import requests
 import enum
 from venv import create
 from django.http import HttpResponse
@@ -149,6 +148,22 @@ def view_my_profile(request):
     author_dict = model_to_dict(author_obj)
     return redirect('author_profile', pk=author_dict.get("id"))
 
+
+
+# API SECTION
+# ===================================================================================================
+
+def get_follower_info(request):
+    follower_dict = {"type": "author",
+        "id": request.data.get("id"),
+        "host": request.data.get("host"),
+        "username": request.data.get("displayName"),
+        "url": request.data.get("url"),
+        "github": request.data.get("github"),
+        "profile_image": request.data.get("profileImage")}
+    
+    return follower_dict
+
 @api_view(['GET', 'POST'])
 def api_single_author(request, pk):
     if request.method == "GET":
@@ -167,7 +182,17 @@ def api_single_author(request, pk):
 
 @api_view(['GET'])
 def api_all_authors(request):
+    # check query params for pagination
+    page = request.GET.get("page")
+    size = request.GET.get("size")
     authors = AuthorUser.objects.all()
+    
+    # if pagination specified, return only the requested range
+    if page is not None and size is not None:
+        start = (int(page) - 1) * int(size)
+        end = start + int(size)
+        authors = authors[start:end]
+
     serializer = AuthorUserSerializer(authors, many=True)
     response = {"type": "authors", "items": serializer.data}
     return Response(response)
@@ -191,40 +216,58 @@ def api_follow_list(request, pk):
 def api_foreign_follower(request, pk, foreign_author_id):
     author = get_object_or_404(AuthorUser, pk=pk)
     noFollowers = False
-    found = False
+    index = -1
 
+    # first determine if foreign_author_id is in author's followers list
     try:
         followers = Followers.objects.get(author=author)
 
-        for f in followers.followers:
-            if f['id'] == foreign_author_id:
-                found = True
+        for f in range(len(followers.followers)):
+            if followers.followers[f]['id'] == foreign_author_id:
+                index = f
     
+        found = index != -1
+
     except Followers.DoesNotExist:
         noFollowers = True
     except:
         return Response(status=500, data="Something went wrong")
             
     if request.method == "GET":
+        # return 200 if found, 404 if not found
         if found:
-            response = {"type": "follower", "result": True}
+            return Response(status=200, data="OK")
         else:
-            response = {"type": "follower", "result": False}
+            return Response(status=404, data="Not found")
         
-        return Response(response)
-    
     elif request.method == "PUT":
-        
+        # this is expecting the request body to be the json of the follower, as per the spec
+
         if not request.user.is_authenticated:
             return Response(status=401, data="You must be logged in to follow someone")
         
         if found:
             return Response(status=400, data="You are already following this user")
         
+        new_follower = get_follower_info(request)
+
         if noFollowers:
-            followers = Followers.objects.create(author=author, followers=[get_author_info(foreign_author_id)])
-            followers.save()
-            return Response(status=201, data="You are now following this user")
+            followers = Followers.objects.create(author=author, followers=[new_follower])
+        else:
+            followers.followers.append(new_follower)
+        
+        followers.save()
+        # respond with 200 and the follower json
+        return Response(status=200, data=new_follower)
         
     elif request.method == "DELETE":
-        pass
+        if not request.user.is_authenticated:
+            return Response(status=401, data="You must be logged in to unfollow someone")
+        
+        if not found:
+            return Response(status=400, data="You are not following this user")
+        
+        follower = followers.followers[index]
+        followers.followers.pop(index)
+        followers.save()
+        return Response(status=200, data=follower)
