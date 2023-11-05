@@ -14,6 +14,7 @@ Authors:
 * Aidan Lynch(alynch1@ualberta.ca)
 * Sophia Ruduke(sruduke@ualberta.ca)
 * Matthew Wood(mwood2@ualberta.ca)
+* Davicheanin Meas(meas@ualberta.ca)
 
 Running Instructions (on the lab machines):
 * Create venv:
