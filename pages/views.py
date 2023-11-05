@@ -55,6 +55,7 @@ def author_user_detail(request, pk):
     except: # author to be viewed has no followers (no instance in db yet)
         already_following = False
         followers = None # safe?
+        follower_avatars = {}
 
     # followers.followers[0]['username']
 
