@@ -40,11 +40,18 @@ def author_user_detail(request, pk):
         num_followers = len(followers.followers)
         viewing_user = request.user.username
         already_following = False
+        follower_avatars = {}
 
         for i in range(0, num_followers):
             #print(followers.followers[i]['username']) # debug
             if (followers.followers[i]['username'] == viewing_user): # if the the viewing/logged in user is in the viewed author's followers list, hide follow button
                 already_following = True
+
+            # handle showing follower profile images
+            follower_username = followers.followers[i]['username'] #TODO replace above? don't want to break anything
+            follower_info = AuthorUser.objects.get(username=follower_username)
+            follower_avatars[follower_username] = follower_info.profile_image # add follower's profile image url to dictionary, with their username as key
+
     except: # author to be viewed has no followers (no instance in db yet)
         already_following = False
         followers = None # safe?
@@ -56,7 +63,7 @@ def author_user_detail(request, pk):
         #print(elements)
         
 
-    return render(request, 'authorprofile.html', {'author': author_user, 'followers': followers, 'already_following': already_following})
+    return render(request, 'authorprofile.html', {'author': author_user, 'followers': followers, 'already_following': already_following, 'follower_avatars': follower_avatars})
 
 class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView): # basic generic view that just displays template
     model = FollowRequests
