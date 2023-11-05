@@ -149,7 +149,17 @@ def deny_fq(self, pk, fq_pk): # delete friend request; remove the request from F
     fq.delete()
     return redirect('author_requests', pk=pk) # redirect back to friend request page when finished
 
-def view_my_profile(request):
+def unfollow_author(request, pk, rq_pk): # unfollow an author (where pk is the author to unfollow, and rq_pk is the pk of the requester to unfollow)
+    followers_instance = Followers.objects.get(author=pk) # get followers instance of author
+    for follower in followers_instance.followers:
+        if (follower['id'] == rq_pk): # if the id of the follower matches that of the requester, delete this follower
+            followers_instance.followers.remove(follower)
+            followers_instance.save()
+            break # finished
+    
+    return redirect('author_profile', pk=pk) # redirect back to author's profile page when finished
+
+def view_my_profile(request): #TODO OBSOLETE; REMOVE? 
     user = request.user # get db information of current user
     author_obj = get_object_or_404(AuthorUser, username=user) # get db information of author to follow
     author_dict = model_to_dict(author_obj)
