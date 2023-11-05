@@ -13,14 +13,17 @@
 
 
 {% block content %}
-<ul>
-<h2 style="padding-left:5px; padding-bottom:10px;"><u>List of Users</u></h2>
+<ul style="list-style-type: none; padding:8px; padding-left:20px">
+<h2 style="padding-left:20px; padding-bottom:10px;"><u>List of Users</u></h2>
 {% for author in authors_list %}
-    <div class="userProfile_followers" style="display: flex; flex-direction: column; padding:10px;">
-        <a href="{% url 'author_profile' pk=author.pk %}" style="max-width:56px; max-height: 56px;"> <!--This is so that you can click on profile icon as a link!-->
-            <li> <img src="{{ author.profile_image }}" class="user_icon" style="width: 50px; height:50px; border-color:#FFD553;"> </li>
+    
+    <div class="list_profiles_gradience"></div>
+
+    <div class="userProfile_List_of_Users" style="display: flex; flex-direction: column; padding:15px; padding-left:45px; ">
+        <a href="{% url 'author_profile' pk=author.pk %}" style="max-width:95px; max-height: 95px; border-radius:35px;"> <!--This is so that you can click on profile icon as a link!-->
+            <li> <img src="{{ author.profile_image }}" class="user_icon" style="width: 90px; height: 90px; border-color:#FFD553;"> </li>
         </a>
-        <li><a href="{% url 'author_profile' pk=author.pk %}">{{ author.username }}</a></li>
+        <li><a href="{% url 'author_profile' pk=author.pk %}" style=" word-break:break-all; font-size:20px;">{{ author.username }}</a></li>
     </div>
 {% empty %}
     <li>No users yet. Database must be empty.</li>

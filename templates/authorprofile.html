@@ -33,8 +33,12 @@
 
       </form>
   {% else %} <!-- someone else's profile-->
-    {% if already_following == True %} <!--if user already following this user, hide follow button-->
+    {% if already_following == True %} <!--if user already following this user, hide follow button, show unfollow button-->
       <p>Following</p>
+      <form action="{% url 'author_unfollow' pk=author.pk rq_pk=user.pk %}">
+        <div>
+          <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Unfollow</button>
+        </div>
     {% else %} <!--not following this user; show follow button-->
         <div>
           <button id="followButton" class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Follow</button>
@@ -46,10 +50,19 @@
     <img src="{{ author.profile_image }}" href="{% static 'css/main.css' %}" class="user_icon" style="width: 200px; height:200px;"> <!--To edit image styling, go to css/main.css-->
     <h2><u>Personal Info</u></h2>
     <p>TBA</p>
-    <h2><u>Followers</u></h2>
-    <ul>
+    <h2 style="margin-top:40px"><u>Followers</u></h2>
+    <ul style="list-style-type: none; ">
       {% for follower in followers.followers %}
-        <li class="userProfile_followers" style="padding-top:5px; padding-bottom:5px;">{{ follower.username }}</li>
+
+        <div class="list_profiles_gradience"></div>
+
+        <div class="userProfile_followers" style="display: flex; flex-direction: column; padding:5px;">
+
+          <img src="{{ follower_avatars|get_item:follower.username}}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553;">
+          <li style="word-break:break-all;">{{ follower.username }}</li>
+
+        </div>
+
       {% endfor %}
     </ul>
   </div>
