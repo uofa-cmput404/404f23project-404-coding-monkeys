@@ -107,12 +107,33 @@ textarea {
 
 
 .userProfile_followers{
-    max-width: 700px; 
+    max-width: 100%; 
     color:white;
+    
+}
+
+
+
+.list_profiles_gradience{
+    max-width: 70%; 
     border-width: 3px;
     border-style: solid none solid none;
     border-bottom:0;
     border-image: linear-gradient(to right, #2a2a2a, #1C1A19) 1;
     /*see https://codyhouse.co/nuggets/css-gradient-borders for border gradience*/
-    
+
+
+}
+
+.userProfile_List_of_Users{/*same thing as .userProfile_followers, except this one should have a hover effect.*/
+    max-width: 100%; 
+    color:white;
+
+
+    /*see https://codyhouse.co/nuggets/css-gradient-borders for border gradience*/
+}
+
+.userProfile_List_of_Users:hover{
+    background-color: #2a2a2a;
+
 }
