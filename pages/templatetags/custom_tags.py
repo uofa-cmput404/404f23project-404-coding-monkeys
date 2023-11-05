@@ -1,4 +1,8 @@
 from django import template
 from django.template import Library
 
-# Didn't end up needing this, but just going to leave it here in case we do.
+from django.template.defaulttags import register
+
+@register.filter # https://stackoverflow.com/questions/8000022/django-template-how-to-look-up-a-dictionary-value-with-a-variable
+def get_item(dictionary, key):
+    return dictionary.get(key)

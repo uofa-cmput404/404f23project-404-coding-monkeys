@@ -41,6 +41,7 @@
     <ul>
       {% for follower in followers.followers %}
         <li class="userProfile_followers" style="padding-top:5px; padding-bottom:5px;">{{ follower.username }}</li>
+        <img src="{{ follower_avatars|get_item:follower.username}}" style="width: 50px; height:50px;"> <!--CAN A CSS ENJOYER MAKE THIS BETTER THX-->
       {% endfor %}
     </ul>
   </div>
