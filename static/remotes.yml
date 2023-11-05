@@ -1,0 +1,22 @@
+remotes:
+  host1:
+    ip: 172.0.0.1
+    posts:
+      global:
+        - displayName: username
+        - url: link
+      put:
+        - specific: example
+  host2:
+    ip: 192.168.0.1
+    posts:
+      global:
+        - displayName: username
+        - url: link
+        - success: 200
+        - failure: 404
+      put:
+        - success: 202
+        - specific: retarded
+    
+

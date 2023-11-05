@@ -1,4 +1,5 @@
 import json
+import enum
 from venv import create
 from django.http import HttpResponse
 
@@ -14,7 +15,7 @@ from django.http import HttpResponseForbidden
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .seralizers import AuthorUserSerializer
+from .seralizers import AuthorUserSerializer, FollowerSerializer, FollowerListSerializer
 
 # DFB pg. 60
 def home_page_view(request): # basic generic view that just displays template
@@ -165,8 +166,24 @@ def view_my_profile(request): #TODO OBSOLETE; REMOVE?
     author_dict = model_to_dict(author_obj)
     return redirect('author_profile', pk=author_dict.get("id"))
 
+
+
+# API SECTION
+# ===================================================================================================
+
+def get_follower_info(request):
+    follower_dict = {"type": "author",
+        "id": request.data.get("id"),
+        "host": request.data.get("host"),
+        "username": request.data.get("displayName"),
+        "url": request.data.get("url"),
+        "github": request.data.get("github"),
+        "profile_image": request.data.get("profileImage")}
+    
+    return follower_dict
+
 @api_view(['GET', 'POST'])
-def get_author(request, pk):
+def api_single_author(request, pk):
     if request.method == "GET":
         author = get_object_or_404(AuthorUser, pk=pk)
         serializer = AuthorUserSerializer(author, many=False)
@@ -182,8 +199,93 @@ def get_author(request, pk):
         return Response(status=400, data=serializer.errors)
 
 @api_view(['GET'])
-def get_authors(request):
+def api_all_authors(request):
+    # check query params for pagination
+    page = request.GET.get("page")
+    size = request.GET.get("size")
     authors = AuthorUser.objects.all()
+    
+    # if pagination specified, return only the requested range
+    if page is not None and size is not None:
+        start = (int(page) - 1) * int(size)
+        end = start + int(size)
+        authors = authors[start:end]
+
     serializer = AuthorUserSerializer(authors, many=True)
     response = {"type": "authors", "items": serializer.data}
     return Response(response)
+
+@api_view(['GET'])
+def api_follow_list(request, pk):
+    author = get_object_or_404(AuthorUser, pk=pk)
+    try: 
+        followers = Followers.objects.get(author=author)
+        serializer = FollowerSerializer(followers.followers, many=True)
+        response = {"type": "followers", "items": serializer.data}
+    # case if author has no followers yet
+    except Followers.DoesNotExist:
+        response = {"type": "followers", "items": []}
+    except:
+        return Response(status=500, data="Something went wrong")
+    
+    return Response(response)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def api_foreign_follower(request, pk, foreign_author_id):
+    author = get_object_or_404(AuthorUser, pk=pk)
+    noFollowers = False
+    index = -1
+
+    # first determine if foreign_author_id is in author's followers list
+    try:
+        followers = Followers.objects.get(author=author)
+
+        for f in range(len(followers.followers)):
+            if followers.followers[f]['id'] == foreign_author_id:
+                index = f
+    
+        found = index != -1
+
+    except Followers.DoesNotExist:
+        noFollowers = True
+    except:
+        return Response(status=500, data="Something went wrong")
+            
+    if request.method == "GET":
+        # return 200 if found, 404 if not found
+        if found:
+            return Response(status=200, data="OK")
+        else:
+            return Response(status=404, data="Not found")
+        
+    elif request.method == "PUT":
+        # this is expecting the request body to be the json of the follower, as per the spec
+
+        if not request.user.is_authenticated:
+            return Response(status=401, data="You must be logged in to follow someone")
+        
+        if found:
+            return Response(status=400, data="You are already following this user")
+        
+        new_follower = get_follower_info(request)
+
+        if noFollowers:
+            followers = Followers.objects.create(author=author, followers=[new_follower])
+        else:
+            followers.followers.append(new_follower)
+        
+        followers.save()
+        # respond with 200 and the follower json
+        return Response(status=200, data=new_follower)
+        
+    elif request.method == "DELETE":
+        if not request.user.is_authenticated:
+            return Response(status=401, data="You must be logged in to unfollow someone")
+        
+        if not found:
+            return Response(status=400, data="You are not following this user")
+        
+        follower = followers.followers[index]
+        followers.followers.pop(index)
+        followers.save()
+        return Response(status=200, data=follower)

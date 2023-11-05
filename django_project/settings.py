@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'pages.apps.PagesConfig', # add pages (placeholder) app to project
     'accounts.apps.AccountsConfig', # add accounts app to project (handles users)
     'posts.apps.PostsConfig', # add posts (placeholder) app to project
+    'connections.apps.ConnectionsConfig', # add connections app to project
 ]
 
 MIDDLEWARE = [

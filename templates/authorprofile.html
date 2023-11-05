@@ -1,17 +1,28 @@
 {% extends "base_with_sidebar.html" %}
 {% load static %}
 
-
-{% block title %} {{author.username}}'s profile  {% endblock title %}
-
 {% block css %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
 {% endblock css %}
 
-
-
 {% block content %}
+
+<script>
+  $(document).ready(function () {
+    $("#followButton").click(function () {
+      $.ajax({
+        url: '{% url "author_followed" pk=author.pk %}',
+        method: 'GET',
+        success: function (data) {
+          $('#followButton').text("Requested");
+        }
+      });
+    });
+  });
+</script>
+
 <div style="padding:25px; background-color:#2a2a2a; margin:1em; border-style:solid; border-color:#FFD553; border-radius:5px;">
   <h1 style="margin-left:0.5em;">Welcome to {{author}}'s profile.</h1>
   {% if user.username == author.username %} <!-- only allow users to update their own profiles; current user username must match that of author-->
@@ -29,11 +40,9 @@
           <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Unfollow</button>
         </div>
     {% else %} <!--not following this user; show follow button-->
-      <form action="{% url 'author_followed' pk=author.pk %}">
         <div>
-          <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Follow</button>
+          <button id="followButton" class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Follow</button>
         </div>
-      </form>
     {% endif %}
   {% endif %}
 

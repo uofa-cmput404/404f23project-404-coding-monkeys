@@ -8,6 +8,7 @@ from accounts.models import AuthorUser, Followers
 import uuid
 import base64
 from django.http import JsonResponse
+from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
 from PIL import Image
 
@@ -244,3 +245,29 @@ def like_post_handler(request):
 
 
     return JsonResponse({'new_post_count': post.count}) #return new post count
+
+@api_view(['GET', 'POST', 'DELETE', 'PUT'])
+def api_posts(request, pk, post_id):
+    post = get_object_or_404(Posts, uuid=post_id)
+
+    try:
+        unique_id_pic = str(post_id) + "_pic"
+        pic_post = Posts.objects.get(uuid=unique_id_pic)
+    except Posts.DoesNotExist:
+        pic_post = None
+
+    if request.method == 'GET':
+        pass
+    elif request.method == 'POST':
+        pass
+    elif request.method == 'DELETE':
+        pass
+    elif request.method == 'PUT':
+        pass
+
+@api_view(['GET', 'POST'])
+def api_post_creation(request, pk):
+    if request.method == 'GET':
+        pass
+    elif request.method == 'POST':
+        pass
