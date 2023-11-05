@@ -22,8 +22,12 @@
 
       </form>
   {% else %} <!-- someone else's profile-->
-    {% if already_following == True %} <!--if user already following this user, hide follow button-->
+    {% if already_following == True %} <!--if user already following this user, hide follow button, show unfollow button-->
       <p>Following</p>
+      <form action="{% url 'author_unfollow' pk=author.pk rq_pk=user.pk %}">
+        <div>
+          <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Unfollow</button>
+        </div>
     {% else %} <!--not following this user; show follow button-->
       <form action="{% url 'author_followed' pk=author.pk %}">
         <div>
