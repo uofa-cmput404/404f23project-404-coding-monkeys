@@ -1,5 +1,6 @@
 import json
 import enum
+from turtle import pen
 from venv import create
 from django.http import HttpResponse
 
@@ -58,14 +59,15 @@ def author_user_detail(request, pk):
         followers = None # safe?
         follower_avatars = {}
 
-    # followers.followers[0]['username']
+    # handle pending friend requests (hide follow button, show "requested")
+    pending_request = False # does author have a pending fq from user?
+    try:
+        FollowRequests.objects.get(summary='{} wants to follow {}'.format(request.user.username, author_user.username)) # a bit jank to search by summary; could add author and user as foreign keys to FollowRequest?
+        pending_request = True # a pending request exists
+    except:
+        pending_request = False # a pending request does not exist
 
-    
-    #for (element in followers.followers):
-        #print(elements)
-        
-
-    return render(request, 'authorprofile.html', {'author': author_user, 'followers': followers, 'already_following': already_following, 'follower_avatars': follower_avatars})
+    return render(request, 'authorprofile.html', {'author': author_user, 'followers': followers, 'already_following': already_following, 'follower_avatars': follower_avatars, 'pending_request': pending_request})
 
 class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView): # basic generic view that just displays template
     model = FollowRequests
