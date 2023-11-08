@@ -27,4 +27,5 @@ urlpatterns = [
     # Post API Calls
     path("authors/<int:pk>/posts/<int:post_id>", post_views.api_posts, name="api_posts"),
     path("authors/<int:pk>/posts", post_views.api_post_creation, name="api_post_creation")
+
 ]

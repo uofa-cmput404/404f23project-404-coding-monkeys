@@ -75,11 +75,22 @@ class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     context_object_name = 'requests_list'
 
     def test_func(self): # CHATGPT - 2023-10-30 Prompt #1
-        user_id = self.kwargs.get('pk')  # Assuming 'pk' is the user ID in the URL.
+        user_id = self.kwargs.get('uuid')  # Assuming 'uuid' is the user ID in the URL.
         return self.request.user.id == user_id
 
     def handle_no_permission(self):
         return HttpResponseForbidden("You do not have permission to access this page.")
+    
+    def get_follower_info(request_data):
+        return {
+        "type": "author",
+        "id": request_data.get("id"),
+        "host": request_data.get("host"),
+        "username": request_data.get("displayName"),
+        "url": request_data.get("url"),
+        "github": request_data.get("github"),
+        "profile_image": request_data.get("profileImage")
+        }
 
     
 
@@ -291,3 +302,17 @@ def api_foreign_follower(request, pk, foreign_author_id):
         followers.followers.pop(index)
         followers.save()
         return Response(status=200, data=follower)
+
+@api_view(['GET', 'POST'])
+def api_follow_requests(request):
+    if request.method == "GET":
+        follow_requests = FollowRequests.objects.all()
+        serializer = FollowRequestsSerializer(follow_requests, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    elif request.method == "POST":
+        serializer = FollowRequestsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
