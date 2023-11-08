@@ -58,9 +58,4 @@ class Comments(models.Model):
     contentType = models.CharField(max_length=100)
     published = models.DateTimeField(auto_now_add=True)
 
-class FriendRequest(models.Model):
-    # This is the model for the friend request
-    sender = models.ForeignKey('AuthorUser', on_delete=models.CASCADE, related_name='sent_requests')
-    recipient = models.ForeignKey('AuthorUser', on_delete=models.CASCADE, related_name='received_requests')
-    status = models.CharField(max_length=20, choices=[('PENDING', 'Pending'), ('ACCEPTED', 'Accepted'), ('REJECTED', 'Rejected')])
-    created_at = models.DateTimeField(auto_now_add=True)
+    
