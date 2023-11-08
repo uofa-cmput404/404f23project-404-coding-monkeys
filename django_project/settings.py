@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig', # add accounts app to project (handles users)
     'posts.apps.PostsConfig', # add posts (placeholder) app to project
     'connections.apps.ConnectionsConfig', # add connections app to project
+    'inbox.apps.InboxConfig', # add inbox app to project
 ]
 
 MIDDLEWARE = [
