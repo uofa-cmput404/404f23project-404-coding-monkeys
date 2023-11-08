@@ -144,7 +144,7 @@ def get_author_info(author_id):
     author_obj = get_object_or_404(AuthorUser, id=author_id) # get db information of author to follow
     full_dict = model_to_dict(author_obj) # convert author object to dictionary
     clean_dict = {"type": "author",
-                    "id": full_dict.get("id"),
+                    "id": full_dict.get("uuid"),
                     "host": full_dict.get("host"),
                     "displayName": full_dict.get("username"),
                     "url": full_dict.get("url"),
@@ -247,7 +247,7 @@ def like_post_handler(request):
     return JsonResponse({'new_post_count': post.count}) #return new post count
 
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
-def api_posts(request, pk, post_id):
+def api_posts(request, uuid, post_id):
     post = get_object_or_404(Posts, uuid=post_id)
 
     try:
@@ -266,7 +266,7 @@ def api_posts(request, pk, post_id):
         pass
 
 @api_view(['GET', 'POST'])
-def api_post_creation(request, pk):
+def api_post_creation(request, uuid):
     if request.method == 'GET':
         pass
     elif request.method == 'POST':

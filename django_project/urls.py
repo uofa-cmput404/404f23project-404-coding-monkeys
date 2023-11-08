@@ -16,6 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework import permissions
+
+# https://episyche.com/blog/how-to-create-django-api-documentation-using-swagger
+schema_view = get_schema_view(
+    openapi.Info(
+        title="ChimpChat API Documentation",
+        default_version='v1',),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +37,5 @@ urlpatterns = [
     path("connections/", include("connections.urls")), # if connections request, forward to connections.urls (follow, unfollow
     # path("inbox/", include("inbox.urls")), # if inbox request, forward to inbox.urls (follow, unfollow
     path("", include("pages.urls")), # goto pages.urls if generic request 
+    path('docs/', schema_view.with_ui('swagger', cache_timeout=0),name='schema-swagger-ui'),
 ]

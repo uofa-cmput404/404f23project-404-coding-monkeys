@@ -44,6 +44,9 @@ INSTALLED_APPS = [
     'posts.apps.PostsConfig', # add posts (placeholder) app to project
     'connections.apps.ConnectionsConfig', # add connections app to project
     'inbox.apps.InboxConfig', # add inbox app to project
+    'drf_yasg', # add swagger to project
+    'rest_framework_swagger',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'django_project.urls'
@@ -73,6 +77,10 @@ TEMPLATES = [
         },
     },
 ]
+
+# CORS needed for swagger API testing to work in browser
+# TODO change to CORS_ALLOWED_ORIGINS once we have our teams set up
+CORS_ALLOW_ALL_ORIGINS = True
 
 WSGI_APPLICATION = 'django_project.wsgi.application'
 
