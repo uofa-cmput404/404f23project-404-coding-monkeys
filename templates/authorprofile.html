@@ -14,7 +14,7 @@
   $(document).ready(function () {
     $("#followButton").click(function () {
       $.ajax({
-        url: '{% url "author_followed" pk=author.pk %}',
+        url: '{% url "author_followed" uuid=author.uuid %}',
         method: 'GET',
         success: function (data) {
           $('#followButton').text("Requested");
@@ -27,7 +27,7 @@
 <div style="padding:25px; background-color:#2a2a2a; margin:1em; border-style:solid; border-color:#FFD553; border-radius:5px;">
   <h1 style="margin-left:0.5em;">Welcome to {{author}}'s profile.</h1>
   {% if user.username == author.username %} <!-- only allow users to update their own profiles; current user username must match that of author-->
-      <form action="{% url 'author_edit' pk=author.pk %}">
+      <form action="{% url 'author_edit' uuid=author.uuid %}">
         <div>
           <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Edit Profile</button>
         </div>
@@ -36,14 +36,14 @@
   {% else %} <!-- someone else's profile-->
     {% if already_following == True %} <!--if user already following this user, hide follow button, show unfollow button-->
       <p>Following</p>
-      <form action="{% url 'author_unfollow' pk=author.pk rq_pk=user.pk %}">
+      <form action="{% url 'author_unfollow' uuid=author.uuid rq_uuid=user.uuid %}">
         <div>
           <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Unfollow</button>
         </div>
     {% elif pending_request == True %} <!--there is a pending friend request; hide follow button, show "requested"-->
         <p>Requested</p>
     {% else %} <!--not following this user and have not sent request yet; show follow button-->
-        <form action="{% url 'author_followed' pk=author.pk %}">
+        <form action="{% url 'author_followed' uuid=author.uuid %}">
         <div>
           <button id="followButton" class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Follow</button>
         </div>

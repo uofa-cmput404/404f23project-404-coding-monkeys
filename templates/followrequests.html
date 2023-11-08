@@ -9,7 +9,7 @@
 {% for request in requests_list %}
     {% if user.username == request.recipient.username %} <!--only show requests where user is the recipient-->
         <h3>{{request.requester.username}} wants to follow you.</h3>
-        <a href="{% url 'fq_accept' pk=user.pk fq_pk=request.pk %}">Accept</a> | <a href="{% url 'fq_deny' pk=user.pk fq_pk=request.pk %}">Deny</a> <!--CHATAGPT - 2023-10-22 - Prompt #1-->
+        <a href="{% url 'fq_accept' uuid=user.uuid fq_uuid=request.requester_uuid %}">Accept</a> | <a href="{% url 'fq_deny' uuid=user.uuid fq_uuid=request.requester_uuid %}">Deny</a> <!--CHATAGPT - 2023-10-22 - Prompt #1-->
     {% endif %}
 {% empty %}
     <li>No friend requests yet.</li>
