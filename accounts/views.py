@@ -6,8 +6,6 @@ from .forms import AuthorCreationForm
 from accounts.forms import AuthorUpdateForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponseForbidden
-from .models import FollowRequests
-from django.http import JsonResponse
 
 class SignUpView(CreateView):
     form_class = AuthorCreationForm
@@ -34,50 +32,3 @@ class AuthorUpdateView(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
     
     def get_success_url(self): # gpt
         return reverse_lazy('author_profile', kwargs={'pk': self.object.pk})
-    
-    def create_follow_request(self, request):
-        if request.method=='POST':
-            data=request.POST
-            follow_request = FollowRequests.objects.create(
-                summary=data.get('summary'),
-                requester=data.get('actor'),
-                recipient=data.get('object'),
-                status='pending' 
-            )
-            follow_request.save()
-            return JsonResponse({'message': 'Friend/Follow request created successfully.'})
-        else:
-            return JsonResponse({'error': 'Invalid request method'}, status=400)
-    def accept_friend_request(self, request, friend_request_id):
-        if request.method == 'POST':
-            try:
-                friend_request = FollowRequests.objects.get(id=friend_request_id)
-            except FollowRequests.DoesNotExist:
-                return JsonResponse({'error': 'Friend request not found'}, status=404)
-
-            if friend_request.status == 'pending':
-                friend_request.status = 'accepted'
-                friend_request.save()
-                #send status update to inbox
-                return JsonResponse({'message': 'Friend request accepted successfully.'})
-            else:
-                return JsonResponse({'error': 'Friend request has already been accepted.'}, status=400)
-        else:
-            return JsonResponse({'error': 'Invalid request method'}, status=400)
-    def deny_friend_request(self, request, friend_request_id):
-        if request.method == 'POST':
-            try:
-                friend_request = FollowRequests.objects.get(id=friend_request_id)
-            except FollowRequests.DoesNotExist:
-                return JsonResponse({'error': 'Friend request not found'}, status=404)
-
-            if friend_request.status == 'pending':
-                friend_request.status = 'rejected'
-                friend_request.save()
-                #send status update to inbox
-
-                return JsonResponse({'message': 'Friend request denied successfully.'})
-            else:
-                return JsonResponse({'error': 'Friend request has already been accepted or rejected.'}, status=400)
-        else:
-            return JsonResponse({'error': 'Invalid request method'}, status=400)
