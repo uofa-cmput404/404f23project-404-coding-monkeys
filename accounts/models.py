@@ -20,6 +20,15 @@ class Followers(models.Model):
 
 # This table will delete requests once they have been fulfilled and added to the Follower table
 class FollowRequests(models.Model):
+    #adding status of the request to being friends
+    PENDING = 'pending'
+    ACCEPTED = 'accepted'
+    REJECTED = 'rejected'
+    STATUS_CHOICES = [
+        (PENDING, 'Pending'),
+        (ACCEPTED, 'Accepted'),
+        (REJECTED, 'Rejected'),
+    ]
     summary = models.CharField(max_length=100)
     # could possible have a boolean for requester and recipient to see if they are local to our node, and instead
     # of storing an entire dictionary of information it can just be an author id which we will retrieve data from in
@@ -27,7 +36,7 @@ class FollowRequests(models.Model):
     requester = models.JSONField(default=dict)
     recipient = models.JSONField(default=dict)
     sent_at = models.DateTimeField(auto_now_add=True)
-
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
     def __str__(self): # show summary in django admin view tooltip 
         return self.summary
 
