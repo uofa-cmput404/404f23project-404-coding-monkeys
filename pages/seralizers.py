@@ -1,9 +1,14 @@
 from rest_framework import serializers
 from accounts.models import AuthorUser
+from static.vars import ENDPOINT
 
 class AuthorUserSerializer(serializers.ModelSerializer):
     
+    def get_url(self, obj):
+        return f"{ENDPOINT}authors/{obj.uuid}"
+
     type = serializers.CharField(default="author", max_length=6)
+    id = serializers.SerializerMethodField('get_url')
     displayName = serializers.CharField(max_length=100, source='username')
     profileImage = serializers.CharField(max_length=100, source='profile_image')
 
@@ -12,12 +17,11 @@ class AuthorUserSerializer(serializers.ModelSerializer):
         fields = ['type', 'id', 'host', 'displayName', 'url', 'github', 'profileImage']
 
     def update(self, instance, validated_data):
-        instance.id = validated_data.get('id', instance.id)
         instance.host = validated_data.get('host', instance.host)
-        instance.username = validated_data.get('displayName', instance.username)
+        instance.username = validated_data.get('username', instance.username)
         instance.url = validated_data.get('url', instance.url)
         instance.github = validated_data.get('github', instance.github)
-        instance.profile_image = validated_data.get('profileImage', instance.profile_image)
+        instance.profile_image = validated_data.get('profile_image', instance.profile_image)
         instance.save()
         return instance
 
@@ -31,15 +35,6 @@ class FollowerSerializer(serializers.Serializer):
     github = serializers.CharField(max_length=100)
     profileImage = serializers.CharField(max_length=100, source='profile_image')
 
-    def update(self, instance, validated_data):
-        instance.id = validated_data.get('id', instance.id)
-        instance.host = validated_data.get('host', instance.host)
-        instance.username = validated_data.get('displayName', instance.username)
-        instance.url = validated_data.get('url', instance.url)
-        instance.github = validated_data.get('github', instance.github)
-        instance.profile_image = validated_data.get('profileImage', instance.profile_image)
-        instance.save()
-        return instance
 
 class FollowerListSerializer(serializers.Serializer):
     class Meta:

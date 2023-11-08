@@ -4,7 +4,7 @@ import datetime
 class Posts(models.Model):
     title = models.CharField(max_length=100)
     # do we want ID as entire URL or just post id?
-    uuid = models.URLField(primary_key=True)
+    uuid = models.CharField(primary_key=True, unique=True, max_length=36)
     source = models.URLField()
     origin = models.URLField()
     description = models.CharField(max_length=200)
@@ -51,8 +51,8 @@ class Likes(models.Model):
 class Comments(models.Model):
     # would UUIDs be better as links or just the UUID?
     # uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    url_id = models.URLField(primary_key=True)
-    post = models.ForeignKey(Posts, on_delete=models.CASCADE, related_name='post')
+    uuid = models.CharField(primary_key=True, unique=True, max_length=36)
+    post = models.ForeignKey(Posts, on_delete=models.CASCADE, related_name='post', to_field="uuid")
     author = models.JSONField(default=dict)
     comment = models.TextField()
     contentType = models.CharField(max_length=100)

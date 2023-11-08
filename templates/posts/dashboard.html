@@ -41,7 +41,7 @@
         <div class="post" style="margin-top:3em">
             <section id="post_author">
                 <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
-                <a href="{{ post.author.url }}">{{ post.author.displayName}}</a>
+                <a href="{% url 'author_profile' uuid=post.author.id %}">{{ post.author.displayName}}</a>
                 <div class="flex_grow"></div>
                 <p style="align-self: end;">{{ post.published }}</p>
             </section>
