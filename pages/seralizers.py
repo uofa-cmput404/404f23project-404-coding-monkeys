@@ -4,7 +4,6 @@ from static.vars import ENDPOINT
 
 class AuthorUserSerializer(serializers.ModelSerializer):
     
-    
     def get_url(self, obj):
         return f"{ENDPOINT}authors/{obj.uuid}"
 
@@ -50,3 +49,9 @@ class FollowerListSerializer(serializers.Serializer):
         instance.followers = validated_data.get('followers', instance.followers)
         instance.save()
         return instance
+
+class FollowRequestsSerializer(serializers.Serializer):
+    type = serializers.CharField(default="Follow", max_length=10)
+    summary = serializers.CharField()
+    actor = AuthorUserSerializer()
+    object = AuthorUserSerializer()

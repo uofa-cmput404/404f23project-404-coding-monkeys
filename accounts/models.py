@@ -1,6 +1,7 @@
 # DFB pg. 165
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+import uuid
 from static.vars import ENDPOINT
 
 class AuthorUser(AbstractUser):
