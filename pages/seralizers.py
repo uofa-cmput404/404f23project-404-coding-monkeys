@@ -49,3 +49,9 @@ class FollowerListSerializer(serializers.Serializer):
         instance.followers = validated_data.get('followers', instance.followers)
         instance.save()
         return instance
+
+class FollowRequestsSerializer(serializers.Serializer):
+    type = serializers.CharField(default="Follow", max_length=10)
+    summary = serializers.CharField()
+    actor = AuthorUserSerializer()
+    object = AuthorUserSerializer()
