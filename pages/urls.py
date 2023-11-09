@@ -31,4 +31,7 @@ urlpatterns = [
 
     # Inbox API Calls
     path("authors/<str:uuid>/inbox", inbox_views.api_inbox, name="api_inbox"),
+
+    #Post Image API calls
+    path('authors/<str:author_id>/posts/<str:post_id>/image/', post_views.get_image_post, name='get_image_post')
 ]

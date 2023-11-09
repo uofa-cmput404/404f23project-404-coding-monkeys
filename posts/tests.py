@@ -1,10 +1,11 @@
 from django.test import TestCase
 import requests
 import json
+from static.vars import ENDPOINT
 
 # Create your tests here.
-author_id = 
-post_id = 
+author_id = "7bdcfebf-6870-461b-b9ff-4f75f938f4e1"
+post_id = "764efa883dda1e11db47671c4a3bbd9e"
 
 mock_post = {
     "type":"post",
@@ -56,10 +57,12 @@ mock_post = {
     "visibility": "PUBLIC",
     "unlisted": "false"
 }
-    
+
+url = f"{ENDPOINT}authors/{author_id}/posts/{post_id}"
 
 # make new post
-
+encoded = json.dumps(mock_post)
+requests.put(url, data=encoded)
 # get post
 
 # edit post
