@@ -9,4 +9,5 @@ urlpatterns = [
     path('delete_post/', views.edit_post, name='delete_post'),
     path('stream/', views.view_posts, name='stream'),
     path('like_post/', views.like_post_handler, name='like_post'),
+    path('authors/<str:author_id>/posts/<str:post_id>/image', viws.get_image_post, name='get_image_post')
 ]
