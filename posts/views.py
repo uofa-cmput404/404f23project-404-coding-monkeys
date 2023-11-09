@@ -4,7 +4,7 @@ from django.forms.models import model_to_dict
 from .models import Posts, Likes
 from .forms import PostForm
 from django.urls import reverse
-from accounts.models import AuthorUser, Followers
+from accounts.models import AuthorUser, Followers, Posts
 import uuid
 import base64
 from django.http import JsonResponse
@@ -257,13 +257,68 @@ def api_posts(request, uuid, post_id):
         pic_post = None
 
     if request.method == 'GET':
-        pass
+        if pic_post:  # Check if the post is an image post
+            # Logic for retrieving and returning image data
+            try:
+                binary_data = base64.b64decode(image_data)
+                # Set the appropriate content type for the image
+                content_type = pic_post.contentType.split(';')[0]
+                return HttpResponse(binary_data, content_type=content_type)
+
+            except Exception as e:
+                return HttpResponse(status=500)
+        else:
+            return HttpResponse(status=404)
     elif request.method == 'POST':
-        pass
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user  # Set the author of the post
+            # Logic for handling multiple image uploads
+            image_files = request.FILES.getlist('pictures')  # Assuming 'pictures' is the field name for image uploads
+
+            for image_file in image_files:
+                image_data, content_type = get_picture_info(image_file)
+                # Save each additional picture as a separate post with the same UUID followed by '_pic' for identification
+                pic_post = Posts(uuid=str(post_id) + "_pic", author=post.author, content=image_data, contentType=content_type, unlisted=True)
+                pic_post.save()
+
+            post.save()  # Save the post
+
+            # Return a success response
+            return JsonResponse({'message': 'Post created successfully'}, status=201)
     elif request.method == 'DELETE':
-        pass
+        try:
+            image_id = request.data.get('image_id')  # Assuming 'image_id' is the identifier for the image selected
+            pic_post = Posts.objects.get(uuid=str(post_id) + "_pic", id=image_id)
+            pic_post.delete()  # Delete the selected image post
+
+          
+            return JsonResponse({'message': 'Image deleted successfully'}, status=200)
+
+        except Posts.DoesNotExist:
+            return JsonResponse({'error': 'Image not found'}, status=404)
     elif request.method == 'PUT':
-        pass
+        try:
+            image_id = request.data.get('image_id')  # Assuming 'image_id' is the identifier for the image to be replaced
+            pic_post = Posts.objects.get(uuid=str(post_id) + "_pic", id=image_id)
+
+            # Update the selected image with the new image data
+            image_file = request.FILES.get('new_image')  # Assuming 'new_image' is the field name for the new image upload
+            if image_file:
+                image_data, content_type = get_picture_info(image_file)
+                pic_post.content = image_data
+                pic_post.contentType = content_type
+                pic_post.save()
+               
+                return JsonResponse({'message': 'Image updated successfully'}, status=200)
+
+            else:
+               
+                return JsonResponse({'error': 'No new image provided'}, status=400)
+
+        except Posts.DoesNotExist:
+            return JsonResponse({'error': 'Image not found'}, status=404)
 
 @api_view(['GET', 'POST'])
 def api_post_creation(request, uuid):
