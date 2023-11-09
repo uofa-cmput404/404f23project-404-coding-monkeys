@@ -23,10 +23,10 @@ urlpatterns = [
 
     # Follower API Calls
     path("authors/<str:uuid>/followers", views.api_follow_list, name="api_follow_list"),
-    path("authors/<str:uuid>/followers/<int:foreign_author_id>", views.api_foreign_follower, name="api_foreign_follower"),
+    path("authors/<str:uuid>/followers/<str:foreign_author_id>", views.api_foreign_follower, name="api_foreign_follower"),
 
     # Post API Calls
-    path("authors/<str:uuid>/posts/<int:post_id>", post_views.api_posts, name="api_posts"),
+    path("authors/<str:uuid>/posts/<str:post_id>", post_views.api_posts, name="api_posts"),
     path("authors/<str:uuid>/posts", post_views.api_post_creation, name="api_post_creation"),
 
     # Inbox API Calls

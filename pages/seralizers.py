@@ -5,7 +5,7 @@ from static.vars import ENDPOINT
 class AuthorUserSerializer(serializers.ModelSerializer):
     
     def get_url(self, obj):
-        return f"{ENDPOINT}authors/{obj.uuid}"
+        return f"{ENDPOINT}authors/{obj.get('uuid')}"
 
     type = serializers.CharField(default="author", max_length=6)
     id = serializers.SerializerMethodField('get_url')
@@ -14,7 +14,7 @@ class AuthorUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AuthorUser
-        fields = ['type', 'id', 'host', 'displayName', 'url', 'github', 'profileImage']
+        fields = ['type', 'id', 'host', 'displayName', "url", 'github', 'profileImage']
 
     def update(self, instance, validated_data):
         instance.host = validated_data.get('host', instance.host)
@@ -24,6 +24,16 @@ class AuthorUserSerializer(serializers.ModelSerializer):
         instance.profile_image = validated_data.get('profile_image', instance.profile_image)
         instance.save()
         return instance
+
+class AuthorUserReferenceSerializer(serializers.Serializer):
+    type = serializers.CharField(default="author", max_length=6)
+    id = serializers.CharField()
+    url = serializers.CharField()
+    host = serializers.CharField()
+    github = serializers.CharField()
+    displayName = serializers.CharField(max_length=50)
+    profileImage = serializers.CharField()
+
 
 class FollowerSerializer(serializers.Serializer):
     

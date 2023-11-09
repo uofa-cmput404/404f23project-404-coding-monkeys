@@ -9,19 +9,12 @@ from drf_yasg.utils import swagger_auto_schema
 from .serializers import InboxSerializer, InboxItemSerializer
 
 # Create your views here.
-@swagger_auto_schema(
-    methods=['GET'],
-    operation_description="Test",
-)
-@swagger_auto_schema(
-    methods=['POST'],
-    operation_description="Test the sequel",
-    request_body=InboxItemSerializer,
-)
+@swagger_auto_schema(methods=['GET'],operation_description="Test",)
+@swagger_auto_schema(methods=['POST'], operation_description="Test the sequel", request_body=InboxItemSerializer)
 @api_view(['GET', 'POST', 'DELETE'])
-def api_inbox(request, pk):
+def api_inbox(request, uuid):
     
-    author = get_object_or_404(AuthorUser, pk=pk)
+    author = get_object_or_404(AuthorUser, uuid=uuid)
 
     if request.user.id != author.id:
         return Response(status=404)

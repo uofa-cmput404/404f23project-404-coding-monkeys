@@ -10,10 +10,13 @@
 <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <script src="{% static '/js/post_popup.js' %}"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<meta name="csrf-token" content="{{ csrf_token }}">
 
 <!-- Script for handling ajax for like button press -->
 <script>
     $(document).ready(function () {
+        var csrfToken = $('meta[name=csrf-token]').attr('content');
+
         $(".like-button").click(function () {
             var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
             $.ajax({
@@ -25,6 +28,26 @@
                     $('#result-' + post_uuid).text(data.new_post_count);
                 }
             });
+        });
+
+        $(".delete-confirm").click(function () {
+            var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
+            var author_uuid = $(this).data("author-uuid");
+            $.ajax({
+                url: "/authors/" + author_uuid + "/posts/" + post_uuid,
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                success: function(data) {
+                    location.reload();
+                    $("#modal").hide();
+                },
+                error: function(data) {
+                    console.log("error");
+                }
+            });
+            
         });
     });
 
@@ -74,8 +97,8 @@
                         <div class="col-flex">
                         <p style="color:white; font-size: 32px;">Are you sure you want to delete this post?</p>
                         <div class="row-flex" style="justify-content: center; align-items: center;">
-                            <div class="popup_button" style="margin-right:20px;"><button style="margin: 0; padding: 0;" class="close_button" type="button">Cancel</button></div>
-                            <div class="popup_button"><a style="margin: 0; padding: 0;" href="{% url 'delete_post' post_uuid=post.uuid author_id=post.author.id %}">Confirm</a></div>
+                            <button style="margin-right: 10px;" class="close-button" type="button">Cancel</button>
+                            <button class="delete-confirm" data-post-uuid="{{ post.uuid }}" data-author-uuid="{{ post.author.id }}">Confirm</button>
                         </div>
                     </dialog>
                     <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
@@ -114,7 +137,7 @@
 
     const open_modals = document.querySelectorAll(".delete_button");
     const modals = document.querySelectorAll(".modal");
-    const close_modals = document.querySelectorAll(".close_button");
+    const close_modals = document.querySelectorAll(".close-button");
 
     for (let i = 0; i < open_modals.length; i++) {
         const open_modal = open_modals[i];
