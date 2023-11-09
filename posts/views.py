@@ -260,19 +260,15 @@ def api_posts(request, uuid, post_id):
         if pic_post:  # Check if the post is an image post
             # Logic for retrieving and returning image data
             try:
-                # Check if the content is base64-encoded
-                if not pic_post.content.startswith('data:'):
-                    return HttpResponse(status=404)
-                # Extract the base64-encoded image data
-                image_data = pic_post.content.split(';base64,')[-1]
-                # Decode the base64-encoded data to binary
                 binary_data = base64.b64decode(image_data)
                 # Set the appropriate content type for the image
                 content_type = pic_post.contentType.split(';')[0]
                 return HttpResponse(binary_data, content_type=content_type)
 
             except Exception as e:
-                return HttpResponse(status=404)
+                return HttpResponse(status=500)
+        else:
+            return HttpResponse(status=404)
     elif request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
