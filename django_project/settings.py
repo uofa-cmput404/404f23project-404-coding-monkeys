@@ -144,3 +144,10 @@ AUTH_USER_MODEL = "accounts.AuthorUser" # tell django to use our custom user
 
 LOGIN_REDIRECT_URL = "/posts/stream" # new
 LOGOUT_REDIRECT_URL = "home" # new
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}

@@ -204,12 +204,10 @@ def api_single_author(request, uuid):
         return Response(serializer.data)
     elif request.method == "POST":
         author = get_object_or_404(AuthorUser, uuid=uuid)
-        print(request.data)
         serializer = AuthorUserSerializer(author, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.update(author, serializer.validated_data)
-            print(serializer.validated_data)
             return Response(serializer.data)
 
         return Response(status=400, data=serializer.errors)

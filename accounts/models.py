@@ -11,7 +11,7 @@ class AuthorUser(AbstractUser):
     username = models.CharField(max_length=20, unique=True) # https://www.reddit.com/r/django/comments/id2ch0/user_models_username_max_length/
     # change from IP address field to URL field
     host = models.URLField(default = ENDPOINT) # hardcoded localhost for now
-    url = models.URLField() #TODO setup proper page
+    url = models.URLField(null=True, blank=True) #TODO setup proper page
     github = models.URLField(null=True, blank=True)
     profile_image = models.URLField(null=True, blank=True) # optional
 

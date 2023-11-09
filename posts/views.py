@@ -1,16 +1,21 @@
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
 from django.forms.models import model_to_dict
+from rest_framework.response import Response
+from posts.serializers import PostsSerializer
 from .models import Posts, Likes
 from .forms import PostForm
 from django.urls import reverse
-from accounts.models import AuthorUser, Followers, Posts
+from accounts.models import AuthorUser, Followers
 import uuid
 import base64
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
 from PIL import Image
+from drf_yasg.utils import swagger_auto_schema
+from static.vars import ENDPOINT
+from django.http import HttpResponse
 
 class PostCreate(CreateView):
     model = Posts
@@ -149,7 +154,6 @@ def get_author_info(author_id):
                     "displayName": full_dict.get("username"),
                     "url": full_dict.get("url"),
                     "github": full_dict.get("github"),
-                    "bio": full_dict.get("bio"),
                     "profileImage": full_dict.get("profile_image")}
 
     return clean_dict
@@ -246,10 +250,63 @@ def like_post_handler(request):
 
     return JsonResponse({'new_post_count': post.count}) #return new post count
 
+@swagger_auto_schema(methods=['POST','PUT'],operation_description="Test the sequel",request_body=PostsSerializer,)
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
 def api_posts(request, uuid, post_id):
-    post = get_object_or_404(Posts, uuid=post_id)
+    if request.method == 'PUT':
+        post = Posts.objects.create(uuid=post_id, author=uuid)
+    else:
+        post = get_object_or_404(Posts, uuid=post_id)
 
+    try:
+        unique_id_pic = str(post_id) + "_pic"
+        pic_post = Posts.objects.get(uuid=unique_id_pic)
+    except Posts.DoesNotExist:
+        pic_post = None
+
+    if request.method == 'GET':
+        serializer = PostsSerializer(post)
+
+        if post.author.get('host') == ENDPOINT:
+            serializer.data['author']['id'] = f"{ENDPOINT}authors/{post.author['id']}"
+
+        return Response(serializer.data)
+
+    # print(request.user.uuid)
+    # print(uuid)
+    # if request.user.uuid != uuid:
+    #     return Response(status=403, data="You are not authorized to edit this post")
+    
+    elif request.method == 'POST':
+        if not request.user.is_authenticated:
+            return Response(status=401, data="You must be logged in to edit a post")
+        
+        serializer = PostsSerializer(post, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.update(post, serializer.validated_data)
+            return Response(serializer.data)
+
+        return Response(status=400, data=serializer.errors)
+    
+    elif request.method == 'DELETE':
+        post.delete()
+        if pic_post:
+            pic_post.delete()
+
+        return Response(status=204)
+
+    elif request.method == 'PUT':
+        serializer = PostsSerializer(post, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.update(post, serializer.validated_data)
+            return Response(serializer.data)
+        
+        return Response(status=400, data=serializer.errors)
+
+@api_view(['GET', 'POST', 'DELETE', 'PUT'])
+def get_image_post(request, uuid, post_id):
     try:
         unique_id_pic = str(post_id) + "_pic"
         pic_post = Posts.objects.get(uuid=unique_id_pic)
@@ -269,6 +326,7 @@ def api_posts(request, uuid, post_id):
                 return HttpResponse(status=500)
         else:
             return HttpResponse(status=404)
+        
     elif request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
@@ -293,7 +351,7 @@ def api_posts(request, uuid, post_id):
             pic_post = Posts.objects.get(uuid=str(post_id) + "_pic", id=image_id)
             pic_post.delete()  # Delete the selected image post
 
-          
+            
             return JsonResponse({'message': 'Image deleted successfully'}, status=200)
 
         except Posts.DoesNotExist:
@@ -310,11 +368,11 @@ def api_posts(request, uuid, post_id):
                 pic_post.content = image_data
                 pic_post.contentType = content_type
                 pic_post.save()
-               
+                
                 return JsonResponse({'message': 'Image updated successfully'}, status=200)
 
             else:
-               
+                
                 return JsonResponse({'error': 'No new image provided'}, status=400)
 
         except Posts.DoesNotExist:

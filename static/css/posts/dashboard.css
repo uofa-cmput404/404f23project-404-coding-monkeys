@@ -201,7 +201,7 @@ button, .context_button {
     opacity: 0.5;
 }
 
-.popup_button {
+.delete-confirm, .close-button {
     border-radius: 2em;
     background-color: #525151;
     border-style: none;
@@ -218,14 +218,16 @@ button, .context_button {
     box-shadow: 10px 10px 5px rgb(24, 23, 23)
 }
 
+.delete-confirm:hover, .close-button:hover {
+    background-color: #878686;
+    /* box-shadow: 0 0 5px rgb(250, 250, 250) */
+}
+
 .popup_button button, .popup_button a, .popup_button a:hover{
     text-decoration: none;
     color: #FFD553;
 }
 
-.popup_button:hover {
-    background-color: #878686;
-}
 
 .delete_button, .close_button {
     background-color: transparent;
