@@ -378,6 +378,7 @@ def api_foreign_follower(request, uuid, foreign_author_id):
 
     except Followers.DoesNotExist:
         noFollowers = True
+        found = False
     except:
         return Response(status=500, data="Something went wrong")
             

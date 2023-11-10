@@ -37,10 +37,10 @@
                 },
                 success: function(data) {
                     json_data = JSON.parse(data);
-                    console.log(json_data.host_index);
+                    // console.log(json_data.host_index);
                     var index = json_data.host_index;
                     var uuid = json_data.uuid;
-                    // window.location.href = "/authors/" + index + "/" + uuid + "/";
+                    window.location.href = "/authors/" + index + "/" + uuid + "/";
                 },
                 error: function(data) {
                     console.log("error");
