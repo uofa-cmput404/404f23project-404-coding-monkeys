@@ -23,6 +23,27 @@ p {
     box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
+.signup_button {
+    padding: 0.20em;
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+    font-size:25px;
+
+    background-color: #1C1A19;
+    border-radius: 40px;
+    border-style: none;
+    color:#FFD553;
+}
+
+/* https://www.w3schools.com/css/css3_buttons.asp */
+.signup_button:hover {
+    transform: scale(1.10);/*makes it bigger when hovering over it*/
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+
+}
+
+
+
 .container_flex {
     display: flex;
     flex-direction: column;
@@ -135,5 +156,120 @@ textarea {
 
 .userProfile_List_of_Users:hover{
     background-color: #2a2a2a;
+
+}
+
+
+.circles{/*see https://alvarotrigo.com/blog/animated-backgrounds-css/ for how to make background animations*/
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;/*z-index is for positioning. forground or background. the stack order. make it -1 so that
+    doesnt interfere with our buttons and text-fields*/
+}
+
+.circles li{
+    position: absolute;
+    display: block;
+    list-style: none;
+    /*width: 20px;
+    height: 20px;*/
+    animation: animate 25s linear infinite;
+    bottom: -150px;
+    z-index: -1;
+    
+}
+
+.circles li:nth-child(1){
+    right: 17.5%;
+
+    animation-delay: 0s;
+}
+
+
+.circles li:nth-child(2){
+    right: 7%;
+
+    animation-delay: 2s;
+    animation-duration: 12s;
+}
+
+.circles li:nth-child(3){
+    right: 49%;
+
+    animation-delay: 4s;
+}
+
+.circles li:nth-child(4){
+    right: 28%;
+
+    animation-delay: 0s;
+    animation-duration: 18s;
+}
+
+.circles li:nth-child(5){
+    right: 45.5%;
+
+    animation-delay: 0s;
+}
+
+.circles li:nth-child(6){
+    right: 52.5%;
+
+    animation-delay: 3s;
+}
+
+.circles li:nth-child(7){
+    right: 24.5%;
+
+    animation-delay: 7s;
+}
+
+.circles li:nth-child(8){
+    right: 35%;
+
+    animation-delay: 15s;
+    animation-duration: 45s;
+}
+
+.circles li:nth-child(9){
+    right: 14%;
+
+    animation-delay: 2s;
+    animation-duration: 35s;
+}
+
+.circles li:nth-child(10){
+    right: 59.5%;
+
+    animation-delay: 0s;
+    animation-duration: 11s;
+}
+
+.circles li:nth-child(11){
+    right: 66%;
+
+    animation-delay: 6s;
+    animation-duration: 11s;
+}
+
+
+
+@keyframes animate {
+
+    0%{
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+        border-radius: 0;
+    }
+
+    100%{
+        transform: translateY(-1000px) rotate(720deg);
+        opacity: 0;
+        border-radius: 50%;
+    }
 
 }

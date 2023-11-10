@@ -1,10 +1,82 @@
-<!-- DFB pg. 175 -->
-{% extends "base.html" %}
+{% load static %}
+<!DOCTYPE html>
 
-{% block title %}Home Page{% endblock title %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Sign in{% endblock title %}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com"><!--This is what i used to set the font! used font from google!-->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap" rel="stylesheet">
 
-{% block content %}
-<p>You are not logged in</p>
-<a href="{% url 'login' %}">Log In</a> |
-<a href="{% url 'signup' %}">Sign Up</a>
-{% endblock content %}
+
+    {% block css %}
+    <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
+
+    <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <link rel="icon" type="image/x-icon" href={% static 'images/monkey_icon.jpg' %}>
+    {% endblock css %}
+</head>
+
+
+
+<body>
+    <main>
+        <div class="row-flex" style="display: flex; min-height: 100vh;">
+            <div class="col-flex" style="flex: 30%; background-color:#FFD553;">
+                
+                    <div class="row-flex">
+                        <img src={% static 'images/monkey_icon.jpg'%} alt="" title = "" width="140" height="auto">
+                        <h1 style="color: black; text-align: center; padding-left: 20px; padding-right: 20px; padding-top: 40px; font-size:60px;">ChimpChat</h1>
+                    </div>
+
+                <div style=" margin-top:120px; margin-bottom:20px; margin-left:10px; margin-right:10px; border-radius:5px;">
+                    <p style="color: black; text-align: center; padding-left: 20px; margin-top: 30px; font-size:50px;">New here?</p>
+
+                    <p style="color: black; text-align: center; padding-left: 20px; margin-top: 20px; margin-bottom:30px; font-size:25px;">
+                        Create a free ChimpChat account to interact with others like yourself
+                    </p>
+
+                    <form action="{% url 'signup' %}">
+                        <button class="signup_button" type="submit" style=" margin-left:55px; margin-right:55px; margin-bottom:30px;">Sign up</button>
+                    </form>
+                </div>
+
+            </div>
+                
+
+
+
+            <!--SECOND COLUMN HERE. for login-->
+            <div class="col-flex" style="flex: 70%;">
+                <a href="{% url 'login'%}">login</a>
+
+
+                    <div><!-- FOR BACKGROUND ANIMATION EFFECT-->
+                        <ul class="circles">
+                                <li><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                                <li><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                                <li><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                                <li><img src={% static 'images/A5.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                                <li><img src={% static 'images/A6.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                                <li><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                                <li><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                                <li><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                                <li><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                                <li><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                        </ul>
+                    </div >
+
+
+
+            </div>
+                
+        </div>
+
+
+
+    </main>
+</body>
+</html>

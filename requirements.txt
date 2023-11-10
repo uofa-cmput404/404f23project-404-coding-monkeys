@@ -9,3 +9,4 @@ pyyaml==6.0.1
 drf-yasg==1.21.7
 django-rest-swagger==2.2.0
 django-cors-headers==4.3.0
+tk==0.1.0
