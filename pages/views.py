@@ -4,6 +4,7 @@ from turtle import pen
 from venv import create
 from django.http import HttpResponse
 
+from django.middleware.csrf import get_token
 from django.forms.models import model_to_dict
 from django.views.generic import TemplateView, ListView, DetailView
 from accounts.models import AuthorUser, FollowRequests, Followers
@@ -16,7 +17,9 @@ from django.http import HttpResponseForbidden
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .seralizers import AuthorUserSerializer, FollowerSerializer, FollowerListSerializer
+from .seralizers import AuthorUserSerializer, FollowerSerializer, FollowerListSerializer, AuthorUserReferenceSerializer
+from static.vars import HOSTS
+import requests
 
 # DFB pg. 60
 def home_page_view(request): # basic generic view that just displays template
@@ -25,11 +28,44 @@ def home_page_view(request): # basic generic view that just displays template
     
     return render(request, 'home.html') # otherwise they're not logged in, and should be prompted with the homepage to login or signup
 
+@DeprecationWarning
 class ListProfilesView(ListView): # basic generic view that just displays template
     model = AuthorUser
     template_name = "listprofiles.html" 
     context_object_name = 'authors_list'
 
+
+# RESTful List of profiles
+# ================================================================================================================================
+# new implementation, acquiring profiles from all connected hosts including local
+def list_profiles(request):
+    # the api url to get list of profiles
+    url = "/authors/"
+    all_authors = []
+
+    # for all connected hosts
+    for host in HOSTS:
+        full_url = host + url
+        headers = {"Accept": "application/json"}
+
+        # send request to get list of profiles
+        response = requests.get(full_url, headers=headers)
+
+        # if 2XX response code
+        if response.ok:
+            authors = response.json().get("items")
+            # iterate through authors and check that they are valid using serializer, exclude authors that are deemed invalid (missing or misformed data)
+            for author in authors:
+                serializer = AuthorUserReferenceSerializer(data=author)
+                if not serializer.is_valid():
+                    continue
+                valid_author = serializer.validated_data
+                valid_author["uuid"] = get_id_from_url(valid_author["url"])
+                all_authors.append(valid_author)
+
+    return render(request, 'listprofiles.html', {'authors_list': all_authors})
+
+@DeprecationWarning
 class AuthorDetailView(DetailView): # basic generic view that just displays template
     model = AuthorUser
     template_name = "authorprofile.html" 
@@ -69,6 +105,84 @@ def author_user_detail(request, uuid):
 
     return render(request, 'authorprofile.html', {'author': author_user, 'followers': followers, 'already_following': already_following, 'follower_avatars': follower_avatars, 'pending_request': pending_request})
 
+
+
+# RESTful Author Profile
+# ================================================================================================================================
+
+def get_id_from_url(url):
+    if url:
+        url = url[:-1] if url[-1] == "/" else url
+        url = url.split("/")
+        return url[-1]
+    return ""
+
+def get_author_detail(request):
+
+    author_detail_url = request.POST.get("get_url")
+    plain_id = get_id_from_url(author_detail_url)
+
+    host = request.POST.get("host")
+    host = host[:-1] if host[-1] == "/" else host
+    index = HOSTS.index(host)
+
+    return HttpResponse(content=json.dumps({"host_index":index, "uuid": plain_id}))
+
+def render_author_detail(request, host_id, uuid):
+    # grab the author information
+    path = HOSTS[host_id] + "/authors/" + uuid + "/"
+    response = requests.get(path)
+
+    if response.ok:
+        author = response.json()
+        # already validated from the originating view, so do not have to check for serialization
+        author["uuid"] = get_id_from_url(author["url"])
+    else:
+        # TODO render and error page
+        return HttpResponse(content="Author not found", status=response.status_code)
+
+    # grab the followers information
+    all_followers = []
+
+    path = HOSTS[host_id] + "/authors/" + uuid + "/followers/"
+    response = requests.get(path)
+    if response.ok:
+        followers = response.json()
+        for follower in followers["items"]:
+            # serialize to check if everything is in expected format
+            serializer = AuthorUserReferenceSerializer(data=follower)
+            # exclude if invalid
+            if not serializer.is_valid():
+                continue
+            # assign uuid from full url
+            valid_follower = serializer.validated_data
+            valid_follower["uuid"] = get_id_from_url(valid_follower["url"])
+            # append valid follower to list to pass into view
+
+            # grab the latest profile image
+            path = HOSTS[host_id] + "/authors/" + valid_follower["uuid"] + "/"
+            response = requests.get(path)
+            # if response was good, get pfp from response data
+            if response.ok:
+                data = response.json()
+                valid_follower["profileImage"] = data.get("profileImage")
+
+            all_followers.append(valid_follower)
+
+    # check if we are following the user in view
+    following = False
+    path = HOSTS[host_id] + "/authors/" + uuid + "/followers/" + request.user.uuid + "/"
+    response = requests.get(path)
+    if response.ok:
+        following = True                            
+
+    # check if we have a request for the user in view
+    follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)
+    requested = len(follow_rq) > 0
+
+    return render(request, 'authorprofile.html', {'author': author, 'followers': all_followers, 'already_following': following, 'pending_request': requested})
+
+
 class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView): # basic generic view that just displays template
     model = FollowRequests
     template_name = "followrequests.html" 
@@ -84,7 +198,7 @@ class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def get_follower_info(request_data):
         return {
         "type": "author",
-        "id": request_data.get("id"),
+        "id": request_data.get("uuid"),
         "host": request_data.get("host"),
         "username": request_data.get("displayName"),
         "url": request_data.get("url"),
@@ -102,7 +216,8 @@ def follow_author(request, uuid): # CHATGPT - 2023-10-20 Prompt #1
 
     user_data = { # user fields put in dictionary to be added to json
         'type': user.type,
-        'id': user.uuid,
+        'id': user.url,
+        'uuid': user.uuid,
         'username': user.username,
         'host': user.host,
         'url': user.url,
@@ -112,7 +227,8 @@ def follow_author(request, uuid): # CHATGPT - 2023-10-20 Prompt #1
 
     author_data = {# author put in dictionary to follow fields to be added to json
         'type': author.type,
-        'id': author.uuid,
+        'id': user.url,
+        'uuid': author.uuid,
         'username': author.username,
         'host': author.host,
         'url': author.url,
@@ -125,8 +241,8 @@ def follow_author(request, uuid): # CHATGPT - 2023-10-20 Prompt #1
         summary="{} wants to follow {}".format(user.username, author.username),
         requester=user_data,
         recipient=author_data,
-        requester_uuid=user_data.get('id'),
-        recipient_uuid=author_data.get('id')
+        requester_uuid=user_data.get('uuid'),
+        recipient_uuid=author_data.get('uuid')
     )
 
     return redirect('author_profile', uuid=uuid)
@@ -255,7 +371,7 @@ def api_foreign_follower(request, uuid, foreign_author_id):
         followers = Followers.objects.get(author=author)
 
         for f in range(len(followers.followers)):
-            if followers.followers[f]['author_id'] == foreign_author_id:
+            if followers.followers[f]['uuid'] == foreign_author_id:
                 index = f
     
         found = index != -1

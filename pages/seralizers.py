@@ -5,7 +5,7 @@ from static.vars import ENDPOINT
 class AuthorUserSerializer(serializers.ModelSerializer):
     
     def get_url(self, obj):
-        return f"{ENDPOINT}authors/{obj.get('uuid')}"
+        return f"{ENDPOINT}authors/{obj.uuid}"
 
     type = serializers.CharField(default="author", max_length=6)
     id = serializers.SerializerMethodField('get_url')
@@ -25,16 +25,6 @@ class AuthorUserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class AuthorUserReferenceSerializer(serializers.Serializer):
-    type = serializers.CharField(default="author", max_length=6)
-    id = serializers.CharField()
-    url = serializers.CharField()
-    host = serializers.CharField()
-    github = serializers.CharField()
-    displayName = serializers.CharField(max_length=50)
-    profileImage = serializers.CharField()
-
-
 class FollowerSerializer(serializers.Serializer):
     
     type = serializers.CharField(default="author", max_length=6)
@@ -52,7 +42,7 @@ class FollowerListSerializer(serializers.Serializer):
         fields = ['author','followers']
 
     author = AuthorUserSerializer()
-    followers = FollowerSerializer(many=True)
+    followers = AuthorUserSerializer(many=True)
 
     def update(self, instance, validated_data):
         instance.author = validated_data.get('author', instance.author)
@@ -65,3 +55,16 @@ class FollowRequestsSerializer(serializers.Serializer):
     summary = serializers.CharField()
     actor = AuthorUserSerializer()
     object = AuthorUserSerializer()
+
+# the reference serializers are expecting properly formatted input from server responses and act as 
+# the "template" for the request data (1:1 with what is in spec)
+
+class AuthorUserReferenceSerializer(serializers.Serializer):
+    type = serializers.CharField(default="author", max_length=6)
+    id = serializers.CharField()
+    url = serializers.CharField()
+    host = serializers.CharField()
+    github = serializers.CharField()
+    displayName = serializers.CharField(max_length=50)
+    profileImage = serializers.CharField()
+
