@@ -202,6 +202,10 @@ def view_posts(request):
 
     return render(request, 'posts/dashboard.html', {'all_posts': viewable})
 
+def comment_post_handler(request):
+    print("Entered Comment Handler")
+    return
+
 def like_post_handler(request):
     #The user has clicked the like button for a post.
 

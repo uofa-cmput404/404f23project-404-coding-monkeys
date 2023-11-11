@@ -12,7 +12,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <meta name="csrf-token" content="{{ csrf_token }}">
 
-<!-- Script for handling ajax for like button press -->
+<!-- Script for handling ajax of button presses -->
 <script>
     $(document).ready(function () {
         var csrfToken = $('meta[name=csrf-token]').attr('content');
@@ -26,6 +26,19 @@
                 success: function (data) {
                     // Update the like count
                     $('#result-' + post_uuid).text(data.new_post_count);
+                }
+            });
+        });
+
+        $(".comment-button").click(function () {
+            var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
+            $.ajax({
+                url: '{% url "comment_post" %}',
+                method: 'GET',
+                data: { post_uuid: post_uuid }, // Pass the post UUID as a parameter
+                success: function (data) {
+                    // Update the like count
+                    // $('#result-' + post_uuid).text(data.new_post_count);
                 }
             });
         });
@@ -50,6 +63,10 @@
             
         });
     });
+
+</script>
+
+
 
 </script>
 <!-- <script src="{% static '/js/like_button.js' %}"></script> -->
@@ -86,7 +103,8 @@
                 <p class="likes"id="result-{{ post.uuid }}">{{ post.count}} </p>
                 <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
                 <button style="padding-top: 10px;" type="button"class="like-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">favorite</i></button>
-                <button style="padding-top: 10px;" type="button"><i class="material-symbols-outlined">tooltip</i></button>
+                <!-- comment button-->
+                <button style="padding-top: 10px;" type="button"class="comment-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">tooltip</i></button>
                 {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->
                     <div class="flex_grow"></div>
                     <div class="context_menu" id="context_menu">
