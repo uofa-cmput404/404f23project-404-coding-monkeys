@@ -32,6 +32,7 @@
 
         $(".comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
+            $("#comment-box-container-" + post_uuid).toggle();
             $.ajax({
                 url: '{% url "comment_post" %}',
                 method: 'GET',
@@ -41,6 +42,10 @@
                     // $('#result-' + post_uuid).text(data.new_post_count); //this was for likes, not comments
                 }
             });
+        });
+
+        $(".submit-comment-button").click(function () {
+            // Handle comment submission logic here
         });
 
         $(".delete-confirm").click(function () {
@@ -121,6 +126,10 @@
                     </dialog>
                     <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
                 {% endif %}
+            </div>
+            <div class="comment-box-container" id="comment-box-container-{{ post.uuid }}" style="display: none;">
+                <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
+                <button class="submit-comment-button" data-post-uuid="{{ post.uuid }}">Submit</button>
             </div>
         </div>
     {% endif %}
