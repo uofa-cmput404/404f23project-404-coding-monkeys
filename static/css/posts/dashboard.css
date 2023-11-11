@@ -43,6 +43,16 @@ p {
     height: 85vh;
 }
 
+.post-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.comment-box-container {
+    display: flex;
+    flex-direction: column;
+}
+
 #post_author {
     display: flex;
     flex-direction: row;
