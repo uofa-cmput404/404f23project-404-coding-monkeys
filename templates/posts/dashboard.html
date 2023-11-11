@@ -39,11 +39,18 @@
 
         $(".submit-comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
+            var commentText = $("#comment-textbox-" + post_uuid).val(); // Get the text from the textarea
+
+            // TODO: Handle empty comments
+
             // Handle comment submission logic here
             $.ajax({
                 url: '{% url "comment_post" %}',
                 method: 'GET',
-                data: { post_uuid: post_uuid }, // Pass the post UUID as a parameter
+                data: { 
+                    post_uuid: post_uuid,
+                    comment_text: commentText // Include comment text in the data
+                }, 
                 success: function (data) {
                     // Will likely want to return a list of the comments on this post, and we will print them here
                     // $('#result-' + post_uuid).text(data.new_post_count); //this was for likes, not comments

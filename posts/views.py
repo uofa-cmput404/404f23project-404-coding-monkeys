@@ -204,10 +204,12 @@ def view_posts(request):
 
 def comment_post_handler(request):
     post_uuid = request.GET.get('post_uuid', None) #get the post in question
+    commentText = request.GET.get('comment_text', None) #get the text of the comment
     author = get_author_info(request.user.id) #get the current user
     
 
     print(f"{author['displayName']} entered comment handler for post: {post_uuid}")
+    print(f"Comment contents: {commentText}")
 
 
 
