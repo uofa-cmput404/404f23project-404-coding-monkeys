@@ -33,47 +33,40 @@
         $(".comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid");
             $("#comment-box-container-" + post_uuid).show();
-            // TODO: Make textbox disappear when pressing submit?
-            // TODO: Make cancel button the only way to hide text box?
+        });
+
+        $(".cancel-comment-button").click(function () {
+            var post_uuid = $(this).data("post-uuid");
+            $("#comment-box-container-" + post_uuid).hide();
         });
 
         $(".submit-comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
-            var commentText = $("#comment-textbox-" + post_uuid).val(); // Get the text from the textarea
+            var commentText = $("#comment-textbox-" + post_uuid).val(); // Get the comment text
+            $("#comment-box-container-" + post_uuid).hide();
 
-            // TODO: Handle empty comments
             if (commentText.trim() !== "") {
                 $.ajax({
                     url: '{% url "comment_post" %}',
                     method: 'GET',
                     data: { 
                         post_uuid: post_uuid,
-                        comment_text: commentText // Include comment text in the data
+                        comment_text: commentText
                     }, 
                     success: function (data) {
-                        $("#comment-box-container-" + post_uuid).hide();
                         // Will likely want to return a list of the comments on this post, and we will print them here
                         // $('#result-' + post_uuid).text(data.new_post_count); //this was for likes, not comments
+                        
+                    },
+                    error: function (data) {
+                        alert("Error submitting comment. Please try again.");
+                        $("#comment-box-container-" + post_uuid).show();
                     }
                 });
             }
             else {
                 alert("Please enter text before submitting a comment.");
             }
-
-            // Handle comment submission logic here
-            $.ajax({
-                url: '{% url "comment_post" %}',
-                method: 'GET',
-                data: { 
-                    post_uuid: post_uuid,
-                    comment_text: commentText // Include comment text in the data
-                }, 
-                success: function (data) {
-                    // Will likely want to return a list of the comments on this post, and we will print them here
-                    // $('#result-' + post_uuid).text(data.new_post_count); //this was for likes, not comments
-                }
-            });
         });
 
         $(".delete-confirm").click(function () {
@@ -157,6 +150,7 @@
             </div>
             <div class="comment-box-container" id="comment-box-container-{{ post.uuid }}" style="display: none;">
                 <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
+                <button class="cancel-comment-button" data-post-uuid="{{ post.uuid }}">Cancel</button>
                 <button class="submit-comment-button" data-post-uuid="{{ post.uuid }}">Submit</button>
             </div>
         </div>
