@@ -203,8 +203,16 @@ def view_posts(request):
     return render(request, 'posts/dashboard.html', {'all_posts': viewable})
 
 def comment_post_handler(request):
-    print("Entered Comment Handler")
-    return
+    post_uuid = request.GET.get('post_uuid', None) #get the post in question
+    author = get_author_info(request.user.id) #get the current user
+    
+
+    print(f"{author['displayName']} entered comment handler for post: {post_uuid}")
+
+
+
+    num_comments = 0
+    return JsonResponse({'num_comments': num_comments}) #return new post count
 
 def like_post_handler(request):
     #The user has clicked the like button for a post.
