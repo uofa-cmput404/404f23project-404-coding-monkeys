@@ -49,6 +49,17 @@ p {
 }
 
 .comment-box-container {
+    margin: auto;
+    margin-bottom: 20px;
+
+    border-style: solid;
+    border-radius: 10px;
+    border-color: #FFD553;
+    border-width: 7px;
+
+    box-shadow: 2px 10px 13px 2px rgba(255, 213, 83, 0.15), 0 14px 42px 0 rgba(226, 2, 2, 0.19);
+
+
     display: flex;
     flex-direction: column;
 }
@@ -60,10 +71,12 @@ p {
     padding: 10px;
     background-color: #2a2a2a;
     border-radius: 8px;
+    max-height: 15vh;
+    width: 50vh;
 }
 
 .scrollable-comments {
-    max-height: 60vh;
+    max-height: 76vh;
     overflow-y: auto;
 }
 
@@ -97,8 +110,6 @@ p {
     text-indent: 5px;
 
 }
-
-
 
 #post_author .profile_picture {
     width: 50px;
