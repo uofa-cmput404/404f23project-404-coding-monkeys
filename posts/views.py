@@ -3,7 +3,7 @@ from django.views.generic import CreateView
 from django.forms.models import model_to_dict
 from rest_framework.response import Response
 from posts.serializers import PostsSerializer
-from .models import Posts, Likes
+from .models import Posts, Likes, Comments
 from .forms import PostForm
 from django.urls import reverse
 from accounts.models import AuthorUser, Followers
@@ -206,16 +206,31 @@ def comment_post_handler(request):
     post_uuid = request.GET.get('post_uuid', None) #get the post in question
     commentText = request.GET.get('comment_text', None) #get the text of the comment
     author = get_author_info(request.user.id) #get the current user
+
+    #read the post (whose like button the user clicked) object from db
+    try: post = Posts.objects.get(uuid=post_uuid)
+    except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
     
 
     print(f"{author['displayName']} entered comment handler for post: {post_uuid}")
     print(f"Comment contents: {commentText}")
 
-    '''
-    TODO:
-    - create comment object with the new comment
-    - return either this new comment, or a list of comments (so it appears in the view)
-    '''
+
+    #create and save new comment object
+    commentID = ""
+    # Example ID
+    # "id":"http://127.0.0.1:5454/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/de305d54-75b4-431b-adb2-eb6b9e546013/comments/f6255bb01c648fe967714d52a89e8e9c",
+    #       http://127.0.0.1:8000/authors/[ID OF POST AUTHOR]                     /posts/[ID OF POST]              /comments/[ID OF COMMENT]
+    commentID = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}/comments/{uuid.uuid4()}"
+    commentPost = post
+    commentAuthor = author
+    commentText = commentText
+    commentObj = Comments(uuid= commentID, post= commentPost, author=commentAuthor, comment= commentText, contentType= "text/plain")
+    commentObj.save(force_insert=True)
+
+    # TODO: Increment comment count on post object?
+    # TODO: Preload post object with a couple comments?
+    # TODO: Return list of all comments?
 
     num_comments = 0
     return JsonResponse({'num_comments': num_comments}) #return new post count
@@ -255,7 +270,7 @@ def like_post_handler(request):
         likeSummary = f"{author['displayName']} likes your post"
         likeAuthor = author
         likeVisibility = "TODO: Idk what to put here"
-        postObjLnk = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}" #TODO: For some reason the post.author["id"] is an empty string instead of a proper id
+        postObjLnk = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}"
         likeObj = Likes(context= likeContext, summary= likeSummary, author=likeAuthor, liked_object= postObjLnk)
         likeObj.save(force_insert=True)
 
