@@ -62,6 +62,15 @@ p {
     border-radius: 8px;
 }
 
+.scrollable-comments {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.scrollable-comment {
+    margin-bottom: 10px;
+}
+
 #post_author {
     display: flex;
     flex-direction: row;
