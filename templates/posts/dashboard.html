@@ -31,8 +31,15 @@
         });
 
         $(".comment-button").click(function () {
+            var post_uuid = $(this).data("post-uuid");
+            $("#comment-box-container-" + post_uuid).toggle(); //Make the text box appear
+            // TODO: Make textbox disappear when pressing submit?
+            // TODO: Make cancel button the only way to hide text box?
+        });
+
+        $(".submit-comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
-            $("#comment-box-container-" + post_uuid).toggle();
+            // Handle comment submission logic here
             $.ajax({
                 url: '{% url "comment_post" %}',
                 method: 'GET',
@@ -42,10 +49,6 @@
                     // $('#result-' + post_uuid).text(data.new_post_count); //this was for likes, not comments
                 }
             });
-        });
-
-        $(".submit-comment-button").click(function () {
-            // Handle comment submission logic here
         });
 
         $(".delete-confirm").click(function () {
