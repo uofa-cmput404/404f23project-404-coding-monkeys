@@ -32,7 +32,7 @@
 
         $(".comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid");
-            $("#comment-box-container-" + post_uuid).toggle(); //Make the text box appear
+            $("#comment-box-container-" + post_uuid).show();
             // TODO: Make textbox disappear when pressing submit?
             // TODO: Make cancel button the only way to hide text box?
         });
@@ -42,6 +42,24 @@
             var commentText = $("#comment-textbox-" + post_uuid).val(); // Get the text from the textarea
 
             // TODO: Handle empty comments
+            if (commentText.trim() !== "") {
+                $.ajax({
+                    url: '{% url "comment_post" %}',
+                    method: 'GET',
+                    data: { 
+                        post_uuid: post_uuid,
+                        comment_text: commentText // Include comment text in the data
+                    }, 
+                    success: function (data) {
+                        $("#comment-box-container-" + post_uuid).hide();
+                        // Will likely want to return a list of the comments on this post, and we will print them here
+                        // $('#result-' + post_uuid).text(data.new_post_count); //this was for likes, not comments
+                    }
+                });
+            }
+            else {
+                alert("Please enter text before submitting a comment.");
+            }
 
             // Handle comment submission logic here
             $.ajax({

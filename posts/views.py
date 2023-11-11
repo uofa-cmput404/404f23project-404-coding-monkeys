@@ -211,7 +211,11 @@ def comment_post_handler(request):
     print(f"{author['displayName']} entered comment handler for post: {post_uuid}")
     print(f"Comment contents: {commentText}")
 
-
+    '''
+    TODO:
+    - create comment object with the new comment
+    - return either this new comment, or a list of comments (so it appears in the view)
+    '''
 
     num_comments = 0
     return JsonResponse({'num_comments': num_comments}) #return new post count
