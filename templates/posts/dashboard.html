@@ -33,6 +33,25 @@
         $(".comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid");
             $("#comment-box-container-" + post_uuid).show();
+
+            // Get comments for this post, and load them into the comments container
+            $.ajax({
+                    url: '{% url "open_comments" %}',
+                    method: 'GET',
+                    data: { 
+                        post_uuid: post_uuid,
+                        comment_text: commentText
+                    }, 
+                    success: function (data) {
+                        // Will likely want to return a list of the comments on this post, and we will print them here
+                        // $('#result-' + post_uuid).text(data.new_post_count); //this was for likes, not comments
+                        
+                    },
+                    error: function (data) {
+                        alert("Error submitting comment. Please try again.");
+                        $("#comment-box-container-" + post_uuid).show();
+                    }
+                });
         });
 
         $(".cancel-comment-button").click(function () {
@@ -47,14 +66,14 @@
 
             if (commentText.trim() !== "") {
                 $.ajax({
-                    url: '{% url "comment_post" %}',
+                    url: '{% url "submit_comment" %}',
                     method: 'GET',
                     data: { 
                         post_uuid: post_uuid,
                         comment_text: commentText
                     }, 
                     success: function (data) {
-                        // Will likely want to return a list of the comments on this post, and we will print them here
+                        // Will likely want to show the new comment added to the list
                         // $('#result-' + post_uuid).text(data.new_post_count); //this was for likes, not comments
                         
                     },

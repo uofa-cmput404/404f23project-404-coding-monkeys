@@ -202,7 +202,11 @@ def view_posts(request):
 
     return render(request, 'posts/dashboard.html', {'all_posts': viewable})
 
-def comment_post_handler(request):
+def open_comments_handler(request):
+
+    return
+
+def submit_comment_handler(request):
     post_uuid = request.GET.get('post_uuid', None) #get the post in question
     commentText = request.GET.get('comment_text', None) #get the text of the comment
     author = get_author_info(request.user.id) #get the current user
