@@ -73,6 +73,7 @@ def update_or_create_post(request, post_uuid):
     post.description = request.POST.get('description')
     post.content = request.POST.get('content')
     post.categories = request.POST.get('categories')
+    post.comments = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}/comments"
     post.visibility = request.POST.get('visibility')
 
     if request.POST.get('author_list') and post.visibility == "PRIVATE":
