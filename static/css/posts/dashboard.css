@@ -52,6 +52,7 @@ p {
     margin: auto;
     margin-bottom: 20px;
 
+    height: 85vh;
     border-style: solid;
     border-radius: 10px;
     border-color: #FFD553;
@@ -68,6 +69,7 @@ p {
     display: flex;
     flex-direction: row;
 
+    margin-top: auto;
     padding: 10px;
     background-color: #2a2a2a;
     border-radius: 8px;
@@ -76,8 +78,8 @@ p {
 }
 
 .scrollable-comments {
-    max-height: 76vh;
     overflow-y: auto;
+    flex-grow: 1;
 }
 
 .comment {
