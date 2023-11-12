@@ -273,7 +273,7 @@ def like_post_handler(request):
         existingLikeObj.delete()#remove like from db
 
         #decrement like counter
-        post.count = post.count - 1 #TODO: post.count is supposed to be the total number of comments, not likes
+        post.likeCount = post.likeCount - 1
         post.save()
     
     else:
@@ -287,13 +287,13 @@ def like_post_handler(request):
         likeObj.save(force_insert=True)
 
         #increment the like count
-        post.count = post.count + 1
+        post.likeCount = post.likeCount + 1
         post.save()
         print(f"User: {author['displayName']} has liked post:{post_uuid}")
     
 
 
-    return JsonResponse({'new_post_count': post.count}) #return new post count
+    return JsonResponse({'new_post_count': post.likeCount}) #return new post count
 
 @swagger_auto_schema(methods=['POST','PUT'],operation_description="Test the sequel",request_body=PostsSerializer,)
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
