@@ -150,10 +150,6 @@ p {
     height: 50px;
     border-radius: 50%;
     border-color: white;
-    background-color: #2a2a2a;
-    border-width: 0.2em;
-    border-style: solid;
-    border-color:#FFD553;
 }
 
 #post_body {

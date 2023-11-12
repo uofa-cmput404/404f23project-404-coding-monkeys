@@ -10,8 +10,8 @@
 {% endblock css %}
 
 {% block content %}
-<h2 style="color:white; margin-left:20px;">User Log In</h2>
-<form method="post" style="margin-left:20px;">{% csrf_token %}
+<h2 style="color:white;">User Log In</h2>
+<form method="post">{% csrf_token %}
     <div class="row-flex" style="margin-top:15px;">
         <div class="col-flex" style="width:7%;">
             <label for="{{ form.username.id_for_label }}">Username:</label>
