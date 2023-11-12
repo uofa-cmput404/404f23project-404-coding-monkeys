@@ -203,8 +203,11 @@ def view_posts(request):
     return render(request, 'posts/dashboard.html', {'all_posts': viewable})
 
 def open_comments_handler(request):
+    # returns commenets for a given post
+    post_uuid = request.GET.get('post_uuid')
+    comments = Comments.objects.filter(post_id=post_uuid).values('comment')
+    return JsonResponse({'comments': list(comments)})
 
-    return
 
 def submit_comment_handler(request):
     post_uuid = request.GET.get('post_uuid', None) #get the post in question
