@@ -65,7 +65,8 @@
         $(".submit-comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
             var commentText = $("#comment-textbox-" + post_uuid).val(); // Get the comment text
-            $("#comment-box-container-" + post_uuid).hide();
+            var commentContainer = $("#comment-box-container-" + post_uuid + " .scrollable-comments");
+            // $("#comment-box-container-" + post_uuid).hide();
 
             if (commentText.trim() !== "") {
                 $.ajax({
@@ -76,9 +77,10 @@
                         comment_text: commentText
                     }, 
                     success: function (data) {
-                        // Will likely want to show the new comment added to the list
-                        // $('#result-' + post_uuid).text(data.new_post_count); //this was for likes, not comments
-                        
+                        var comments = JSON.parse(data.comments);
+                        comments.forEach(function (comment) {
+                            commentContainer.append('<div class="scrollable-comment">' + comment.fields.comment + '</div>');
+                        });
                     },
                     error: function (data) {
                         alert("Error submitting comment. Please try again.");

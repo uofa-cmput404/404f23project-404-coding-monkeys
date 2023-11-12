@@ -239,12 +239,12 @@ def submit_comment_handler(request):
     commentObj = Comments(uuid= commentID, post= commentPost, author=commentAuthor, comment= commentText, contentType= "text/plain")
     commentObj.save(force_insert=True)
 
+    comments = Comments.objects.filter(uuid=commentID) #Get the new post drom the database (this is effectively saying get all comments matching this uuid)
+    serialized_comments = serialize('json', comments)
     # TODO: Increment comment count on post object?
     # TODO: Preload post object with a couple comments?
-    # TODO: Return list of all comments?
+    return JsonResponse({'comments': serialized_comments})
 
-    num_comments = 0
-    return JsonResponse({'num_comments': num_comments}) #return new post count
 
 def like_post_handler(request):
     #The user has clicked the like button for a post.
