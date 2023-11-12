@@ -16,6 +16,7 @@ from PIL import Image
 from drf_yasg.utils import swagger_auto_schema
 from static.vars import ENDPOINT
 from django.http import HttpResponse
+from django.core.serializers import serialize
 
 class PostCreate(CreateView):
     model = Posts
@@ -205,8 +206,11 @@ def view_posts(request):
 def open_comments_handler(request):
     # returns commenets for a given post
     post_uuid = request.GET.get('post_uuid')
-    comments = Comments.objects.filter(post_id=post_uuid).values('comment')
-    return JsonResponse({'comments': list(comments)})
+    comments = Comments.objects.filter(post_id=post_uuid)
+
+    serialized_comments = serialize('json', comments)
+    #TODO: sort newest to oldest?
+    return JsonResponse({'comments': serialized_comments})
 
 
 def submit_comment_handler(request):

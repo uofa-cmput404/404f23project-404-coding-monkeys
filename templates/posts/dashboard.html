@@ -43,9 +43,10 @@
                         post_uuid: post_uuid,
                     }, 
                     success: function (data) {
+                        var comments = JSON.parse(data.comments);
                         commentContainer.empty();
-                        data.comments.forEach(function (comment) {
-                            commentContainer.append('<div class="scrollable-comment">' + comment.comment + '</div>');
+                        comments.forEach(function (comment) {
+                            commentContainer.append('<div class="scrollable-comment">' + comment.fields.comment + '</div>');
                         });
                         $("#comment-box-container-" + post_uuid).show();
                     
