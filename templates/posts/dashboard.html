@@ -34,7 +34,6 @@
             var post_uuid = $(this).data("post-uuid");
             var commentContainer = $("#comment-box-container-" + post_uuid + " .scrollable-comments");
 
-
             // Get existing comments for this post, and load them into the comments container
             $.ajax({
                     url: '{% url "open_comments" %}',
@@ -43,6 +42,7 @@
                         post_uuid: post_uuid,
                     }, 
                     success: function (data) {
+                        // the backend returns all comments for a post. Here we display them (add them into a container)
                         var comments = JSON.parse(data.comments);
                         commentContainer.empty();
                         comments.forEach(function (comment) {
@@ -64,27 +64,29 @@
 
         $(".submit-comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
-            var commentText = $("#comment-textbox-" + post_uuid).val(); // Get the comment text
+            var commentText = $("#comment-textbox-" + post_uuid).val(); // Get the comment text from the text box
             var commentContainer = $("#comment-box-container-" + post_uuid + " .scrollable-comments");
-            // $("#comment-box-container-" + post_uuid).hide();
 
             if (commentText.trim() !== "") {
                 $.ajax({
                     url: '{% url "submit_comment" %}',
                     method: 'GET',
                     data: { 
+                        // We will use this data on the backend to create a new comment
                         post_uuid: post_uuid,
                         comment_text: commentText
                     }, 
                     success: function (data) {
+                        // Here we read the list of all comments from the db that perfectly match the comment just submitted (this will only be one comment, but for the sake of using the same code as above, we kept this structure)
+                        // Once we get the new comment from the db, we add it to the comments displayed
                         var comments = JSON.parse(data.comments);
                         comments.forEach(function (comment) {
                             commentContainer.append('<div class="scrollable-comment">' + comment.fields.comment + '</div>');
                         });
+                        $("#comment-textbox-" + post_uuid).val(''); // Clear the contents of the textbox after successfully adding the comment
                     },
                     error: function (data) {
                         alert("Error submitting comment. Please try again.");
-                        $("#comment-box-container-" + post_uuid).show();
                     }
                 });
             }
