@@ -80,8 +80,29 @@ p {
     overflow-y: auto;
 }
 
-.scrollable-comment {
-    margin-bottom: 10px;
+.comment {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 10vh;
+    /* TODO: Change the above height to dynamically change based on comment length */
+}
+
+.comment-details{
+    display: flex;
+    flex-direction: column;
+}
+
+/* .like-comment-button{
+    padding: 2vh;
+} */
+
+.comment-profile-picture{
+    width: 5vh;
+    height: 5vh;
+    padding: 2vh;
+    border-radius: 50%;
+    border-color: white;
 }
 
 #post_author {

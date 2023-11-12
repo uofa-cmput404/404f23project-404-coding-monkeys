@@ -45,9 +45,20 @@
                         // the backend returns all comments for a post. Here we display them (add them into a container)
                         var comments = JSON.parse(data.comments);
                         commentContainer.empty();
+                        
+                        // Add the comment elements to the page
                         comments.forEach(function (comment) {
-                            commentContainer.append('<div class="scrollable-comment">' + comment.fields.comment + '</div>');
+                            var commentElement = '<div class="comment">' +
+                                '<img src="' + comment.fields.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
+                                '<div class="comment-details">' +
+                                    '<p class="comment-text">' + comment.fields.comment + '</p>' +
+                                    '<p class="comment-username">' + comment.fields.author.displayName + '</p>' +
+                                '</div>' +
+                                '<button class="like-comment-button" data-comment-uuid="' + comment.fields.uuid + '">Like</button>' +
+                            '</div>';
+                            commentContainer.append(commentElement);
                         });
+
                         $("#comment-box-container-" + post_uuid).show();
                     
                     },
@@ -80,8 +91,17 @@
                         // Here we read the list of all comments from the db that perfectly match the comment just submitted (this will only be one comment, but for the sake of using the same code as above, we kept this structure)
                         // Once we get the new comment from the db, we add it to the comments displayed
                         var comments = JSON.parse(data.comments);
+                        // Add the comment element to the page
                         comments.forEach(function (comment) {
-                            commentContainer.append('<div class="scrollable-comment">' + comment.fields.comment + '</div>');
+                            var commentElement = '<div class="comment">' +
+                                '<img src="' + comment.fields.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
+                                '<div class="comment-details">' +
+                                    '<p class="comment-text">' + comment.fields.comment + '</p>' +
+                                    '<p class="comment-username">' + comment.fields.author.displayName + '</p>' +
+                                '</div>' +
+                                '<button class="like-comment-button" data-comment-uuid="' + comment.fields.uuid + '">Like</button>' +
+                            '</div>';
+                            commentContainer.append(commentElement);
                         });
                         $("#comment-textbox-" + post_uuid).val(''); // Clear the contents of the textbox after successfully adding the comment
                     },
@@ -179,6 +199,8 @@
             <div class="comment-box-container" id="comment-box-container-{{ post.uuid }}" style="display: none;">
                 <div class="scrollable-comments">
                     <!-- comments are loaded into this container via the ajax script -->
+                    <div class="comment">
+                    </div>
                 </div>
                 <div class="submit-comment-box">
                     <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
