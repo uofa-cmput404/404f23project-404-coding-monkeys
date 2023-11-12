@@ -222,6 +222,9 @@ def submit_comment_handler(request):
     #read the post (whose like button the user clicked) object from db
     try: post = Posts.objects.get(uuid=post_uuid)
     except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
+
+    post.count += 1
+    post.save()
     
 
     print(f"{author['displayName']} entered comment handler for post: {post_uuid}")
@@ -242,8 +245,6 @@ def submit_comment_handler(request):
 
     comments = Comments.objects.filter(uuid=commentID) #Get the new post drom the database (this is effectively saying get all comments matching this uuid)
     serialized_comments = serialize('json', comments)
-    # TODO: Increment comment count on post object?
-    # TODO: Preload post object with a couple comments?
     return JsonResponse({'comments': serialized_comments})
 
 
