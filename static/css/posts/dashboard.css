@@ -53,6 +53,7 @@ p {
     margin-bottom: 20px;
 
     height: 85vh;
+    width: 60vh;
     border-style: solid;
     border-radius: 10px;
     border-color: #FFD553;
@@ -74,7 +75,10 @@ p {
     background-color: #2a2a2a;
     border-radius: 8px;
     max-height: 15vh;
-    width: 50vh;
+}
+
+.comment-textbox{
+    flex-grow: 1;
 }
 
 .scrollable-comments {
@@ -86,18 +90,25 @@ p {
     display: flex;
     flex-direction: row;
     width: 100%;
-    height: 10vh;
     /* TODO: Change the above height to dynamically change based on comment length */
 }
 
 .comment-details{
-    display: flex;
-    flex-direction: column;
+    margin: 0;
+    padding: 0;
 }
 
-/* .like-comment-button{
-    padding: 2vh;
-} */
+.comment-username{
+    font-weight: bold;
+}
+
+.comment-text{
+    font-size: 12px;
+}
+
+.like-comment-button{
+    margin-left: auto;
+}
 
 .comment-profile-picture{
     width: 5vh;
