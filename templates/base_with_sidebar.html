@@ -31,7 +31,7 @@
                 <a class="sidebar_button" style="top:10em;" href="{% url 'stream' %}"><i class="material-symbols-outlined">home</i></a>
                 <a class="sidebar_button" style="top:15em;" href="{% url 'new_post' %}"><i class="material-symbols-outlined">add_circle</i></a>
                 <div class="divider" style="top:19.8em;"></div>
-                <a class="sidebar_button" style="top:20.5em;" href="{% url 'author_profile' uuid=user.uuid %}"><i class="material-symbols-outlined">account_circle</i></a>
+                <a class="sidebar_button" style="top:20.5em;" href="{% url 'author_detail' host_id=0 uuid=user.uuid %}"><i class="material-symbols-outlined">account_circle</i></a>
                 <a class="sidebar_button" style="top:25.5em;" href="{% url 'authors_list' %}"><i class="material-symbols-outlined">groups</i></a>
                 <a class="sidebar_button" style="top:30.5em;" href="{% url 'author_requests' uuid=user.uuid%}"><i class="material-symbols-outlined">person_add</i></a>
                 <div class="divider" style="top:35.3em;"></div>

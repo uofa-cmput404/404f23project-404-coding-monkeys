@@ -9,7 +9,7 @@ from inbox import views as inbox_views
 urlpatterns = [
     path("", views.home_page_view, name="home"), # display homepage if you're not logged in/registered
     path("authors/list/", views.list_profiles, name="authors_list"), # display list of users on server
-    path("authors/<str:uuid>/detail/", views.author_user_detail, name="author_profile"), # display given author's profile
+    
     # restful and connection-cognizant author profile
     path("authors/<int:host_id>/<str:uuid>/", views.render_author_detail, name="author_detail"), # display given author's profile
     path("authors/determine-args/", views.get_author_detail, name="determine_author_detail"), # edit user's profile; sensitive
