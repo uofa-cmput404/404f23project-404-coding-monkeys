@@ -21,62 +21,73 @@
 </head>
 
 
-
 <body>
     <main>
         <div class="row-flex" style="display: flex; min-height: 100vh;">
-            <div class="col-flex" style="flex: 30%; background-color:#FFD553;">
+            <div class="col-flex" style="flex: 32%; background-color:#FFD553;">
                 
                     <div class="row-flex">
                         <img src={% static 'images/monkey_icon.jpg'%} alt="" title = "" width="140" height="auto">
-                        <h1 style="color: black; text-align: center; padding-left: 20px; padding-right: 20px; padding-top: 40px; font-size:60px;">ChimpChat</h1>
+                        <h1 style="color: black; text-align: center; padding-left: 20px; padding-right: 20px; padding-top: 40px; font-size:3vw;">ChimpChat</h1>
                     </div>
 
-                <div style=" margin-top:120px; margin-bottom:20px; margin-left:10px; margin-right:10px; border-radius:5px;">
-                    <p style="color: black; text-align: center; padding-left: 20px; margin-top: 30px; font-size:50px;">New here?</p>
+                <div style=" margin-top:120px; margin-bottom:20px; margin-left:10px; margin-right:10px;">
+                    <p style="color: black;  margin: 0; position: absolute; top: 30%; left: 18%; -ms-transform: translate(-50%); transform: translate(-50%); font-size:4vw; width:22vw;">New Here?</p>
 
-                    <p style="color: black; text-align: center; padding-left: 20px; margin-top: 20px; margin-bottom:30px; font-size:25px;">
-                        Create a free ChimpChat account to interact with others like yourself
+                    <p style="color: black; margin: 0; position: absolute; top: 45%; left: 16%; -ms-transform: translate(-50%); transform: translate(-50%); width:22vw; font-size:1.5vw;">
+                        Create a free ChimpChat account to interact with others like yourself!
                     </p>
 
                     <form action="{% url 'signup' %}">
-                        <button class="signup_button" type="submit" style=" margin-left:55px; margin-right:55px; margin-bottom:30px;">Sign up</button>
-                    </form>
+                        <button class="signup_button" type="submit" style=" margin: 0; position: absolute; top: 60%; left:16.5%; width:350px; -ms-transform: translate(-50%); transform: translate(-50%); width:350px;">Sign up</button>
+                    </form><!--how i centered the button: https://www.w3schools.com/howto/howto_css_center_button.asp -->
                 </div>
 
-            </div>
+            </div><!--left column div-->
                 
 
 
 
             <!--SECOND COLUMN HERE. for login-->
-            <div class="col-flex" style="flex: 70%;">
-                <a href="{% url 'login'%}">login</a>
+            <div class="col-flex" style="flex: 68%;">
+  
 
 
-                    <div><!-- FOR BACKGROUND ANIMATION EFFECT-->
-                        <ul class="circles">
-                                <li><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                                <li><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                                <li><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                                <li><img src={% static 'images/A5.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                                <li><img src={% static 'images/A6.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                                <li><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                                <li><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                                <li><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                                <li><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                                <li><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
-                        </ul>
-                    </div >
+                <div><!-- FOR BACKGROUND ANIMATION EFFECT-->
+                    <ul class="circles">
+                            <li><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                            <li><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                            <li><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                            <li><img src={% static 'images/A5.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                            <li><img src={% static 'images/A6.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                            <li><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                            <li><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                            <li><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                            <li><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                            <li><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+                    </ul>
+                </div ><!-- FOR BACKGROUND ANIMATION EFFECT-->
 
-
-
-            </div>
+            
+                <div>
+                    <p style="color: #FFD553; margin: 0; position: absolute; top: 30%; left: 65%; -ms-transform: translate(-50%); transform: translate(-50%); font-size:4vw; width:40vw;">Log in to Your Account</p>
                 
-        </div>
+                </div>
+
+                <form action="{% url 'login'%}">
+                    <button class="post_button" type="submit" 
+                    style="margin: 0; position: absolute; top: 60%; left: 63%; -ms-transform: translate(-50%); transform: translate(-50%); width:350px; color:#1C1A19; font-size:30px">Log in</button>
+                </form><!--how i centered the button: https://www.w3schools.com/howto/howto_css_center_button.asp -->
+    
+
+
+            </div><!--right column div-->
+                
+        </div><!--row div-->
 
 
 
     </main>
 </body>
+
 </html>
