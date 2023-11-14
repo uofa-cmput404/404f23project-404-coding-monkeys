@@ -7,7 +7,7 @@ from django.dispatch import receiver
 
 class WhitelistController(models.Model):
     id = models.IntegerField(primary_key=True, editable=False)
-    whitelist_enabled = models.BooleanField(default=False) # is the whitelist enabled (True means admin must approve users, False means users are auto-approved)
+    whitelist_enabled = models.BooleanField(default=False, verbose_name="Users need approval to register?") # is the whitelist enabled (True means admin must approve users, False means users are auto-approved)
     
     def __str__(self):
         return "Change Whitelist Settings"
@@ -35,14 +35,6 @@ class AuthorUser(AbstractUser):
         self.slug = self.uuid
         super(AuthorUser, self).save(*args, **kwargs)
 
-@receiver(models.signals.post_save, sender=AuthorUser) # https://stackoverflow.com/questions/8170704/execute-code-on-model-creation-in-django
-def execute_after_save(sender, instance, created, *args, **kwargs): 
-    if created:
-        whitelist_obj = WhitelistController.objects.get(id=1) 
-        whitelist_enabled = whitelist_obj.whitelist_enabled # is the whitelist enabled?
-        instance.is_active = not whitelist_enabled
-        instance.save()
-
 class Followers(models.Model):
     author = models.ForeignKey(AuthorUser, on_delete=models.CASCADE, related_name='author', to_field="uuid")
     followers = models.JSONField(default=list)
@@ -68,4 +60,21 @@ class FollowRequests(models.Model):
     # can only request somebody once
     class Meta:
         unique_together = ('requester', 'recipient')
+
+@receiver(models.signals.post_save, sender=AuthorUser) # https://stackoverflow.com/questions/8170704/execute-code-on-model-creation-in-django
+def execute_after_save(sender, instance, created, *args, **kwargs): 
+    if created:
+        whitelist_obj = WhitelistController.objects.get(id=1) 
+        whitelist_enabled = whitelist_obj.whitelist_enabled # is the whitelist enabled?
+        instance.is_active = not whitelist_enabled
+        instance.save()
+
+@receiver(models.signals.post_save, sender=WhitelistController) # https://stackoverflow.com/questions/8170704/execute-code-on-model-creation-in-django
+def execute_after_save(sender, instance, created, *args, **kwargs): 
+    if not instance.whitelist_enabled: # if the whitelist was just disabled, we need to auto-approve users still pending approval 
+        not_active_users = AuthorUser.objects.filter(is_active=False)
+        for user in not_active_users:
+            user.is_active = True
+            user.save()
+
 
