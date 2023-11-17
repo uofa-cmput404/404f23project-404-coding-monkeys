@@ -13,7 +13,6 @@
 
     {% block css %}
     <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
-
     <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
     <link rel="icon" type="image/x-icon" href={% static 'images/monkey_icon.jpg' %}>
@@ -25,10 +24,22 @@
     <main>
         <div class="row-flex" style="display: flex; min-height: 100vh;">
             <div class="col-flex" style="flex: 32%; background-color:#FFD553;">
-                
+                <!--<h1 style="color: black; text-align: center; padding-left: 20px; padding-right: 20px; padding-top: 40px; font-size:3vw;">ChimpChat</h1> REPLACED BY BOUNCING TEXT-->
+
                     <div class="row-flex">
                         <img src={% static 'images/monkey_icon.jpg'%} alt="" title = "" width="140" height="auto">
-                        <h1 style="color: black; text-align: center; padding-left: 20px; padding-right: 20px; padding-top: 40px; font-size:3vw;">ChimpChat</h1>
+                        <div class="bouncing-text" style=" position:relative; ">
+                            <div class="C" style="padding-top:20px;">C</div>
+                            <div class="h" style="padding-top:20px;">h</div>
+                            <div class="i" style="padding-top:20px;">i</div>
+                            <div class="m" style="padding-top:20px;">m</div>
+                            <div class="p" style="padding-top:20px;">p</div>
+                            <div class="C2" style="padding-top:20px;">C</div>
+                            <div class="h2" style="padding-top:20px;">h</div>
+                            <div class="a" style="padding-top:20px;">a</div>
+                            <div class="t" style="padding-right:8px; padding-top:20px;">t</div>
+
+                        </div>
                     </div>
 
                 <div style=" margin-top:120px; margin-bottom:20px; margin-left:10px; margin-right:10px;">
@@ -76,7 +87,7 @@
 
                 <form action="{% url 'login'%}">
                     <button class="post_button" type="submit" 
-                    style="margin: 0; position: absolute; top: 60%; left: 65.5%; -ms-transform: translate(-50%); transform: translate(-50%); width:350px; color:#1C1A19; font-size:30px">Log in</button>
+                    style="margin: 0; border-radius: 40px; position: absolute; top: 60%; left: 65.5%; -ms-transform: translate(-50%); transform: translate(-50%); width:350px; color:#1C1A19; font-size:30px">Log in</button>
                 </form><!--how i centered the button: https://www.w3schools.com/howto/howto_css_center_button.asp -->
     
 
