@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from accounts.models import AuthorUser#Import this in particular. BTW theres nothing in pages/views.py and we have to use authors.models.py instead for testing the pages here
+from accounts.models import AuthorUser, WhitelistController#Import this in particular. BTW theres nothing in pages/views.py and we have to use authors.models.py instead for testing the pages here
 from rest_framework import status
 
 #TO RUN ALL TESTS: python manage.py test
@@ -15,6 +15,8 @@ class Author_Tests(TestCase):
         self.client = Client()#Settup
 
 
+        WhitelistController.objects.create()
+        
         self.user1 = AuthorUser.objects.create(
              username='BananaLover69',
              password='caffy1605',
@@ -25,6 +27,7 @@ class Author_Tests(TestCase):
         )
         
     def test_allAuthorsURL(self):
-        url = reverse('authors_list')
+        url = reverse('authors_list')#This test is incomplete. continue from here
         response = self.client.get(url)
+        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
