@@ -35,8 +35,6 @@ class Author_Tests(TestCase):
         )
         
         
-
-        
         
 
         
@@ -55,18 +53,17 @@ class Author_Tests(TestCase):
         
         
 
-    def test_signup(self):
-        print("accounts/tests.py -> test_signup commencing")
+    def test_login(self):
+        print("accounts/tests.py -> test_login commencing")
 
         
-        user_one= AuthorUser.objects.get(username="BananaLover69")
-
-        
-        print("accounts/tests.py -> test_signup_view commencing")
         url = reverse('login')
+        data_from_author= {'username': self.user1.username, 'password':self.user1.password}
+        
+        response = self.client.post(url, data_from_author)
         
         print(url)
+        print(data_from_author)
+        print(response)
         
-        user_data_we_want = {'email': user_one.email, 'password': user_one.password}
-
-        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
