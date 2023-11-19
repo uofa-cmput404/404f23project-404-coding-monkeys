@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse, resolve
-from .models import AuthorUser
+from .models import AuthorUser, WhitelistController
+from rest_framework import status
 from accounts.views import SignUpView
 
 
@@ -19,22 +20,53 @@ class Author_Tests(TestCase):
         #self.signup_url = reverse('signup')#Settup
         self.client = Client()#Settup
      
-        
+        WhitelistController.objects.create()
         
         #AuthorUser.objects.create(username='TestAuthor4', url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg'
                                   #, github = 'https://github.com/NimaShariatz', password='ffafy1605', email='shariatz@ualberta.ca')
         
         self.user1 = AuthorUser.objects.create(
-             username='testUser1',
+             username='BananaLover69',
              password='caffy1605',
              email='vroom@gmail.com',
+             profile_image='https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg',
              github='https://github.com/NimaShariatz'
             
         )
         
         
+
         
+        
+
         
 # Create your tests here.
     def test_author(self):
         print("accounts/tests.py -> test_author commencing")
+        
+        user_one= AuthorUser.objects.get(username="BananaLover69")
+        
+        
+        self.assertEqual(user_one.username, "BananaLover69")
+        self.assertEqual(user_one.password, "caffy1605")
+        self.assertEqual(user_one.email, "vroom@gmail.com")
+        self.assertEqual(user_one.profile_image, "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg")
+        self.assertEqual(user_one.github, "https://github.com/NimaShariatz")
+        
+        
+
+    def test_signup(self):
+        print("accounts/tests.py -> test_signup commencing")
+
+        
+        user_one= AuthorUser.objects.get(username="BananaLover69")
+
+        
+        print("accounts/tests.py -> test_signup_view commencing")
+        url = reverse('login')
+        
+        print(url)
+        
+        user_data_we_want = {'email': user_one.email, 'password': user_one.password}
+
+        

@@ -241,49 +241,49 @@ a{
 
 
   .C {
-    animation: bounce 3.2s ease infinite;
+    animation: bounce 3.2s ease 1 1.0s;
 
 
 
   }
   
   .h {
-    animation: bounce 3.2s ease infinite .1s;
+    animation: bounce 3.2s ease 1 1.1s;
     
   }
   
   .i {
-    animation: bounce 3.2s ease infinite .2s;
+    animation: bounce 3.2s ease 1 1.2s;
    
   }
   
   .m {
-    animation: bounce 3.2s ease infinite .3s;
+    animation: bounce 3.2s ease 1 1.3s;
    ;
   }
   
   .p {
-    animation: bounce 3.2s ease infinite .4s;
+    animation: bounce 3.2s ease 1 1.4s;
     
   }
 
   .C2 {
-    animation: bounce 3.2s ease infinite .5s;
+    animation: bounce 3.2s ease 1 1.5s;
     
   }
 
   .h2 {
-    animation: bounce 3.2s ease infinite .6s;
+    animation: bounce 3.2s ease 1 1.6s;
     
   }
 
   .a {
-    animation: bounce 3.2s ease infinite .7s;
+    animation: bounce 3.2s ease 1 1.7s;
     
   }
 
   .t {
-    animation: bounce 3.2s ease infinite .8s;
+    animation: bounce 3.2s ease 1 1.8s;
    
   }
   
@@ -306,20 +306,4 @@ a{
 
 
 
-@keyframes scale {
-    0% {transform: scaleX(1);}
-    25% {transform: scaleX(0.4);}
-    50% {transform: scaleX(1);}
-    75% {transform: scaleX(0.9);}
-    100% {transform: scaleX(1);}
-}
-
-
-@-webkit-keyframes scale {
-    0% {transform: scaleX(1);}
-    25% {transform: scaleX(0.4);}
-    50% {transform: scaleX(1);}
-    75% {transform: scaleX(0.9);}
-    100% {transform: scaleX(1);}
-}
 
