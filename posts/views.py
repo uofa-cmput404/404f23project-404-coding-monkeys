@@ -3,7 +3,7 @@ from django.views.generic import CreateView
 from django.forms.models import model_to_dict
 from rest_framework.response import Response
 from posts.serializers import PostsSerializer
-from .models import Posts, Likes
+from .models import Posts, Likes, Comments
 from .forms import PostForm
 from django.urls import reverse
 from accounts.models import AuthorUser, Followers
@@ -16,6 +16,7 @@ from PIL import Image
 from drf_yasg.utils import swagger_auto_schema
 from static.vars import ENDPOINT
 from django.http import HttpResponse
+from django.core.serializers import serialize
 
 class PostCreate(CreateView):
     model = Posts
@@ -72,6 +73,7 @@ def update_or_create_post(request, post_uuid):
     post.description = request.POST.get('description')
     post.content = request.POST.get('content')
     post.categories = request.POST.get('categories')
+    post.comments = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}/comments"
     post.visibility = request.POST.get('visibility')
 
     if request.POST.get('author_list') and post.visibility == "PRIVATE":
@@ -202,6 +204,50 @@ def view_posts(request):
 
     return render(request, 'posts/dashboard.html', {'all_posts': viewable})
 
+def open_comments_handler(request):
+    # returns commenets for a given post
+    post_uuid = request.GET.get('post_uuid')
+    comments = Comments.objects.filter(post_id=post_uuid)
+
+    serialized_comments = serialize('json', comments)
+    #TODO: sort newest to oldest?
+    return JsonResponse({'comments': serialized_comments})
+
+
+def submit_comment_handler(request):
+    post_uuid = request.GET.get('post_uuid', None) #get the post in question
+    commentText = request.GET.get('comment_text', None) #get the text of the comment
+    author = get_author_info(request.user.id) #get the current user
+
+    #read the post (whose like button the user clicked) object from db
+    try: post = Posts.objects.get(uuid=post_uuid)
+    except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
+
+    post.count += 1
+    post.save()
+    
+
+    print(f"{author['displayName']} entered comment handler for post: {post_uuid}")
+    print(f"Comment contents: {commentText}")
+
+
+    #create and save new comment object
+    commentID = ""
+    # Example ID
+    # "id":"http://127.0.0.1:5454/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/de305d54-75b4-431b-adb2-eb6b9e546013/comments/f6255bb01c648fe967714d52a89e8e9c",
+    #       http://127.0.0.1:8000/authors/[ID OF POST AUTHOR]                     /posts/[ID OF POST]              /comments/[ID OF COMMENT]
+    commentID = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}/comments/{uuid.uuid4()}"
+    commentPost = post
+    commentAuthor = author
+    commentText = commentText
+    commentObj = Comments(uuid= commentID, post= commentPost, author=commentAuthor, comment= commentText, contentType= "text/plain")
+    commentObj.save(force_insert=True)
+
+    comments = Comments.objects.filter(uuid=commentID) #Get the new post drom the database (this is effectively saying get all comments matching this uuid)
+    serialized_comments = serialize('json', comments)
+    return JsonResponse({'comments': serialized_comments})
+
+
 def like_post_handler(request):
     #The user has clicked the like button for a post.
 
@@ -228,7 +274,7 @@ def like_post_handler(request):
         existingLikeObj.delete()#remove like from db
 
         #decrement like counter
-        post.count = post.count - 1 #TODO: post.count is supposed to be the total number of comments, not likes
+        post.likeCount = post.likeCount - 1
         post.save()
     
     else:
@@ -237,18 +283,18 @@ def like_post_handler(request):
         likeSummary = f"{author['displayName']} likes your post"
         likeAuthor = author
         likeVisibility = "TODO: Idk what to put here"
-        postObjLnk = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}" #TODO: For some reason the post.author["id"] is an empty string instead of a proper id
+        postObjLnk = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}"
         likeObj = Likes(context= likeContext, summary= likeSummary, author=likeAuthor, liked_object= postObjLnk)
         likeObj.save(force_insert=True)
 
         #increment the like count
-        post.count = post.count + 1
+        post.likeCount = post.likeCount + 1
         post.save()
         print(f"User: {author['displayName']} has liked post:{post_uuid}")
     
 
 
-    return JsonResponse({'new_post_count': post.count}) #return new post count
+    return JsonResponse({'new_post_count': post.likeCount}) #return new post count
 
 @swagger_auto_schema(methods=['POST','PUT'],operation_description="Test the sequel",request_body=PostsSerializer,)
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])

@@ -10,6 +10,17 @@ p {
     color: white;
 }
 
+
+
+
+.postImage{
+    height:100%;
+    width:100%;
+    object-fit: scale-down;
+   
+    
+}
+
 .no_post_button {
     color: black;
     font-size: 20px;
@@ -43,6 +54,81 @@ p {
     height: 85vh;
 }
 
+.post-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.comment-box-container {
+    margin: auto;
+    margin-bottom: 20px;
+
+    height: 85vh;
+    width: 60vh;
+    border-style: solid;
+    border-radius: 10px;
+    border-color: #FFD553;
+    border-width: 7px;
+
+    box-shadow: 2px 10px 13px 2px rgba(255, 213, 83, 0.15), 0 14px 42px 0 rgba(226, 2, 2, 0.19);
+
+
+    display: flex;
+    flex-direction: column;
+}
+
+.submit-comment-box {
+    display: flex;
+    flex-direction: row;
+
+    margin-top: auto;
+    padding: 10px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    max-height: 15vh;
+}
+
+.comment-textbox{
+    flex-grow: 1;
+}
+
+.scrollable-comments {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.comment {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    /* TODO: Change the above height to dynamically change based on comment length */
+}
+
+.comment-details{
+    margin: 0;
+    padding: 0;
+}
+
+.comment-username{
+    font-weight: bold;
+}
+
+.comment-text{
+    font-size: 12px;
+}
+
+.like-comment-button{
+    margin-left: auto;
+}
+
+.comment-profile-picture{
+    width: 5vh;
+    height: 5vh;
+    padding: 2vh;
+    border-radius: 50%;
+    border-color: white;
+}
+
 #post_author {
     display: flex;
     flex-direction: row;
@@ -70,13 +156,15 @@ p {
 
 }
 
-
-
 #post_author .profile_picture {
     width: 50px;
     height: 50px;
     border-radius: 50%;
     border-color: white;
+    background-color: #2a2a2a;
+    border-width: 0.2em;
+    border-style: solid;
+    border-color:#FFD553;
 }
 
 #post_body {
@@ -232,4 +320,20 @@ button, .context_button {
 .delete_button, .close_button {
     background-color: transparent;
     border-style: none;
+}
+
+.authorDetails {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 5px;
+}
+
+.authorDetails:hover {
+    background-color: #FFD553;
+    padding: 5px;
+    border-radius: 15px;
+    box-shadow: 0 0 10px rgb(24, 23, 23)
 }

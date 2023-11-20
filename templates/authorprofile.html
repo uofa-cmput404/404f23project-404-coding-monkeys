@@ -14,8 +14,8 @@
   $(document).ready(function () {
     $("#followButton").click(function () {
       $.ajax({
-        url: '{% url "author_followed" uuid=author.uuid %}',
-        method: 'GET',
+        url: '/url/to/follow/author/',
+        method: 'POST',
         success: function (data) {
           $('#followButton').text("Requested");
         }

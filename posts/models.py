@@ -20,6 +20,7 @@ class Posts(models.Model):
     # categories this post fits into (a list of strings
     categories = models.JSONField(default=list)
     # total number of comments for this post
+    likeCount = models.IntegerField(default=0)
     count = models.IntegerField(default=0)
     comments = models.URLField()
     # commentsSrc is OPTIONAL to reduce API call counts

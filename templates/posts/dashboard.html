@@ -12,7 +12,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <meta name="csrf-token" content="{{ csrf_token }}">
 
-<!-- Script for handling ajax for like button press -->
+<!-- Script for handling ajax of button presses -->
 <script>
     $(document).ready(function () {
         var csrfToken = $('meta[name=csrf-token]').attr('content');
@@ -28,6 +28,122 @@
                     $('#result-' + post_uuid).text(data.new_post_count);
                 }
             });
+        });
+
+        $(".comment-button").click(function () {
+            var post_uuid = $(this).data("post-uuid");
+            var commentContainer = $("#comment-box-container-" + post_uuid + " .scrollable-comments");
+
+            // Get existing comments for this post, and load them into the comments container
+            $.ajax({
+                    url: '{% url "open_comments" %}',
+                    method: 'GET',
+                    data: { 
+                        post_uuid: post_uuid,
+                    }, 
+                    success: function (data) {
+                        // the backend returns all comments for a post. Here we display them (add them into a container)
+                        var comments = JSON.parse(data.comments);
+                        commentContainer.empty();
+                        
+                        // Add the comment elements to the page
+                        comments.forEach(function (comment) {
+                            var commentElement = '<div class="comment">' +
+                                '<img src="' + comment.fields.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
+                                '<div class="comment-details">' +
+                                    '<p class="comment-username">' + comment.fields.author.displayName + '</p>' +
+                                    '<p class="comment-text">' + comment.fields.comment + '</p>' +
+                                '</div>' +
+                                '<button class="like-comment-button" data-comment-uuid="' + comment.fields.uuid + '">Like</button>' +
+                            '</div>';
+                            commentContainer.append(commentElement);
+                        });
+
+                        $("#comment-box-container-" + post_uuid).show();
+                    
+                    },
+                    error: function (data) {
+                        alert("Error fetching comments. Please try again.");
+                    }
+                });
+        });
+
+        $(".cancel-comment-button").click(function () {
+            var post_uuid = $(this).data("post-uuid");
+            $("#comment-box-container-" + post_uuid).hide();
+        });
+
+        $(".submit-comment-button").click(function () {
+            var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
+            var commentText = $("#comment-textbox-" + post_uuid).val(); // Get the comment text from the text box
+            var commentContainer = $("#comment-box-container-" + post_uuid + " .scrollable-comments");
+
+            if (commentText.trim() !== "") {
+                $.ajax({
+                    url: '{% url "submit_comment" %}',
+                    method: 'GET',
+                    data: { 
+                        // We will use this data on the backend to create a new comment
+                        post_uuid: post_uuid,
+                        comment_text: commentText
+                    }, 
+                    success: function (data) {
+                        // Here we read the list of all comments from the db that perfectly match the comment just submitted (this will only be one comment, but for the sake of using the same code as above, we kept this structure)
+                        // Once we get the new comment from the db, we add it to the comments displayed
+                        var comments = JSON.parse(data.comments);
+                        // Add the comment element to the page
+                        comments.forEach(function (comment) {
+                            var commentElement = '<div class="comment">' +
+                                '<img src="' + comment.fields.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
+                                '<div class="comment-details">' +
+                                    '<p class="comment-username">' + comment.fields.author.displayName + '</p>' +
+                                    '<p class="comment-text">' + comment.fields.comment + '</p>' +
+                                '</div>' +
+                                '<button class="like-comment-button" data-comment-uuid="' + comment.fields.uuid + '">Like</button>' +
+                            '</div>';
+                            commentContainer.append(commentElement);
+                        });
+                        $("#comment-textbox-" + post_uuid).val(''); // Clear the contents of the textbox after successfully adding the comment
+                    },
+                    error: function (data) {
+                        alert("Error submitting comment. Please try again.");
+                    }
+                });
+            }
+            else {
+                alert("Please enter text before submitting a comment.");
+            }
+        });
+        
+        
+        $(".authorDetails").click(function () {
+            
+            var csrfToken = $('meta[name=csrf-token]').attr('content');
+            var get_url = $(this).data("get-url");
+            var host = $(this).data("host");
+
+            $.ajax({
+                url: "/authors/determine-args/",
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                data: {
+                    get_url: get_url,
+                    host : host,
+                },
+                success: function(data) {
+                    json_data = JSON.parse(data);
+                    // console.log(json_data.host_index);
+                    var index = json_data.host_index;
+                    var uuid = json_data.uuid;
+                    window.location.href = "/authors/" + index + "/" + uuid + "/";
+                },
+                error: function(data) {
+                    console.log("error");
+                }
+            });
+
         });
 
         $(".delete-confirm").click(function () {
@@ -52,6 +168,10 @@
     });
 
 </script>
+
+
+
+</script>
 <!-- <script src="{% static '/js/like_button.js' %}"></script> -->
 
 {% endblock css %}
@@ -61,51 +181,70 @@
 <!-- TODO: This is a security risk as all posts are sent to the browser (potentially including non-authorized ones). Edit this so that we only send authorized posts from the server -->
 {% for post in all_posts %}
     {% if not post.unlisted %}
-        <div class="post" style="margin-top:3em">
-            <section id="post_author">
-                <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
-                <a href="{% url 'author_profile' uuid=post.author.id %}">{{ post.author.displayName}}</a>
-                <div class="flex_grow"></div>
-                <p style="align-self: end;">{{ post.published }}</p>
-            </section>
-            <section id="post_body">
-                <h1>{{ post.title }}</h1>
-                <p class="body_style">{{ post.content }}</p>
-            </section>
-            {% for image in all_posts %}
-                {% if image.uuid == post.uuid|add:"_pic" %}
-                <!-- for each post, look if there is a corresponding pic post in the list of all posts. If there is, display it along with the parent post -->
-                    <section id="post_image">
-                        <img style="padding-left: 10px;" src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
-                    </section>
-                {% endif %}
-            {% endfor %}
-            <div class="flex_grow"></div>
-            <div class="footer">
-                <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span>
-                <p class="likes"id="result-{{ post.uuid }}">{{ post.count}} </p>
-                <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
-                <button style="padding-top: 10px;" type="button"class="like-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">favorite</i></button>
-                <button style="padding-top: 10px;" type="button"><i class="material-symbols-outlined">tooltip</i></button>
-                {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->
-                    <div class="flex_grow"></div>
-                    <div class="context_menu" id="context_menu">
-                        <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author.id %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
-                        <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
+        <div class="post-container">
+            <div class="post" style="margin-top:3em">
+                <section id="post_author">
+                    <div class="authorDetails" data-get-url="{{ post.author.id }}" data-host="{{ post.author.host }}">
+                        <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
+                        <p style="margin: 0; margin-left:0.25em; margin-top: 0.25em; color:black; font-size:24px; user-select: none">{{ post.author.displayName}}</p>
                     </div>
-                    <dialog class="modal" id="modal">
-                        <div class="col-flex">
-                        <p style="color:white; font-size: 32px;">Are you sure you want to delete this post?</p>
-                        <div class="row-flex" style="justify-content: center; align-items: center;">
-                            <button style="margin-right: 10px;" class="close-button" type="button">Cancel</button>
-                            <button class="delete-confirm" data-post-uuid="{{ post.uuid }}" data-author-uuid="{{ post.author.id }}">Confirm</button>
+                    <div class="flex_grow"></div>
+                    <p style="align-self: end;">{{ post.published }}</p>
+                </section>
+                <section id="post_body">
+                    <h1>{{ post.title }}</h1>
+                    <p class="body_style">{{ post.content }}</p>
+                </section>
+                {% for image in all_posts %}
+                    {% if image.uuid == post.uuid|add:"_pic" %}
+                    <!-- for each post, look if there is a corresponding pic post in the list of all posts. If there is, display it along with the parent post -->
+                        
+                        <div style="height:46%;">
+                            <img class="postImage" src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
                         </div>
-                    </dialog>
-                    <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
-                {% endif %}
+                    {% endif %}
+                {% endfor %}
+                <div class="flex_grow"></div>
+                <div class="footer">
+                    <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span>
+                    <p class="likes"id="result-{{ post.uuid }}">{{ post.likeCount}} </p>
+                    <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
+                    <button style="padding-top: 10px;" type="button"class="like-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">favorite</i></button>
+                    <!-- comment button-->
+                    <button style="padding-top: 10px;" type="button"class="comment-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">tooltip</i></button>
+                    {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->
+                        <div class="flex_grow"></div>
+                        <div class="context_menu" id="context_menu">
+                            <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author.id %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
+                            <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
+                        </div>
+                        <dialog class="modal" id="modal">
+                            <div class="col-flex">
+                            <p style="color:white; font-size: 32px;">Are you sure you want to delete this post?</p>
+                            <div class="row-flex" style="justify-content: center; align-items: center;">
+                                <button style="margin-right: 10px;" class="close-button" type="button">Cancel</button>
+                                <button class="delete-confirm" data-post-uuid="{{ post.uuid }}" data-author-uuid="{{ post.author.id }}">Confirm</button>
+                            </div>
+                        </dialog>
+                        <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="comment-box-container" id="comment-box-container-{{ post.uuid }}" style="display: none;">
+                <div class="scrollable-comments">
+                    <!-- comments are loaded into this container via the ajax script -->
+                    <div class="comment">
+                    </div>
+                </div>
+                <div class="submit-comment-box">
+                    <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
+                    <button class="cancel-comment-button" data-post-uuid="{{ post.uuid }}">Cancel</button>
+                    <button class="submit-comment-button" data-post-uuid="{{ post.uuid }}">Submit</button>
+                </div>  
             </div>
         </div>
     {% endif %}
+
 
 {% empty %}
     <div style="padding:10px;">
