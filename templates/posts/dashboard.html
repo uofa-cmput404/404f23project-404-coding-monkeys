@@ -114,6 +114,37 @@
                 alert("Please enter text before submitting a comment.");
             }
         });
+        
+        
+        $(".authorDetails").click(function () {
+            
+            var csrfToken = $('meta[name=csrf-token]').attr('content');
+            var get_url = $(this).data("get-url");
+            var host = $(this).data("host");
+
+            $.ajax({
+                url: "/authors/determine-args/",
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                data: {
+                    get_url: get_url,
+                    host : host,
+                },
+                success: function(data) {
+                    json_data = JSON.parse(data);
+                    // console.log(json_data.host_index);
+                    var index = json_data.host_index;
+                    var uuid = json_data.uuid;
+                    window.location.href = "/authors/" + index + "/" + uuid + "/";
+                },
+                error: function(data) {
+                    console.log("error");
+                }
+            });
+
+        });
 
         $(".delete-confirm").click(function () {
             var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
@@ -153,8 +184,10 @@
         <div class="post-container">
             <div class="post" style="margin-top:3em">
                 <section id="post_author">
-                    <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
-                    <a href="{% url 'author_profile' uuid=post.author.id %}">{{ post.author.displayName}}</a>
+                    <div class="authorDetails" data-get-url="{{ post.author.id }}" data-host="{{ post.author.host }}">
+                        <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
+                        <p style="margin: 0; margin-left:0.25em; margin-top: 0.25em; color:black; font-size:24px; user-select: none">{{ post.author.displayName}}</p>
+                    </div>
                     <div class="flex_grow"></div>
                     <p style="align-self: end;">{{ post.published }}</p>
                 </section>

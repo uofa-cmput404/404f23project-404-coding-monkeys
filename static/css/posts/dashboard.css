@@ -321,3 +321,19 @@ button, .context_button {
     background-color: transparent;
     border-style: none;
 }
+
+.authorDetails {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 5px;
+}
+
+.authorDetails:hover {
+    background-color: #FFD553;
+    padding: 5px;
+    border-radius: 15px;
+    box-shadow: 0 0 10px rgb(24, 23, 23)
+}

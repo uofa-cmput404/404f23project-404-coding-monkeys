@@ -10,23 +10,23 @@
 {% block content %}
 
 <!--reverted to using urls to follow for now; keeping in case we need this for working with the API-->
-<!-- <script>
+<script>
   $(document).ready(function () {
     $("#followButton").click(function () {
       $.ajax({
-        url: '{% url "author_followed" uuid=author.uuid %}',
-        method: 'GET',
+        url: '/url/to/follow/author/',
+        method: 'POST',
         success: function (data) {
           $('#followButton').text("Requested");
         }
       });
     });
   });
-</script> -->
+</script>
 
 <div style="padding:25px; background-color:#2a2a2a; margin:1em; border-style:solid; border-color:#FFD553; border-radius:5px;">
-  <h1 style="margin-left:0.5em;">Welcome to {{author}}'s profile.</h1>
-  {% if user.username == author.username %} <!-- only allow users to update their own profiles; current user username must match that of author-->
+  <h1 style="margin-left:0.5em;">Welcome to {{author.displayName}}'s profile.</h1>
+  {% if user.uuid == author.uuid %} <!-- only allow users to update their own profiles; current user username must match that of author-->
       <form action="{% url 'author_edit' uuid=author.uuid %}">
         <div>
           <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Edit Profile</button>
@@ -52,19 +52,19 @@
   {% endif %}
 
   <div style="padding:20px; background-color:#1C1A19; margin:0.8em; border-radius:5px;">
-    <img src="{{ author.profile_image }}" href="{% static 'css/main.css' %}" class="user_icon" style="width: 200px; height:200px;"> <!--To edit image styling, go to css/main.css-->
+    <img src="{{ author.profileImage }}" href="{% static 'css/main.css' %}" class="user_icon" style="width: 200px; height:200px;"> <!--To edit image styling, go to css/main.css-->
     <h2><u>Personal Info</u></h2>
     <p>TBA</p>
     <h2 style="margin-top:40px"><u>Followers</u></h2>
     <ul style="list-style-type: none; ">
-      {% for follower in followers.followers %}
+      {% for follower in followers %}
 
         <div class="list_profiles_gradience"></div>
 
         <div class="userProfile_followers" style="display: flex; flex-direction: column; padding:5px;">
 
-          <img src="{{ follower_avatars|get_item:follower.username}}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553;">
-          <li style="word-break:break-all;">{{ follower.username }}</li>
+          <img src="{{ follower.profileImage }}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553;">
+          <li style="word-break:break-all;">{{ follower.displayName }}</li>
 
         </div>
 
