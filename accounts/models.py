@@ -48,10 +48,12 @@ class FollowRequests(models.Model):
     # could possible have a boolean for requester and recipient to see if they are local to our node, and instead
     # of storing an entire dictionary of information it can just be an author id which we will retrieve data from in
     # the AuthorUser table. Will see.
+
     requester_uuid = models.CharField(max_length=36)
-    requester = models.JSONField(default=dict)
+    requester_host = models.CharField(max_length=100, null=True)
+    requester_url = models.CharField(max_length=100, null=True)
+
     recipient_uuid = models.CharField(max_length=36)
-    recipient = models.JSONField(default=dict)
     sent_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self): # show summary in django admin view tooltip 
@@ -59,7 +61,7 @@ class FollowRequests(models.Model):
 
     # can only request somebody once
     class Meta:
-        unique_together = ('requester', 'recipient')
+        unique_together = ('requester_uuid', 'recipient_uuid')
 
 @receiver(models.signals.post_save, sender=AuthorUser) # https://stackoverflow.com/questions/8170704/execute-code-on-model-creation-in-django
 def execute_after_save(sender, instance, created, *args, **kwargs): 

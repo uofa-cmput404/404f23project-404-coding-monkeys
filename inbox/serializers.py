@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Inbox
 from accounts.models import AuthorUser
-from pages.seralizers import AuthorUserSerializer
+from pages.seralizers import AuthorUserSerializer, AuthorUserReferenceSerializer, AuthorUserSerializerDB
 from static.vars import ENDPOINT
 
 
@@ -40,3 +40,4 @@ class InboxSerializer(serializers.Serializer):
         instance.items = validated_data.get('items', instance.followers)
         instance.save()
         return instance
+

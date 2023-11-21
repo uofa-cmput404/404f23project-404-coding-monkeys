@@ -49,12 +49,12 @@
                         // Add the comment elements to the page
                         comments.forEach(function (comment) {
                             var commentElement = '<div class="comment">' +
-                                '<img src="' + comment.fields.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
+                                '<img src="' + comment.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
                                 '<div class="comment-details">' +
-                                    '<p class="comment-username">' + comment.fields.author.displayName + '</p>' +
-                                    '<p class="comment-text">' + comment.fields.comment + '</p>' +
+                                    '<p class="comment-username">' + comment.author.displayName + '</p>' +
+                                    '<p class="comment-text">' + comment.comment + '</p>' +
                                 '</div>' +
-                                '<button class="like-comment-button" data-comment-uuid="' + comment.fields.uuid + '">Like</button>' +
+                                '<button class="like-comment-button" data-comment-uuid="' + comment.uuid + '">Like</button>' +
                             '</div>';
                             commentContainer.append(commentElement);
                         });
@@ -94,12 +94,12 @@
                         // Add the comment element to the page
                         comments.forEach(function (comment) {
                             var commentElement = '<div class="comment">' +
-                                '<img src="' + comment.fields.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
+                                '<img src="' + comment.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
                                 '<div class="comment-details">' +
-                                    '<p class="comment-username">' + comment.fields.author.displayName + '</p>' +
-                                    '<p class="comment-text">' + comment.fields.comment + '</p>' +
+                                    '<p class="comment-username">' + comment.author.displayName + '</p>' +
+                                    '<p class="comment-text">' + comment.comment + '</p>' +
                                 '</div>' +
-                                '<button class="like-comment-button" data-comment-uuid="' + comment.fields.uuid + '">Like</button>' +
+                                '<button class="like-comment-button" data-comment-uuid="' + comment.uuid + '">Like</button>' +
                             '</div>';
                             commentContainer.append(commentElement);
                         });

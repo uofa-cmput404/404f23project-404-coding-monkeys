@@ -14,12 +14,15 @@ from django.core import serializers
 from django.shortcuts import get_object_or_404, redirect, render 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponseForbidden
+from pages.util import AuthorDetail
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .seralizers import AuthorUserSerializer, FollowerSerializer, FollowerListSerializer, AuthorUserReferenceSerializer
-from static.vars import HOSTS
+from .seralizers import AuthorDetailSerializer, AuthorUserSerializer, FollowRequestsSerializer, FollowerListSerializer, AuthorUserReferenceSerializer, ResponseAuthorsSerializer, ResponseFollowersSerializer
+from static.vars import ENDPOINT, HOSTS
 import requests
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 # DFB pg. 60
 def home_page_view(request): # basic generic view that just displays template
@@ -115,6 +118,20 @@ def get_id_from_url(url):
         url = url[:-1] if url[-1] == "/" else url
         url = url.split("/")
         return url[-1]
+    return ""
+
+def get_part_from_url(url, part):
+    # part is one of authors, posts, or comments and will return the id for that part
+    if url:
+        url = url[:-1] if url[-1] == "/" else url
+        url = url.split("/")
+
+        index = 0
+        while url[index] != part:
+            index += 1
+        
+        # return id right after we find the part
+        return url[index+1]
     return ""
 
 def get_author_detail(request):
@@ -218,22 +235,22 @@ def follow_author(request, uuid): # CHATGPT - 2023-10-20 Prompt #1
         'type': user.type,
         'id': user.url,
         'uuid': user.uuid,
-        'username': user.username,
+        'displayName': user.username,
         'host': user.host,
         'url': user.url,
         'github': user.github,
-        'profile_image': user.profile_image
+        'profileImage': user.profile_image
     }
 
     author_data = {# author put in dictionary to follow fields to be added to json
         'type': author.type,
-        'id': user.url,
+        'id': author.url,
         'uuid': author.uuid,
-        'username': author.username,
+        'displayName': author.username,
         'host': author.host,
         'url': author.url,
         'github': author.github,
-        'profile_image': author.profile_image,
+        'profileImage': author.profile_image,
     }
 
     # create FollowRequest instance in db
@@ -312,6 +329,21 @@ def get_follower_info(request):
     
     return follower_dict
 
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Retrieves the profile of a single author.",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
+        ],
+    responses={
+        200: AuthorUserSerializer,
+        404: openapi.Response("The provided author does not exist."),
+    }
+)
+@swagger_auto_schema(
+    method='post',
+    auto_schema=None)
 @api_view(['GET', 'POST'])
 def api_single_author(request, uuid):
     if request.method == "GET":
@@ -328,6 +360,18 @@ def api_single_author(request, uuid):
 
         return Response(status=400, data=serializer.errors)
 
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Retrieves all profiles on the server (paginated). Example query: GET ://service/authors?page=10&size=5",
+    manual_parameters=[
+            openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Page number"),
+            openapi.Parameter('size', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Number of profiles per page"),
+        ],
+    responses={
+        200: ResponseAuthorsSerializer,
+    }
+)
 @api_view(['GET'])
 def api_all_authors(request):
     # check query params for pagination
@@ -345,13 +389,33 @@ def api_all_authors(request):
     response = {"type": "authors", "items": serializer.data}
     return Response(response)
 
+@swagger_auto_schema(
+    method='get',
+    operation_description="Get the list of followers for the provided author ID.",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
+        ],
+    responses={
+            200: ResponseFollowersSerializer,
+            404: openapi.Response("The provided author does not exist."),
+        }
+)
 @api_view(['GET'])
 def api_follow_list(request, uuid):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     try: 
         followers = Followers.objects.get(author=author)
-        serializer = FollowerSerializer(followers.followers, many=True)
-        response = {"type": "followers", "items": serializer.data}
+        formatted = []
+        for follower in followers:
+            ad = AuthorDetail()
+            ad.setMapping(follower)
+            formatted.append(ad.formatAuthorInfo())
+
+        serializer = AuthorDetailSerializer(data=formatted, many=True)
+        if not serializer.is_valid():
+            return Response(status=500, data="Server Error")
+        
+        return {"type": "followers", "items": serializer.data}
     # case if author has no followers yet
     except Followers.DoesNotExist:
         response = {"type": "followers", "items": []}
@@ -360,6 +424,22 @@ def api_follow_list(request, uuid):
     
     return Response(response)
 
+@swagger_auto_schema(
+    method='get',
+    operation_description="Checks if the foreign author is a follower of the author.",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author in check."),
+            openapi.Parameter('foreign_author_id', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the foreign author."),
+        ],
+    responses={
+            200: openapi.Response("The foreign author is a follower of the author."),
+            404: openapi.Response("The foreign author is not following the author."),
+        }
+)
+@swagger_auto_schema(
+    methods=['put', 'delete'],
+    auto_schema=None
+)
 @api_view(['GET', 'PUT', 'DELETE'])
 def api_foreign_follower(request, uuid, foreign_author_id):
     author = get_object_or_404(AuthorUser, uuid=uuid)
@@ -440,3 +520,4 @@ def api_follow_requests(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+

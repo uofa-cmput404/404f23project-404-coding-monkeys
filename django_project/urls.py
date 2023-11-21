@@ -17,16 +17,26 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from drf_yasg.views import get_schema_view
+from drf_yasg.inspectors import SwaggerAutoSchema
+from drf_yasg.generators import OpenAPISchemaGenerator
 from drf_yasg import openapi
 from rest_framework import permissions
-
+   
 # https://episyche.com/blog/how-to-create-django-api-documentation-using-swagger
 schema_view = get_schema_view(
     openapi.Info(
         title="ChimpChat API Documentation",
         default_version='v1',),
     public=True,
-    permission_classes=(permissions.AllowAny,),
+    permission_classes=(permissions.IsAuthenticatedOrReadOnly,),
+)
+
+full_schema_view = get_schema_view(
+    openapi.Info(
+        title="Full ChimpChat API Documentation",
+        default_version='v1',),
+    public=True,
+    permission_classes=(permissions.IsAuthenticatedOrReadOnly,),
 )
 
 urlpatterns = [
@@ -38,4 +48,5 @@ urlpatterns = [
     # path("inbox/", include("inbox.urls")), # if inbox request, forward to inbox.urls (follow, unfollow
     path("", include("pages.urls")), # goto pages.urls if generic request 
     path('docs/', schema_view.with_ui('swagger', cache_timeout=0),name='schema-swagger-ui'),
+    # path('fullDocs/', full_schema_view.with_ui('swagger', cache_timeout=0),name='full-schema-swagger-ui')
 ]

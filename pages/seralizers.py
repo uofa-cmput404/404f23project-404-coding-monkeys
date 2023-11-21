@@ -25,16 +25,22 @@ class AuthorUserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class FollowerSerializer(serializers.Serializer):
-    
+class AuthorDetailSerializer(serializers.Serializer):
     type = serializers.CharField(default="author", max_length=6)
-    id = serializers.CharField(max_length=100)
-    host = serializers.CharField(max_length=100)
-    displayName = serializers.CharField(max_length=100, source='username')
-    url = serializers.CharField(max_length=100)
-    github = serializers.CharField(max_length=100)
-    profileImage = serializers.CharField(max_length=100, source='profile_image')
+    id = serializers.CharField()
+    url = serializers.CharField()
+    host = serializers.CharField()
+    github = serializers.CharField()
+    displayName = serializers.CharField(max_length=50)
+    profileImage = serializers.CharField()
 
+class ResponseAuthorsSerializer(serializers.Serializer):
+    type = serializers.CharField(default="authors", max_length=7)
+    items = AuthorUserSerializer(many=True)
+
+class ResponseFollowersSerializer(serializers.Serializer):
+    type = serializers.CharField(default="followers", max_length=9)
+    items = AuthorUserSerializer(many=True)
 
 class FollowerListSerializer(serializers.Serializer):
     class Meta:
@@ -53,11 +59,20 @@ class FollowerListSerializer(serializers.Serializer):
 class FollowRequestsSerializer(serializers.Serializer):
     type = serializers.CharField(default="Follow", max_length=10)
     summary = serializers.CharField()
-    actor = AuthorUserSerializer()
-    object = AuthorUserSerializer()
+    actor = AuthorDetailSerializer()
+    object = AuthorDetailSerializer()
 
 # the reference serializers are expecting properly formatted input from server responses and act as 
 # the "template" for the request data (1:1 with what is in spec)
+
+class AuthorUserSerializerDB(serializers.Serializer):
+    type = serializers.CharField(default="author", max_length=6)
+    id = serializers.CharField()
+    url = serializers.CharField()
+    host = serializers.CharField()
+    github = serializers.CharField()
+    username = serializers.CharField(max_length=50, source='displayName')
+    profile_image = serializers.CharField(source='profileImage')
 
 class AuthorUserReferenceSerializer(serializers.Serializer):
     type = serializers.CharField(default="author", max_length=6)
@@ -68,3 +83,17 @@ class AuthorUserReferenceSerializer(serializers.Serializer):
     displayName = serializers.CharField(max_length=50)
     profileImage = serializers.CharField()
 
+class LikeSerializer(serializers.Serializer):
+    context = serializers.CharField()
+    summary = serializers.CharField()
+    type = serializers.CharField(default="like", max_length=4)
+    author = AuthorDetailSerializer()
+    object = serializers.CharField()
+
+class CommentSerializer(serializers.Serializer):
+    type = serializers.CharField(default="comment", max_length=7)
+    author = AuthorDetailSerializer()
+    comment = serializers.CharField()
+    contentType = serializers.CharField(max_length=20)
+    published = serializers.CharField()
+    id = serializers.CharField()
