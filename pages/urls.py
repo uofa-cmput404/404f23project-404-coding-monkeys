@@ -30,6 +30,9 @@ urlpatterns = [
     #Post Image API calls
     path('authors/<str:author_id>/posts/<str:post_id>/image/', post_views.get_image_post, name='get_image_post'),
 
+    # Comment API Calls
+    path('authors/<str:uuid>/posts/<str:post_id>/comments/', post_views.api_comments, name='api_comments'),
+
     # Local paths
     # ======================================================================================================================================
 

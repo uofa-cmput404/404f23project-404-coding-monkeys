@@ -97,3 +97,11 @@ class CommentSerializer(serializers.Serializer):
     contentType = serializers.CharField(max_length=20)
     published = serializers.CharField()
     id = serializers.CharField()
+
+class CommentListSerializer(serializers.Serializer):
+    type = serializers.CharField(default="comments", max_length=8)
+    page = serializers.IntegerField()
+    size = serializers.IntegerField()
+    post = serializers.CharField()
+    comments = CommentSerializer(many=True)
+    id = serializers.CharField()

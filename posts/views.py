@@ -2,7 +2,7 @@ import json
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
 from django.forms.models import model_to_dict
-from pages.seralizers import AuthorUserSerializer
+from pages.seralizers import AuthorUserSerializer, CommentListSerializer, CommentSerializer
 from pages.util import AuthorDetail
 from pages.views import get_id_from_url
 from rest_framework.response import Response
@@ -566,3 +566,65 @@ def api_post_creation(request, uuid):
         return Response(response)
     elif request.method == 'POST':
         pass
+
+
+@api_view(['GET', 'POST'])
+def api_comments(request, uuid, post_id):
+    if request.method == 'GET':
+        # check if post exists
+        post = get_object_or_404(Posts, uuid=post_id, author_uuid=uuid)
+        comments = Comments.objects.filter(post_id=post_id).order_by('-published')
+
+        page = request.GET.get("page")
+        size = request.GET.get("size")
+
+        if not page or not size:
+            return Response(status=400, data="Must specify page and size query parameters")
+
+        # if pagination specified, return only the requested range
+        if page is not None and size is not None:
+            start = (int(page) - 1) * int(size)
+            end = start + int(size)
+            comments = comments[start:end]
+
+        formatted = []
+        for comment in comments:
+            data = model_to_dict(comment)
+            data["author"] = AuthorDetail(comment.author_uuid, comment.author_url, comment.author_host).formatAuthorInfo()
+
+            for k in ("author_uuid", "author_url", "author_host"):
+                data.pop(k)
+            
+            data["id"] = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post_id}/comments/{data['uuid']}"
+            # timestamps get excluded because they're not json serialized
+            data["published"] = str(comment.published)
+
+            formatted.append(data)
+        
+        response_data = {"page": page, 
+                         "size": size, 
+                         "post": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post_id}",
+                         "id": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post_id}/comments",
+                         "comments": formatted}
+        
+        serialized = CommentListSerializer(data=response_data)
+
+        if not serialized.is_valid():
+            return Response(status=500, data=serialized.errors)
+
+        return Response(status=200, data=serialized.validated_data)
+
+    elif request.method == 'POST':
+        pass
+
+@api_view(['GET'])
+def api_post_likes(request):
+    pass
+
+@api_view(['GET'])
+def api_comment_likes(request):
+    pass
+    
+@api_view(['GET'])
+def api_author_liked(request):
+    pass
