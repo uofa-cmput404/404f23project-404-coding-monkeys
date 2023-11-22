@@ -1,11 +1,39 @@
 {% extends "base_with_sidebar.html" %}
 
+{% load static %}
+
+{% block title %}Follow Requests{% endblock title %}
+
+
+{% block css %}
+<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/main.css' %} ">
+
+{% endblock css %}
+
+
+
 {% block content %}
+<h1 style="padding-left:35px; margin-top:20px;"><u>Inbox</u></h1>
+
+<nav class="InboxNavbar">
+    <a class="InboxNavbar_Link" href="{% url 'author_requests' uuid=user.uuid%}">Follow Requests</a>
+    <a class="InboxNavbar_Link" href="#">Likes</a>
+    <a class="InboxNavbar_Link" href="#">Comments</a>
+    <a class="InboxNavbar_Link" href="#">Posts</a>
+    <div class="animation start-FollowRequestsPage"></div><!--THIS IS WHERE YOU CHANGE THE STARTING POINT OF THE ANIMATION!-->
+                        <!--Your options are "start-FollowRequestsPage"-->
+                        <!--Your options are "start-LikesPage"-->
+                        <!--Your options are "start-CommentsPage"-->
+                        <!--Your options are "start-PostsPage"-->
+    <!-- TODO: make 3 more .html pages. just make sure to change start-XXXXPage respectively -->                     
+
+</nav>
+
+
 <ul>
-<h1>Follow Requests</h1>
-<p>Note: this page might be removed if we decide to show friend requests on the homepage (considering they want us to
-    send friend requests to the inbox along with any posts anyways).
-</p>
+
 {% for request in requests_list %}
     {% if user.username == request.recipient.username %} <!--only show requests where user is the recipient-->
         <h3>{{request.requester.username}} wants to follow you.</h3>
