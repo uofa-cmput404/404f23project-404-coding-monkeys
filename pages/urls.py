@@ -33,6 +33,13 @@ urlpatterns = [
     # Comment API Calls
     path('authors/<str:uuid>/posts/<str:post_id>/comments/', post_views.api_comments, name='api_comments'),
 
+    # Likes API Calls
+    path('authors/<str:uuid>/posts/<str:post_id>/likes/', post_views.api_likes, name='api_post_likes'),
+    path('authors/<str:uuid>/posts/<str:post_id>/comments<str:comment_id>', post_views.api_comments, name='api_comment_likes'),
+
+    # Public Liked API Calls
+    path('authors/<str:uuid>/liked/', post_views.api_liked, name='api_author_liked'),
+
     # Local paths
     # ======================================================================================================================================
 
