@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Posts
-from pages.seralizers import AuthorDetailSerializer
+from pages.seralizers import AuthorDetailSerializer, LikeSerializer
 from static.vars import ENDPOINT
 
 # started but needs to be finished
@@ -11,8 +11,11 @@ class LocalPostsSerializer(serializers.ModelSerializer):
 
     type = serializers.CharField(default="post", max_length=6)
     id = serializers.SerializerMethodField('get_url')
+    description = serializers.CharField(max_length=300, allow_blank=True, required=False)
+    source = serializers.URLField(required=False, allow_blank=True)
+    origin = serializers.URLField(required=False, allow_blank=True)
     author = AuthorDetailSerializer()
-    categories = serializers.ListField(default="[]")
+    categories = serializers.ListField(default=[])
 
     class Meta:
         model = Posts
@@ -22,13 +25,13 @@ class PostsSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=10, default="post")
     title = serializers.CharField(max_length=100)
     id = serializers.CharField()
-    source = serializers.CharField()
-    origin = serializers.CharField()
-    description = serializers.CharField(max_length=300)
+    source = serializers.CharField(required=False, allow_blank=True)
+    origin = serializers.CharField(required=False, allow_blank=True)
+    description = serializers.CharField(max_length=300, required=False, allow_blank=True)
     contentType = serializers.CharField(max_length=20)
-    content = serializers.CharField()
+    content = serializers.CharField(required=False, allow_blank=True)
     author = AuthorDetailSerializer()
-    categories = serializers.ListField()
+    categories = serializers.ListField(required=False, default=[])
     comments = serializers.CharField()
     # DateTimeField isn't JSON serializable
     published = serializers.CharField()
@@ -43,6 +46,10 @@ class ImageSerializer(serializers.Serializer):
     type = serializers.CharField(default="image", max_length=5)
     data = serializers.CharField()
     contentType = serializers.CharField()
+
+class LikeListSerializer(serializers.Serializer):
+    type = serializers.CharField(default="likes", max_length=5)
+    items = LikeSerializer(many=True)
 
 class LocalCommentSerializer(serializers.Serializer):
     author = AuthorDetailSerializer()

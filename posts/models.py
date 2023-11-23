@@ -52,6 +52,7 @@ class Likes(models.Model):
     author_url = models.CharField(max_length=100, null=True)
     # liked_object can either be a post or a comment; when searching for the number of likes / who has liked a post or comment, 
     # we will filter by liked_object
+    liked_id = models.CharField(max_length=36)
     liked_object = models.URLField()
     LIKE_OBJECTS = [('post', 'Post'), ('comment', 'Comment')]
     liked_object_type = models.CharField(max_length=10, choices=LIKE_OBJECTS)

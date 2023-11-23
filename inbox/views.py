@@ -31,9 +31,24 @@ class InboxItem():
         return False
 
 # Create your views here.
-@swagger_auto_schema(methods=['GET'], auto_schema=None, operation_description="Test",)
-@swagger_auto_schema(methods=['POST'], operation_description="Test the sequel", request_body=InboxItemSerializer)
-@swagger_auto_schema(methods=['DELETE'], auto_schema=None, operation_description="Test",)
+@swagger_auto_schema(
+    methods=['GET'], 
+    tags=['inbox'], 
+    )
+@swagger_auto_schema(
+    methods=['POST'], 
+    tags=['inbox', 'remote'],
+    operation_description="Refer to the <API Documentation>",
+    responses={
+        200: openapi.Response("Returns the newly created object from the request body."),
+        300: openapi.Response("Poorly formatted request body."),
+        404: openapi.Response("Author not found."),
+    }
+    )
+@swagger_auto_schema(
+    methods=['DELETE'], 
+    tags=['inbox'], 
+    )
 @api_view(['GET', 'POST', 'DELETE'])
 def api_inbox(request, uuid):
     
@@ -115,8 +130,8 @@ def api_inbox(request, uuid):
             try: post = Posts.objects.get(uuid=post_data["uuid"])
             except Posts.DoesNotExist: post = None
 
-            # update visibility
-            if post and data["visibility"] != "PUBLIC":
+            # update visibility only if new and remote or local and private
+            if post and data["visibility"] != "PUBLIC" and post_data["author_host"] != ENDPOINT and data["visibility"] != "FRIENDS":
                 # shared with current author
                 shared_author = AuthorUser.objects.get(uuid=uuid)
                 ad = AuthorDetail(shared_author.uuid, shared_author.url, shared_author.host)

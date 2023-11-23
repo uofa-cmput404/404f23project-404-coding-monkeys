@@ -21,7 +21,10 @@ from drf_yasg.inspectors import SwaggerAutoSchema
 from drf_yasg.generators import OpenAPISchemaGenerator
 from drf_yasg import openapi
 from rest_framework import permissions
-   
+import connections
+
+import accounts
+
 # https://episyche.com/blog/how-to-create-django-api-documentation-using-swagger
 schema_view = get_schema_view(
     openapi.Info(
@@ -47,6 +50,9 @@ urlpatterns = [
     path("connections/", include("connections.urls")), # if connections request, forward to connections.urls (follow, unfollow
     # path("inbox/", include("inbox.urls")), # if inbox request, forward to inbox.urls (follow, unfollow
     path("", include("pages.urls")), # goto pages.urls if generic request 
-    path('docs/', schema_view.with_ui('swagger', cache_timeout=0),name='schema-swagger-ui'),
+    path('api/', schema_view.with_ui('swagger', cache_timeout=0),name='schema-swagger-ui'),
+    path('docs/', connections.views.docs_viewer, name='markdown_docs'),
+
+    path('api/token/', accounts.views.generate_jwt_token, name='get_token'),
     # path('fullDocs/', full_schema_view.with_ui('swagger', cache_timeout=0),name='full-schema-swagger-ui')
 ]

@@ -26,6 +26,12 @@ class AuthorDetail():
             "isLocal": self.isLocal
         }
 
+    def setMappingFromAPI(self, api_author_dict):
+        self.uuid = get_id_from_url(api_author_dict.get("id"))
+        self.url = api_author_dict.get("url")
+        self.host = api_author_dict.get("host")
+        self.isLocal = self.url == ENDPOINT
+
     def formatAuthorInfo(self):
         default = {"id": self.host,
                 "host": self.host,
@@ -51,3 +57,10 @@ class AuthorDetail():
             return default
     
         return default
+
+def get_id_from_url(url):
+    if url:
+        url = url[:-1] if url[-1] == "/" else url
+        url = url.split("/")
+        return url[-1]
+    return ""

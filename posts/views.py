@@ -1,12 +1,15 @@
+import datetime
 import json
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
 from django.forms.models import model_to_dict
+import pytz
+import requests
 from pages.seralizers import AuthorUserSerializer, CommentListSerializer, CommentSerializer
 from pages.util import AuthorDetail
-from pages.views import get_id_from_url
+from pages.views import get_id_from_url, get_part_from_url
 from rest_framework.response import Response
-from posts.serializers import LocalCommentSerializer, LocalPostsSerializer, PostsSerializer, ResponsePosts
+from posts.serializers import LikeListSerializer, LocalCommentSerializer, LocalPostsSerializer, PostsSerializer, ResponsePosts
 from .models import Posts, Likes, Comments
 from .forms import PostForm
 from django.urls import reverse
@@ -18,11 +21,13 @@ from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
 from PIL import Image
 from drf_yasg.utils import swagger_auto_schema
-from static.vars import ENDPOINT
+from static.vars import ENDPOINT, HOSTS
 from django.http import HttpResponse
 from django.core.serializers import serialize
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from static.vars import AUTHOR_CACHE
+from static.vars import POST_CACHE
 import copy
 
 
@@ -36,11 +41,14 @@ class PostCreate(CreateView):
 
 def make_new_post(request, form=None):
     if request.method == 'GET':
-        try:
-            authors = AuthorUser.objects.exclude(id=request.user.id)
-        except AuthorUser.DoesNotExist:
-            authors = []
         
+        url = f"{ENDPOINT}/authors/{request.user.id}"
+        authors = []
+        for author in AUTHOR_CACHE.values():
+            if author["url"] != url:
+                author["uuid"] = get_id_from_url(author["id"])
+                authors.append(author)
+
         if form:
             return render(request, 'posts/create.html', {'form': form, 'author_list':authors})
         else:
@@ -73,23 +81,52 @@ def update_or_create_post(request, post_uuid):
     except Posts.DoesNotExist:
         unique_id = uuid.uuid4()
         author = get_author_info(request.user.id) # convert author object to dictionary
-        post = Posts(uuid=unique_id, author=author, contentType="text/plain", count=0, comments="", unlisted=False)
+        post = Posts(uuid=unique_id, author_uuid=author["id"], author_local=1, author_host=ENDPOINT, author_url=author["url"], contentType="text/plain", count=0, comments="", unlisted=False)
 
     unique_id_pic = str(unique_id) + "_pic"
 
     post.title = request.POST.get('title')
     post.description = request.POST.get('description')
     post.content = request.POST.get('content')
-    post.categories = request.POST.get('categories')
-    post.comments = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}/comments"
+    post.categories = request.POST.get('categories') if request.POST.get('categories') != "" else []
+    post.comments = f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}/comments"
     post.visibility = request.POST.get('visibility')
 
+    post.save()
+
+    print(AUTHOR_CACHE.keys())
     if request.POST.get('author_list') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('author_list')
-        post.sharedWith = get_author_info(selected_author_id)
+        details = AUTHOR_CACHE.get(selected_author_id)
+        ad = AuthorDetail()
+        ad.setMappingFromAPI(details)
 
-    post.save()
-    
+        # send to inbox
+        try:
+            post_url = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
+            response = requests.get(post_url)
+            if response.ok:
+                payload = response.json()
+                inbox_url = f"{ad.host}authors/{ad.uuid}/inbox"
+                response = requests.post(inbox_url, json=payload)
+        except Exception as e:
+            print(e)
+
+    elif post.visibility == "FRIENDS":
+        friends = get_friends(request.user.id)
+        try:
+            post_url = f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}"
+            response = requests.get(post_url)
+            if response.ok:
+                payload = response.json()
+        
+                for friend in friends:
+                    # send to inbox
+                    inbox_url = f"{friend['host']}authors/{friend['id']}/inbox"
+                    response = requests.post(inbox_url, json=payload)
+        except Exception as e:
+            print(e)
+
     # deal with updating picture
     try:
         post = Posts.objects.get(uuid=unique_id_pic)
@@ -168,6 +205,25 @@ def get_author_info(author_id):
 
     return clean_dict
 
+def get_friends(author_id):
+    friends = []
+    # get all followers for current user
+    try:
+        row = Followers.objects.get(author_id=author_id)
+        current_followers = row.followers
+    except Followers.DoesNotExist:
+        current_followers = []
+
+    for follower in current_followers:
+        try:
+            request = f"{ENDPOINT}/authors/{author_id}/followers/{follower['uuid']}"
+            response = requests.get(request)
+            if response.ok:
+                friends.append(follower)
+        except:
+            continue
+
+    return friends
 
 def determine_if_friends(current_followers : list, user_id : str, post_author_id : str):
     try:
@@ -178,6 +234,105 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
+# TODO schedule update every 5 mins
+def update_author_cache(request):
+    # get all authors from all hosts
+    from static.vars import AUTHOR_CACHE
+
+    for host in HOSTS:
+        try:
+            authors_url = f"{host}/authors/"
+
+            response = requests.get(authors_url)
+            if response.ok:
+                authors = response.json()
+                
+                for author in authors["items"]:
+                    uuid = get_id_from_url(author["id"])
+                    AUTHOR_CACHE.add(uuid, author)
+        except:
+            continue
+
+def update_post_cache(request):
+
+    for author, details in AUTHOR_CACHE.items():
+        try:
+            posts_url = f"{details['host']}authors/{author}/posts?page=1&size=100"
+
+            response = requests.get(posts_url)
+            if response.ok:
+                posts = response.json()
+                
+                for post in posts["items"]:
+                    uuid = get_id_from_url(post["id"])
+                    POST_CACHE.add(uuid, post)
+        except Exception as e:
+            print(e)
+            continue
+
+
+def time_since_posted(created_at):
+    import humanize
+    # Parse the created_at timestamp string into a datetime object
+    timezone = pytz.timezone("America/Edmonton")
+    created_at_datetime = datetime.datetime.fromisoformat(created_at)
+
+    # Get the current time
+    current_time = datetime.datetime.now(tz=timezone)
+
+    # Calculate the time difference
+    time_difference = current_time - created_at_datetime
+
+    # Use humanize to get a human-readable representation
+    return humanize.naturaltime(time_difference)
+
+def post_stream(request):
+    # get all authors from all hosts
+
+    update_author_cache(request)
+    update_post_cache(request)
+
+    # get all posts from all hosts
+    toReturn = []
+    posts = POST_CACHE.values()
+    for post in posts:
+        post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
+        post["uuid"] = get_part_from_url(post["id"], "posts")
+        post["delta"] = time_since_posted(post["published"])
+        toReturn.append(post)
+    sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
+
+    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts})
+
+    # get all followers for current user
+    try:
+        row = Followers.objects.get(author_id=request.user.id)
+        current_followers = [follower['id'] for follower in row.followers]
+    except Followers.DoesNotExist:
+        current_followers = []
+
+    # filter posts by visibility
+    viewable = []
+    determined_friends = set()
+    for post in posts:
+        if post["visibility"] == "PUBLIC":
+            viewable.append(post)
+
+        # show own posts
+        elif post["author"]["id"] == request.user.id:
+            viewable.append(post)
+
+        elif post["visibility"] == "FRIENDS":
+            if post["author"]["id"] in determined_friends or determine_if_friends(current_followers, request.user.id, post["author"]["id"]):
+                viewable.append(post)
+                determined_friends.add(post["author"]["id"])
+
+        elif post["visibility"] == "PRIVATE":
+            sharedWith = post["sharedWith"].get('id', None)
+            if sharedWith == request.user.id:
+                viewable.append(post)
+
+    return render(request, 'posts/dashboard.html', {'all_posts': viewable})
 
 def view_posts(request):
     author_id = request.user.id
@@ -197,18 +352,19 @@ def view_posts(request):
             viewable.append(post)
 
         # show own posts
-        elif post.author['id'] == author_id:
+        elif post.author_uuid == author_id:
             viewable.append(post)
 
         elif post.visibility == "FRIENDS":
-            if post.author['id'] in determined_friends or determine_if_friends(current_followers, author_id, post.author['id']):
+            if post.author_uuid in determined_friends or determine_if_friends(current_followers, author_id, post.author['id']):
                 viewable.append(post)
                 determined_friends.add(post.author['id'])
 
         elif post.visibility == "PRIVATE":
-            sharedWith = post.sharedWith.get('id', None)
-            if sharedWith == author_id:
-                viewable.append(post)
+            pass
+            # sharedWith = post.sharedWith.get('id', None)
+            # if sharedWith == author_id:
+            #     viewable.append(post)
 
     return render(request, 'posts/dashboard.html', {'all_posts': viewable})
 
@@ -324,8 +480,9 @@ def like_post_handler(request):
         likeAuthorURL = author.url
 
         postObjLnk = f"http://127.0.0.1:8000/authors/{post.author_uuid}/posts/{post.uuid}"
+        likedID = post_uuid
         likedObjType = "post"
-        likeObj = Likes(context= likeContext, summary= likeSummary, author_uuid=author.uuid, author_host=author.host, author_url=author.url, liked_object_type=likedObjType, liked_object= postObjLnk)
+        likeObj = Likes(context= likeContext, summary= likeSummary, liked_id=likedID, author_uuid=author.uuid, author_host=author.host, author_url=author.url, liked_object_type=likedObjType, liked_object= postObjLnk)
         likeObj.save(force_insert=True)
 
         #increment the like count
@@ -340,7 +497,9 @@ def like_post_handler(request):
 def format_local_post(post):
     post_data = model_to_dict(post)
     post_data["type"] = "post"
-    
+    post_data["id"] = f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}"
+    post_data["published"] = str(post.published)
+
     ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
     post_data["author"] = ad.formatAuthorInfo()
 
@@ -349,7 +508,15 @@ def format_local_post(post):
     
     return post_data
 
+
+# API CALLS
+# ===============================================================================================================
+
+
+# POSTS
+# =====================
 @swagger_auto_schema(
+    tags=['posts', 'remote'],
     method='get',
     operation_description="Retrieves the public post by the author.",
     manual_parameters=[
@@ -362,8 +529,8 @@ def format_local_post(post):
     }
 )
 @swagger_auto_schema(
+    tags=['posts'],
     methods=['post', 'delete', 'put'],
-    auto_schema=None,
     request_body=PostsSerializer
 )
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
@@ -386,7 +553,7 @@ def api_posts(request, uuid, post_id):
         
         post_data = format_local_post(post)
         
-        serializer = LocalPostsSerializer(post, data=post_data, partial=True)
+        serializer = PostsSerializer(data=post_data, partial=True)
         
         if not serializer.is_valid():
             return Response(status=500, data=serializer.errors)
@@ -436,9 +603,9 @@ def api_posts(request, uuid, post_id):
         
         return Response(status=400, data=serializer.errors)
 
-def test(request):
-    return render(request, 'posts/test.html')
 
+# IMAGE POST
+# =====================
 @swagger_auto_schema(
     method='get',
     operation_description="Retrieves the binary of the image for the post, if one exists.",
@@ -518,9 +685,13 @@ def get_image_post(request, author_id, post_id):
 
         except Posts.DoesNotExist:
             return JsonResponse({'error': 'Image not found'}, status=404)
-        
 
+
+
+# POST CREATION
+# =====================
 @swagger_auto_schema(
+    tags=['posts', 'remote'],
     method='get',
     operation_description="Retrieves the public posts by the author (paginated).",
     manual_parameters=[
@@ -534,8 +705,8 @@ def get_image_post(request, author_id, post_id):
     }
 )
 @swagger_auto_schema(
+    tags=['posts'],
     method='post',
-    auto_schema=None,
 )
 @api_view(['GET', 'POST'])
 def api_post_creation(request, uuid):
@@ -557,7 +728,7 @@ def api_post_creation(request, uuid):
         for post in posts:
             formatted.append(format_local_post(post))
 
-        serializer = LocalPostsSerializer(posts, data=formatted, many=True, partial=True)
+        serializer = PostsSerializer(posts, data=formatted, many=True, partial=True)
 
         if not serializer.is_valid():
             return Response(status=500, data=serializer.errors)
@@ -568,11 +739,47 @@ def api_post_creation(request, uuid):
         pass
 
 
+
+# COMMENTS
+# =====================
+@swagger_auto_schema(
+    tags=['comments', 'remote'],
+    method='get',
+    operation_description="Retrieves the list of comments for a public post (paginated).",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
+            openapi.Parameter('post_id', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the post."),
+            openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Page number"),
+            openapi.Parameter('size', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Number of posts per page"),
+        ],
+    responses={
+        200: CommentListSerializer,
+        404: openapi.Response("Author or post not found."),
+    }
+)
+@swagger_auto_schema(
+    tags=['comments'],
+    method='post',
+    operation_description="Creates a comment for the post.",
+    request_body=CommentSerializer,
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
+            openapi.Parameter('post_id', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the post."),
+        ],
+    responses={
+        200: CommentSerializer,
+        404: openapi.Response("Author or post not found."),
+    }
+)
 @api_view(['GET', 'POST'])
 def api_comments(request, uuid, post_id):
     if request.method == 'GET':
         # check if post exists
         post = get_object_or_404(Posts, uuid=post_id, author_uuid=uuid)
+
+        if post.visibility != "PUBLIC":
+            return Response(status=404)
+        
         comments = Comments.objects.filter(post_id=post_id).order_by('-published')
 
         page = request.GET.get("page")
@@ -615,16 +822,161 @@ def api_comments(request, uuid, post_id):
         return Response(status=200, data=serialized.validated_data)
 
     elif request.method == 'POST':
-        pass
+        serializer = CommentSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(status=400, data=serializer.errors)
+        
+        data = serializer.validated_data
+        author_uuid = get_id_from_url(data["author"]["id"])
+        author_host = data["author"]["host"]
+        author_url = data["author"]["url"]
 
-@api_view(['GET'])
-def api_post_likes(request):
-    pass
+        comment_url = data["id"]
+        comment_uuid = get_part_from_url(comment_url, "comments")
 
+        post_id = get_part_from_url(comment_url, "posts")
+        post = get_object_or_404(Posts, uuid=post_id)
+
+        Comments.objects.update_or_create(comment=data["comment"], contentType=data["contentType"], uuid=comment_uuid, post=post, author_uuid=author_uuid, author_host=author_host, author_url=author_url)
+
+        return Response(status=200, data=serializer.validated_data)
+
+
+
+# POST LIKES
+# =====================
+@swagger_auto_schema(
+    tags=['likes', 'remote'],
+    method='get',
+    operation_description="Retrieves the list of likes for a public post.",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
+            openapi.Parameter('post_id', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the post."),
+        ],
+    responses={
+        200: LikeListSerializer,
+        404: openapi.Response("Post or author not found."),
+    }
+)
 @api_view(['GET'])
-def api_comment_likes(request):
-    pass
+def api_post_likes(request, uuid, post_id):
+    # TODO auth for private posts
+    author = get_object_or_404(AuthorUser, uuid=uuid)
+    post = get_object_or_404(Posts, uuid=post_id)
+
+    # TODO remove
+    update_author_cache(request)
+
+    # TODO check if user should be able to see this post
+    if post.visibility != "PUBLIC":
+        return Response(status=404)
+
+    likes = Likes.objects.filter(liked_object_type="post", author_uuid=uuid, liked_id=post_id)
+    formatted = []
+    for like in likes:
+        formatted.append({
+            "type": "like",
+            "context": like.context,
+            "summary": like.summary,
+            "author": AUTHOR_CACHE.get(like.author_uuid),
+            "object": like.liked_object
+        })
     
+    return Response(status=200, data={"type": "likes", "items": formatted})
+        
+
+# COMMENT LIKES
+# =====================
+@swagger_auto_schema(
+    tags=['likes', 'remote'],
+    method='get',
+    operation_description="Retrieves the list of likes for the provided comment on a public post.",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
+            openapi.Parameter('post_id', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the post."),
+            openapi.Parameter('comment_id', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the comment."),
+        ],
+    responses={
+        200: LikeListSerializer,
+        404: openapi.Response("Post, comment, or author not found."),
+    }
+)
 @api_view(['GET'])
-def api_author_liked(request):
-    pass
+def api_comment_likes(request, uuid, post_id, comment_id):
+    # TODO auth for private posts
+    author = get_object_or_404(AuthorUser, uuid=uuid)
+    post = get_object_or_404(Posts, uuid=post_id)
+    comment = get_object_or_404(Comments, uuid=comment_id)
+
+    likes = Likes.objects.filter(liked_object_type="comment", author_uuid=uuid, liked_id=comment_id)
+    formatted = []
+    for like in likes:
+        formatted.append({
+            "type": "like",
+            "context": like.context,
+            "summary": like.summary,
+            "author": AUTHOR_CACHE.get(like.author_uuid),
+            "object": like.liked_object
+        })
+    
+    return Response(status=200, data={"type": "likes", "items": formatted})
+
+
+
+# LIKED
+# =====================
+@swagger_auto_schema(
+    tags=['liked', 'remote'],
+    method='get',
+    operation_description="Retrieves the public liked items made by the author.",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
+        ],
+    responses={
+        200: LikeListSerializer,
+        404: openapi.Response("Author not found."),
+    }
+)
+@api_view(['GET'])
+def api_author_liked(request, uuid):
+    author = get_object_or_404(AuthorUser, uuid=uuid)
+
+    # TODO remove
+    update_author_cache(request)
+
+    public = []
+    likes = Likes.objects.filter(author_uuid=uuid)
+    for like in likes:
+        formatted = {
+            "type": "like",
+            "context": like.context,
+            "summary": like.summary,
+            "author": AUTHOR_CACHE.get(like.author_uuid),
+            "object": like.liked_object
+        }
+        # determine if local items are public
+        if like.liked_object.startswith(ENDPOINT):
+            if like.liked_object_type == "post":
+                post = Posts.objects.filter(uuid=like.liked_id).first() if len(Posts.objects.filter(uuid=like.liked_id)) > 0 else None
+                if post and post.visibility == "PUBLIC":
+                    public.append(formatted)
+            
+            elif like.liked_object_type == "comment":
+                comment = Comments.objects.filter(uuid=like.liked_id).first() if len(Comments.objects.filter(uuid=like.liked_id)) > 0 else None
+                if comment:
+                    post = Posts.objects.filter(uuid=comment.post_id).first() if len(Posts.objects.filter(uuid=comment.post_id)) > 0 else None
+                    if post and post.visibility == "PUBLIC":
+                        public.append(formatted)
+        
+        # determine if remote items are public
+        else:
+            # do a get on the liked object; it should not return an OK status if it is not public
+            try:
+                object_url = like.liked_object
+                response = requests.get(object_url)
+                if response.ok:
+                    public.append(formatted)
+            except:
+                continue
+    
+    return Response(status=200, data={"type": "likes", "items": public})

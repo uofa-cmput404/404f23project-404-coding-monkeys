@@ -9,8 +9,8 @@ class AuthorUserSerializer(serializers.ModelSerializer):
 
     type = serializers.CharField(default="author", max_length=6)
     id = serializers.SerializerMethodField('get_url')
-    displayName = serializers.CharField(max_length=100, source='username')
-    profileImage = serializers.CharField(max_length=100, source='profile_image')
+    displayName = serializers.CharField(source='username')
+    profileImage = serializers.CharField(source='profile_image')
 
     class Meta:
         model = AuthorUser

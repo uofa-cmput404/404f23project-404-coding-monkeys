@@ -14,10 +14,11 @@ from django.core import serializers
 from django.shortcuts import get_object_or_404, redirect, render 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponseForbidden
-from pages.util import AuthorDetail
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from .util import AuthorDetail
 from .seralizers import AuthorDetailSerializer, AuthorUserSerializer, FollowRequestsSerializer, FollowerListSerializer, AuthorUserReferenceSerializer, ResponseAuthorsSerializer, ResponseFollowersSerializer
 from static.vars import ENDPOINT, HOSTS
 import requests
@@ -127,11 +128,11 @@ def get_part_from_url(url, part):
         url = url.split("/")
 
         index = 0
-        while url[index] != part:
+        while index < len(url) and url[index] != part:
             index += 1
         
         # return id right after we find the part
-        return url[index+1]
+        return url[index+1] if index < len(url) - 1 else ""
     return ""
 
 def get_author_detail(request):
@@ -330,8 +331,17 @@ def get_follower_info(request):
     return follower_dict
 
 
+
+# API CALLS
+# ================================================================================================================================
+
+
+
+# SINGLE AUTHOR
+# =====================
 @swagger_auto_schema(
     method='get',
+    tags=['authors', 'remote'],
     operation_description="Retrieves the profile of a single author.",
     manual_parameters=[
             openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
@@ -343,7 +353,9 @@ def get_follower_info(request):
 )
 @swagger_auto_schema(
     method='post',
-    auto_schema=None)
+    tags=['authors'],
+    request_body=AuthorDetailSerializer
+    )
 @api_view(['GET', 'POST'])
 def api_single_author(request, uuid):
     if request.method == "GET":
@@ -351,6 +363,9 @@ def api_single_author(request, uuid):
         serializer = AuthorUserSerializer(author, many=False)
         return Response(serializer.data)
     elif request.method == "POST":
+        if not request.user.is_authenticated or request.user.uuid != uuid:
+            return Response(status=401, data="Unauthorized.")
+        
         author = get_object_or_404(AuthorUser, uuid=uuid)
         serializer = AuthorUserSerializer(author, data=request.data, partial=True)
 
@@ -361,8 +376,12 @@ def api_single_author(request, uuid):
         return Response(status=400, data=serializer.errors)
 
 
+
+# AUTHOR LIST 
+# =====================
 @swagger_auto_schema(
     method='get',
+    tags=['authors', 'remote'],
     operation_description="Retrieves all profiles on the server (paginated). Example query: GET ://service/authors?page=10&size=5",
     manual_parameters=[
             openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Page number"),
@@ -389,8 +408,13 @@ def api_all_authors(request):
     response = {"type": "authors", "items": serializer.data}
     return Response(response)
 
+
+
+# FOLLOW LIST
+# =====================
 @swagger_auto_schema(
     method='get',
+    tags=['followers', 'remote'],
     operation_description="Get the list of followers for the provided author ID.",
     manual_parameters=[
             openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
@@ -424,8 +448,13 @@ def api_follow_list(request, uuid):
     
     return Response(response)
 
+
+
+# FOREIGN FOLLOWER
+# =====================
 @swagger_auto_schema(
     method='get',
+    tags=['followers', 'remote'],
     operation_description="Checks if the foreign author is a follower of the author.",
     manual_parameters=[
             openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author in check."),
@@ -438,7 +467,7 @@ def api_follow_list(request, uuid):
 )
 @swagger_auto_schema(
     methods=['put', 'delete'],
-    auto_schema=None
+    tags=['followers']
 )
 @api_view(['GET', 'PUT', 'DELETE'])
 def api_foreign_follower(request, uuid, foreign_author_id):
@@ -507,6 +536,10 @@ def api_foreign_follower(request, uuid, foreign_author_id):
         followers.save()
         return Response(status=200, data=follower)
 
+
+
+# FOLLOW REQUESTS
+# =====================
 @api_view(['GET', 'POST'])
 def api_follow_requests(request):
     if request.method == "GET":
