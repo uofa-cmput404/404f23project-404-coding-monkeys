@@ -16,7 +16,8 @@ from django.http import HttpResponseForbidden
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .seralizers import AuthorUserSerializer, FollowerSerializer, FollowerListSerializer
+from .seralizers import AuthorUserSerializer, FollowerSerializer, FollowerListSerializer,FollowRequestsSerializer
+from inbox.views import api_inbox
 
 # DFB pg. 60
 def home_page_view(request): # basic generic view that just displays template
@@ -315,11 +316,13 @@ def api_follow_requests(request):
     if request.method == "GET":
         follow_requests = FollowRequests.objects.all()
         serializer = FollowRequestsSerializer(follow_requests, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=200)
     elif request.method == "POST":
         serializer = FollowRequestsSerializer(data=request.data)
         if serializer.is_valid():
+            uuid = request.data.get('uuid')  # Parse the uuid from the request
+            response = api_inbox(request, uuid)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+    return Response({'error': 'Invalid request method'}, status=405)
