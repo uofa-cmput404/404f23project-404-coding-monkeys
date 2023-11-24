@@ -199,7 +199,7 @@
                     {% if image.uuid == post.uuid|add:"_pic" %}
                     <!-- for each post, look if there is a corresponding pic post in the list of all posts. If there is, display it along with the parent post -->
                         
-                        <div style="height:46%;">
+                        <div style=" margin-bottom:2px;" >
                             <img class="postImage" src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
                         </div>
                     {% endif %}

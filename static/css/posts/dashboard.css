@@ -13,10 +13,38 @@ p {
 
 
 
+/* Works on Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color:  #2a2a2a #695f5b;
+  }
+  
+  /* Works on Chrome, Edge, and Safari */
+  *::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: #695f5b;
+    border-radius: 60px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    border: 2px solid #2a2a2a;
+  }
+
+
+
+
+
+
+
 .postImage{
     height:100%;
     width:100%;
-    object-fit: scale-down;
+    object-fit: contain;
    
     
 }
@@ -50,8 +78,8 @@ p {
 
     margin: auto;
     margin-bottom: 20px;
-    width: 85vh;
-    height: 85vh;
+    width: 650px;
+    min-height: 628px;
 }
 
 .post-container {
@@ -88,6 +116,11 @@ p {
     max-height: 15vh;
 }
 
+
+.cancel-comment-button, .submit-comment-button{
+    font-size: 11px;
+
+}
 .comment-textbox{
     flex-grow: 1;
 }
@@ -171,16 +204,16 @@ p {
     display: flex;
     flex-direction: column;
     background-color: #2a2a2a;
-    margin-bottom: 10px;
+    margin-bottom: 2px;
     padding: 10px;
 }
 
 #post_body p {
     text-justify: left;
+    display:flex;
     align-self: left;
     font-size: 22px;
     color: white;
-    white-space: nowrap;
 }
 
 
