@@ -3,8 +3,8 @@ from django.test import Client
 
 # this is the DEV URL of our webserver; we'll need a PROD URL later when we actually deploy
 ENDPOINT = "http://www.chimp-chat.win/"
-NODES = ["http://www.chimp-chat.win"]
-HOSTS = [ENDPOINT[:-1]]
+NODES = []
+HOSTS = ["http://www.chimp-chat.win"]
 CLIENT = Client()
 
 class Cache():
