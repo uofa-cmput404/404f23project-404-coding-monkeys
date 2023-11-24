@@ -29,7 +29,7 @@ FERNET_KEY = b'DR_hefENrBtAJJFliGoArKs-mK_tOo4FHR6Zx64S3Lc='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"] # TODO: Change once we have our domain name up and running
 
 
 # Application definition
