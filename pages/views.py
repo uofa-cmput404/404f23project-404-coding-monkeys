@@ -154,6 +154,7 @@ def get_author_detail(request):
     return HttpResponse(content=json.dumps({"host_index":index, "uuid": plain_id}))
 
 def render_author_detail(request, host_id, uuid):
+    global HOSTS
     # grab the author information
     path = HOSTS[host_id] + "/authors/" + uuid + "/"
     auth = get_auth_for_host(HOSTS[host_id])

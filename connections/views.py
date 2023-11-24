@@ -26,6 +26,7 @@ def get_auth_for_host(host):
 
     if len(NODES) == 0:
         NODES = get_nodes_info()
+        print(NODES)
     
     for node in NODES:
         if node["host"] == host:
