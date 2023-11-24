@@ -18,6 +18,35 @@ a{
     color:rgb(255, 255, 255)
 }
 
+
+
+
+
+/* Works on Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color:  #2a2a2a #695f5b;
+}
+
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #695f5b;
+  border-radius: 60px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  border: 2px solid #2a2a2a;
+}
+
+
+
+
 .user_icon{
     border-radius: 50%;
     width:200px;
