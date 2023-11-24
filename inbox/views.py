@@ -1,5 +1,7 @@
 from django.shortcuts import render
+import requests
 from accounts.views import decode_cookie
+from connections.caches import AuthorCache, Nodes
 from pages.seralizers import AuthorUserSerializerDB, CommentSerializer, FollowRequestsSerializer, LikeSerializer
 from pages.util import AuthorDetail
 from posts.models import Comments, Likes, Posts
@@ -15,7 +17,49 @@ from static.vars import ENDPOINT
 from .models import Inbox
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from pages.views import get_id_from_url, get_part_from_url
+from util import get_id_from_url, get_part_from_url, strip_slash
+from requests.auth import HTTPBasicAuth
+from django.http import JsonResponse
+
+# VIEW LOGIC FUNCTIONS
+# ============================================================================================================================================================
+
+def follow_request_handler(request):
+    author_cache = AuthorCache()
+    nodes = Nodes()
+
+    requester_id = request.POST.get("requester_id")
+    recipient_id = request.POST.get("recipient_id")
+
+    requester_data = author_cache.get(requester_id)
+    recipient_data = author_cache.get(recipient_id)
+
+    payload = {
+        "type": "Follow",
+        "actor": requester_data,
+        "object": recipient_data,
+        "summary": f"{requester_data['displayName']} wants to follow you."
+    }
+
+    inbox_url = f'{recipient_data["url"]}/inbox/'
+    safe_host = strip_slash(recipient_data["host"])
+    auth = nodes.get_auth_for_host(safe_host)
+
+    try: 
+        response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
+        if response.ok:
+            return JsonResponse({"status": "success"})
+    except Exception as e: 
+        print(e)
+        return JsonResponse({"status": "error"}, status=400)
+
+
+def inbox_view(request):
+    return render(request, 'inbox.html', {})
+
+
+# API
+# ============================================================================================================================================================
 
 class InboxItem():
     def __init__(self, itemType, itemID, sender):

@@ -5,6 +5,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
+<meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock css %}
 
 {% block content %}
@@ -13,11 +14,24 @@
 <script>
   $(document).ready(function () {
     $("#followButton").click(function () {
+      var csrfToken = $('meta[name=csrf-token]').attr('content');
+      var requester_id = $(this).data("requester-id");
+      var recipient_id = $(this).data("recipient-id");
       $.ajax({
-        url: '/url/to/follow/author/',
+        url: '{% url "send_follow_req" %}',
         method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        },
+        data: { 
+          recipient_id: recipient_id,
+          requester_id : requester_id
+        },
         success: function (data) {
           $('#followButton').text("Requested");
+        },
+        error: function (data) {
+          alert("Error sending friend request. Please try again later.");
         }
       });
     });
@@ -43,11 +57,7 @@
     {% elif pending_request == True %} <!--there is a pending friend request; hide follow button, show "requested"-->
         <p>Requested</p>
     {% else %} <!--not following this user and have not sent request yet; show follow button-->
-        <form action="{% url 'author_followed' uuid=author.uuid %}">
-        <div>
-          <button id="followButton" class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Follow</button>
-        </div>
-      </form>
+        <button id="followButton" data-requester-id="{{ user.uuid }}" data-recipient-id="{{ author.uuid }}" class="post_button" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Follow</button>
     {% endif %}
   {% endif %}
 
