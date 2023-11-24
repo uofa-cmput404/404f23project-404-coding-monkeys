@@ -50,9 +50,9 @@ urlpatterns = [
     path("authors/profiles/listall", views.list_profiles, name="authors_list"), # display list of users on server
     
     path("authors/<slug:uuid>/editprofile/", AuthorUpdateView.as_view(), name="author_edit"), # edit user's profile; sensitive
-    path("authors/<str:uuid>/followed/", views.follow_author, name="author_followed"), # dummy url for sending follow requests
-    path("authors/<str:uuid>/followrequests/", FollowRequestsListView.as_view(), name="author_requests"), # lists given user's friend requests; sensitive
-    path("authors/<str:uuid>/followrequests/accept/<str:fq_uuid>/", views.accept_fq, name="fq_accept"), # dummy url for accepting a friend request
-    path("authors/<str:uuid>/followrequests/deny/<str:fq_uuid>/", views.deny_fq, name="fq_deny"), # dummy url for denying a friend request
+
+    path("follow_requests/", views.follow_requests, name="follow_requests"), # display list of follow requests
+    path("accept_fq", views.accept_fq, name="accept_fq"), # dummy url for accepting a friend request
+    path("deny_fq", views.deny_fq, name="deny_fq"), # dummy url for denying a friend request
     path("authors/<str:uuid>/unfollowed/<str:rq_uuid>/", views.unfollow_author, name="author_unfollow"), # dummy url for unfollowing an author
 ]

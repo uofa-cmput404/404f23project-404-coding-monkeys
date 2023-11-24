@@ -14,22 +14,27 @@ from django.core import serializers
 from django.shortcuts import get_object_or_404, redirect, render 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from connections.views import get_auth_for_host
+from connections.caches import AuthorCache, Nodes
+
 
 from .util import AuthorDetail
 from .seralizers import AuthorDetailSerializer, AuthorUserSerializer, FollowRequestsSerializer, FollowerListSerializer, AuthorUserReferenceSerializer, ResponseAuthorsSerializer, ResponseFollowersSerializer
 from static.vars import ENDPOINT, HOSTS
+from util import get_id_from_url
 import requests
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from requests.auth import HTTPBasicAuth
+
+# RENDERING VIEWS
+# ================================================================================================================================
 
 # DFB pg. 60
 def home_page_view(request): # basic generic view that just displays template
@@ -46,19 +51,20 @@ class ListProfilesView(ListView): # basic generic view that just displays templa
 
 
 # RESTful List of profiles
-# ================================================================================================================================
+# ------------------------
 # new implementation, acquiring profiles from all connected hosts including local
 def list_profiles(request):
     # the api url to get list of profiles
     url = "/authors/"
     all_authors = []
+    nodes = Nodes()
 
     # for all connected hosts
     for host in HOSTS:
         full_url = host + url
         headers = {"Accept": "application/json"}
 
-        auth = get_auth_for_host(host)
+        auth = nodes.get_auth_for_host(host)
         # send request to get list of profiles
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
 
@@ -119,28 +125,7 @@ def author_user_detail(request, uuid):
 
 
 # RESTful Author Profile
-# ================================================================================================================================
-
-def get_id_from_url(url):
-    if url:
-        url = url[:-1] if url[-1] == "/" else url
-        url = url.split("/")
-        return url[-1]
-    return ""
-
-def get_part_from_url(url, part):
-    # part is one of authors, posts, or comments and will return the id for that part
-    if url:
-        url = url[:-1] if url[-1] == "/" else url
-        url = url.split("/")
-
-        index = 0
-        while index < len(url) and url[index] != part:
-            index += 1
-        
-        # return id right after we find the part
-        return url[index+1] if index < len(url) - 1 else ""
-    return ""
+# ----------------------
 
 def get_author_detail(request):
 
@@ -153,11 +138,12 @@ def get_author_detail(request):
 
     return HttpResponse(content=json.dumps({"host_index":index, "uuid": plain_id}))
 
+
 def render_author_detail(request, host_id, uuid):
-    global HOSTS
     # grab the author information
     path = HOSTS[host_id] + "/authors/" + uuid + "/"
-    auth = get_auth_for_host(HOSTS[host_id])
+    nodes = Nodes()
+    auth = nodes.get_auth_for_host(HOSTS[host_id])
     response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
 
     if response.ok:
@@ -210,6 +196,8 @@ def render_author_detail(request, host_id, uuid):
     return render(request, 'authorprofile.html', {'author': author, 'followers': all_followers, 'already_following': following, 'pending_request': requested})
 
 
+# We've switched to inbox view for this
+@DeprecationWarning
 class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView): # basic generic view that just displays template
     model = FollowRequests
     template_name = "followrequests.html" 
@@ -233,9 +221,19 @@ class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         "profile_image": request_data.get("profileImage")
         }
 
-    
 
+
+# FUNCTIONAL URLs
+# ================================================================================================================================
+@DeprecationWarning
 def follow_author(request, uuid): # CHATGPT - 2023-10-20 Prompt #1
+    """ 
+    # proper way of serializing; doesn't seem to be an option to only choose just some of the fields
+    #https://stackoverflow.com/questions/757022/how-do-you-serialize-a-model-instance-in-django - how to serialize stuff
+    #https://stackoverflow.com/questions/60376352/why-there-is-like-bunch-of-backslash-in-my-json-output - how to fix the backslashes everywhere
+    author_json = serializers.serialize("json", [AuthorUser.objects.get(id=uuid)])
+    author_json = json.loads(author_json)
+    """
     # https://stackoverflow.com/questions/74199737/how-to-create-django-model-by-pressing-button - general structure followed for how to create a model instance in db via button press
     # https://stackoverflow.com/questions/28071750/redirecting-a-view-to-another-view-in-django-python - how to redirect in django via url pattern
     user = request.user # get db information of current user
@@ -274,38 +272,62 @@ def follow_author(request, uuid): # CHATGPT - 2023-10-20 Prompt #1
 
     return redirect('author_profile', uuid=uuid)
 
+def follow_requests(request):
+    user = request.user # get db information of current user
+    follow_requests = FollowRequests.objects.filter(recipient_uuid=user.uuid) # get all friend requests where the user is the recipient
 
-    """ 
-    # proper way of serializing; doesn't seem to be an option to only choose just some of the fields
-    #https://stackoverflow.com/questions/757022/how-do-you-serialize-a-model-instance-in-django - how to serialize stuff
-    #https://stackoverflow.com/questions/60376352/why-there-is-like-bunch-of-backslash-in-my-json-output - how to fix the backslashes everywhere
-    author_json = serializers.serialize("json", [AuthorUser.objects.get(id=uuid)])
-    author_json = json.loads(author_json)
-    """
+    requests = []
+    author_cache = AuthorCache()
+    for frq in follow_requests:
+        requester = model_to_dict(frq)
+        requester["data"] = author_cache.get(frq.requester_uuid)
+        requests.append(requester)
+    
+    return render(request, 'followrequests.html', {'requests_list': requests})
 
-def accept_fq(self, uuid, fq_uuid): # add requester to user's followers and delete friend request
-    fq = FollowRequests.objects.get(requester_uuid=fq_uuid, recipient_uuid=uuid)
-    requester_information = fq.requester
-    author_information = AuthorUser.objects.get(uuid=uuid)
+def accept_fq(request): # add requester to user's followers and delete friend request
+    requester_uuid = request.POST.get('requester_uuid') # get uuid of requester
+    recipient_uuid = request.POST.get('recipient_uuid') # get uuid of recipient
+
+    # safety
+    if request.user.uuid != recipient_uuid: # if the user is not the recipient of the request, they should not be able to accept it
+        return HttpResponseForbidden("You do not have permission to access this page.")
+
+    fq = FollowRequests.objects.get(requester_uuid=requester_uuid, recipient_uuid=recipient_uuid) # get friend request instance from db
+    author = AuthorUser.objects.get(uuid=recipient_uuid)
+
+    ad = AuthorDetail(fq.requester_uuid, fq.requester_url, fq.requester_host) # create AuthorDetail object from requester information
+    requester_data = ad.formMapping()
     
     # add requester to user's follower's
-    obj, created = Followers.objects.get_or_create(author=author_information)
+    obj, created = Followers.objects.get_or_create(author=author)
 
     if created: # first follower, add json of requester inside a list for future followers
-        obj.followers = [requester_information]
+        obj.followers = [requester_data]
         obj.save()
 
     elif (not created): # user already has followers, append requester's information to list
-        obj.followers.append(requester_information) # NOTE: there is no guard against adding the same user twice, but the "Follow" button will be disabled
+        obj.followers.append(requester_data) # NOTE: there is no guard against adding the same user twice, but the "Follow" button will be disabled
         obj.save()                                  # while a user is in an author's followers list. So it should be impossible for them to send another request.
         
     fq.delete()
-    return redirect('author_requests', uuid=uuid) # redirect back to friend request page when finished
 
-def deny_fq(self, uuid, fq_uuid): # delete friend request; remove the request from FriendRequests table
-    fq = FollowRequests.objects.get(requester_uuid=fq_uuid, recipient_uuid=uuid) # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models how to delete objects from db
+    return JsonResponse({"status":"success"})
+
+
+def deny_fq(request): # delete friend request; remove the request from FriendRequests table
+    requester_uuid = request.POST.get('requester_uuid') # get uuid of requester
+    recipient_uuid = request.POST.get('recipient_uuid') # get uuid of recipient
+
+    # safety
+    if request.user.uuid != recipient_uuid: # if the user is not the recipient of the request, they should not be able to accept it
+        return HttpResponseForbidden("You do not have permission to access this page.")
+
+    fq = FollowRequests.objects.get(requester_uuid=requester_uuid, recipient_uuid=recipient_uuid) # get friend request instance from dbfq.delete()
     fq.delete()
-    return redirect('author_requests', uuid=uuid) # redirect back to friend request page when finished
+
+    return JsonResponse({"status":"success"}) # redirect back to friend request page when finished
+
 
 def unfollow_author(request, uuid, rq_uuid): # unfollow an author (where uuid is the author to unfollow, and rq_uuid is the uuid of the requester to unfollow)
     followers_instance = Followers.objects.get(author=uuid) # get followers instance of author
@@ -316,12 +338,6 @@ def unfollow_author(request, uuid, rq_uuid): # unfollow an author (where uuid is
             break # finished
     
     return redirect('author_profile', uuid=uuid) # redirect back to author's profile page when finished
-
-def view_my_profile(request): #TODO OBSOLETE; REMOVE? 
-    user = request.user # get db information of current user
-    author_obj = get_object_or_404(AuthorUser, username=user) # get db information of author to follow
-    author_dict = model_to_dict(author_obj)
-    return redirect('author_profile', uuid=author_dict.get("uuid"))
 
 
 
