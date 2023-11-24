@@ -60,7 +60,6 @@ def make_new_post(request, form=None):
     elif request.method == 'POST':
         return update_or_create_post(request, None)
         
-
 def get_picture_info(picture):
     image_base64 = base64.b64encode(picture.read()).decode('utf-8')
 
@@ -147,7 +146,6 @@ def update_or_create_post(request, post_uuid):
         post.save()
 
     return redirect('stream')
-
 
 def edit_post(request, author_id, post_uuid):
     if request.method == 'GET':
@@ -238,7 +236,6 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
         author_followers = []
     
     return post_author_id in current_followers and user_id in author_followers
-
 
 def time_since_posted(created_at):
     import humanize
@@ -337,7 +334,6 @@ def open_comments_handler(request):
         return JsonResponse({'comments': '{}'})
     #TODO: sort newest to oldest?
     return JsonResponse({'comments': json.dumps(serialized.validated_data)})
-
 
 def submit_comment_handler(request):
     post_uuid = request.GET.get('post_uuid', None) #get the post in question
@@ -470,9 +466,10 @@ def format_local_post(post):
     return post_data
 
 
+
+
 # API CALLS
 # ===============================================================================================================
-
 
 # POSTS
 # =====================
@@ -652,7 +649,6 @@ def get_image_post(request, author_id, post_id):
             return JsonResponse({'error': 'Image not found'}, status=404)
 
 
-
 # POST CREATION
 # =====================
 @swagger_auto_schema(
@@ -704,7 +700,6 @@ def api_post_creation(request, uuid):
         return Response(response)
     elif request.method == 'POST':
         pass
-
 
 
 # COMMENTS
@@ -811,7 +806,6 @@ def api_comments(request, uuid, post_id):
         return Response(status=200, data=serializer.validated_data)
 
 
-
 # POST LIKES
 # =====================
 @swagger_auto_schema(
@@ -893,7 +887,6 @@ def api_comment_likes(request, uuid, post_id, comment_id):
         })
     
     return Response(status=200, data={"type": "likes", "items": formatted})
-
 
 
 # LIKED
