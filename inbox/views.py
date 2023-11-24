@@ -1,29 +1,32 @@
 from django.shortcuts import render
-from inbox.serializers import InboxSerializer, InboxItemSerializer
+from accounts.views import decode_cookie
 from pages.seralizers import AuthorUserSerializerDB, CommentSerializer, FollowRequestsSerializer, LikeSerializer
 from pages.util import AuthorDetail
 from posts.models import Comments, Likes, Posts
 from posts.serializers import PostsSerializer
-from posts.views import get_object_type
+from posts.views import format_local_post, get_object_type
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 from accounts.models import AuthorUser, FollowRequests
 from static.vars import ENDPOINT
 from .models import Inbox
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .serializers import InboxSerializer, InboxItemSerializer
 from pages.views import get_id_from_url, get_part_from_url
 
 class InboxItem():
-    def __init__(self, itemType, itemID):
+    def __init__(self, itemType, itemID, sender):
         self.itemType = itemType
         self.itemID = itemID
+        self.sender = sender
     def formMapping(self):
         return {
             "type": self.itemType,
-            "id": self.itemID
+            "id": self.itemID,
+            "sender": self.sender
         }
     def checkSame(self, saved):
         if self.itemType == saved.get("type") and self.itemID == saved.get("id"):
@@ -50,8 +53,17 @@ class InboxItem():
     tags=['inbox'], 
     )
 @api_view(['GET', 'POST', 'DELETE'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_inbox(request, uuid):
-    
+    try:
+        sender_cookie = request.COOKIES.get('ChimpChatToken')
+        sender_data = decode_cookie(sender_cookie)
+        ad = AuthorDetail(sender_data.get("user_id"), sender_data.get("url"), sender_data.get("host"))
+        sender = ad.formMapping()
+    except:
+        sender = None
+
     author = get_object_or_404(AuthorUser, uuid=uuid)
 
     try:
@@ -62,9 +74,6 @@ def api_inbox(request, uuid):
     if request.method == 'GET':
         if request.user.id != author.id:
             return Response(status=404)
-        
-        if not request.user.is_authenticated:
-            return Response(status=401, data="You must be logged in to follow someone")
         
         # get a list of posts sent to author_id (paginated)
         posts = []
@@ -83,22 +92,30 @@ def api_inbox(request, uuid):
             end = start + int(size)
             posts = posts[start:end]
 
-        inbox.items = posts
+        output = []
+        for post_ref in posts:
+            try: 
+                post = Posts.objects.get(uuid=post_ref["id"])
+                post_data = format_local_post(post)
+                serializer = PostsSerializer(data=post_data, partial=True)
+                # we don't actually need to serialize but it's a good way to ensure we're not returning
+                # malformed responses
+                if not serializer.is_valid():
+                    print(serializer.errors)
+                    continue
 
-        serializer = InboxSerializer(inbox)
-        return Response(serializer.data)
+                output.append(serializer.validated_data)
+
+            except Posts.DoesNotExist: 
+                continue
+        
+        final_data = {"type": "inbox", "author": f"{ENDPOINT}authors/{uuid}", "items": output}
+        return Response(final_data)
 
     elif request.method == 'POST':
         
         # check if author even exists
         get_object_or_404(AuthorUser, uuid=uuid)
-
-        try:
-            print(request.META.get('REMOTE_ADDR'))
-            print(request.user.id)
-            print(request.user.uuid)
-        except:
-            pass
 
         object_type = request.data.get("type", "").lower()
         if object_type not in ("post", "follow", "like", "comment"):
@@ -160,6 +177,10 @@ def api_inbox(request, uuid):
             requester_host = data["actor"]["host"]
             requester_url = data["actor"]["url"]
 
+            if not sender:
+                ad = AuthorDetail(requester_uuid, requester_url, requester_host)
+                sender = ad.formMapping()
+
             FollowRequests.objects.update_or_create(summary=summary, recipient_uuid=uuid, requester_uuid=requester_uuid, requester_host=requester_host, requester_url=requester_url)
 
             frq = FollowRequests.objects.get(recipient_uuid=uuid, requester_uuid=requester_uuid)
@@ -171,13 +192,18 @@ def api_inbox(request, uuid):
                 return Response(status=400, data=serializer.errors)
             
             data = serializer.validated_data
+            liked_id = get_id_from_url(data["object"])
             author_uuid = get_id_from_url(data["author"]["id"])
             author_host = data["author"]["host"]
             author_url = data["author"]["url"]
 
+            if not sender:
+                ad = AuthorDetail(author_uuid, author_url, author_host)
+                sender = ad.formMapping()
+
             obj_type = get_object_type(data["object"])
 
-            Likes.objects.update_or_create(context = data["context"], summary = data["summary"], author_uuid=author_uuid, author_host=author_host, author_url=author_url, liked_object_type=obj_type, liked_object=data["object"])
+            Likes.objects.update_or_create(context = data["context"], liked_id=liked_id, summary = data["summary"], author_uuid=author_uuid, author_host=author_host, author_url=author_url, liked_object_type=obj_type, liked_object=data["object"])
 
             like = Likes.objects.get(author_uuid=author_uuid, liked_object=data["object"])
             itemID = like.id
@@ -192,6 +218,10 @@ def api_inbox(request, uuid):
             author_host = data["author"]["host"]
             author_url = data["author"]["url"]
 
+            if not sender:
+                ad = AuthorDetail(author_uuid, author_url, author_host)
+                sender = ad.formMapping()
+
             comment_url = data["id"]
             comment_uuid = get_part_from_url(comment_url, "comments")
 
@@ -203,7 +233,7 @@ def api_inbox(request, uuid):
             itemID = comment_uuid
 
         
-        item = InboxItem(itemType, itemID)
+        item = InboxItem(itemType, itemID, sender)
         found = -1
         for i in range(len(inbox.items)):
             if item.checkSame(inbox.items[i]):
@@ -220,7 +250,7 @@ def api_inbox(request, uuid):
 
     elif request.method == 'DELETE':
         if request.user.id != author.id:
-            return Response(status=404)
+            return Response(status=401)
     
         inbox.items.clear()
         inbox.save()

@@ -24,6 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-84xh43$n@fbp!p3-9rfe24+@&9df%1yn@a1ieb_h-(*b_h$$vw'
+FERNET_KEY = b'DR_hefENrBtAJJFliGoArKs-mK_tOo4FHR6Zx64S3Lc='
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -154,3 +155,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ),
 }
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]

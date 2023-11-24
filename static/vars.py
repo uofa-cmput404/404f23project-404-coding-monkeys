@@ -1,9 +1,11 @@
 # this represents static variables that are used throughout various parts of the application
+from django.test import Client
 
 # this is the DEV URL of our webserver; we'll need a PROD URL later when we actually deploy
 ENDPOINT = "http://127.0.0.1:8000/"
-
+NODES = []
 HOSTS = [ENDPOINT[:-1]]
+CLIENT = Client()
 
 class Cache():
     def __init__(self):

@@ -5,6 +5,7 @@ from django.views.generic import CreateView
 from django.forms.models import model_to_dict
 import pytz
 import requests
+from connections.views import get_auth_for_host
 from pages.seralizers import AuthorUserSerializer, CommentListSerializer, CommentSerializer
 from pages.util import AuthorDetail
 from pages.views import get_id_from_url, get_part_from_url
@@ -17,7 +18,11 @@ from accounts.models import AuthorUser, Followers
 import uuid
 import base64
 from django.http import JsonResponse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from django.contrib.auth.decorators import login_required
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
+from django.test import Client
 from django.core.files.base import ContentFile
 from PIL import Image
 from drf_yasg.utils import swagger_auto_schema
@@ -26,9 +31,9 @@ from django.http import HttpResponse
 from django.core.serializers import serialize
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from static.vars import AUTHOR_CACHE
-from static.vars import POST_CACHE
+from static.vars import AUTHOR_CACHE, POST_CACHE, CLIENT
 import copy
+from requests.auth import HTTPBasicAuth
 
 
 class PostCreate(CreateView):
@@ -71,6 +76,8 @@ def get_picture_info(picture):
     return image_base64, contentType_pic
 
 def update_or_create_post(request, post_uuid):
+    global AUTHOR_CACHE
+
     # create or grab post first
     try:
         if post_uuid:
@@ -237,29 +244,48 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
 # TODO schedule update every 5 mins
 def update_author_cache(request):
     # get all authors from all hosts
-    from static.vars import AUTHOR_CACHE
+    global AUTHOR_CACHE, CLIENT
 
     for host in HOSTS:
+        
+        auth = get_auth_for_host(host)
         try:
             authors_url = f"{host}/authors/"
-
+            # print(f"{host}/")
+            # print(ENDPOINT)
+            # print(f"{host}/" == ENDPOINT)
+            # if f"{host}/" == ENDPOINT:
+            #     print("equals")
+            #     CLIENT.login(username=auth[0], password=auth[1])
+            #     response = CLIENT.get("/authors/")
+            # else:
+                # response = requests.get(authors_url, BasicAuthentication=auth)
+            
             response = requests.get(authors_url)
+
             if response.ok:
                 authors = response.json()
                 
                 for author in authors["items"]:
                     uuid = get_id_from_url(author["id"])
                     AUTHOR_CACHE.add(uuid, author)
-        except:
+        except Exception as e:
+            print(e)
             continue
+    print(AUTHOR_CACHE.items())
 
 def update_post_cache(request):
 
     for author, details in AUTHOR_CACHE.items():
         try:
             posts_url = f"{details['host']}authors/{author}/posts?page=1&size=100"
-
-            response = requests.get(posts_url)
+            host = details['host'] if details['host'][-1] != "/" else details['host'][:-1]
+            auth = get_auth_for_host(host)
+            
+            if f"{host}/" == ENDPOINT:
+                response = Client.get(posts_url)
+            else:
+                response = requests.get(posts_url)
             if response.ok:
                 posts = response.json()
                 
@@ -291,7 +317,6 @@ def post_stream(request):
 
     update_author_cache(request)
     update_post_cache(request)
-
     # get all posts from all hosts
     toReturn = []
     posts = POST_CACHE.values()
@@ -304,38 +329,8 @@ def post_stream(request):
 
     return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts})
 
-    # get all followers for current user
-    try:
-        row = Followers.objects.get(author_id=request.user.id)
-        current_followers = [follower['id'] for follower in row.followers]
-    except Followers.DoesNotExist:
-        current_followers = []
-
-    # filter posts by visibility
-    viewable = []
-    determined_friends = set()
-    for post in posts:
-        if post["visibility"] == "PUBLIC":
-            viewable.append(post)
-
-        # show own posts
-        elif post["author"]["id"] == request.user.id:
-            viewable.append(post)
-
-        elif post["visibility"] == "FRIENDS":
-            if post["author"]["id"] in determined_friends or determine_if_friends(current_followers, request.user.id, post["author"]["id"]):
-                viewable.append(post)
-                determined_friends.add(post["author"]["id"])
-
-        elif post["visibility"] == "PRIVATE":
-            sharedWith = post["sharedWith"].get('id', None)
-            if sharedWith == request.user.id:
-                viewable.append(post)
-
-    return render(request, 'posts/dashboard.html', {'all_posts': viewable})
-
 def view_posts(request):
-    author_id = request.user.id
+    author_id = request.user.uuid
     viewable = []
     determined_friends = set()
     # exclude picture posts since they're dealt with in the html template
@@ -343,7 +338,7 @@ def view_posts(request):
 
     try:
         row = Followers.objects.get(author_id=author_id)
-        current_followers = [follower['id'] for follower in row.followers]
+        current_followers = [follower['uuid'] for follower in row.followers]
     except Followers.DoesNotExist:
         current_followers = []
 
@@ -361,12 +356,16 @@ def view_posts(request):
                 determined_friends.add(post.author['id'])
 
         elif post.visibility == "PRIVATE":
-            pass
-            # sharedWith = post.sharedWith.get('id', None)
-            # if sharedWith == author_id:
-            #     viewable.append(post)
+            sharedIDs = [author["uuid"] for author in post.sharedWith]
+            if author_id in sharedIDs:
+                viewable.append(post)
 
-    return render(request, 'posts/dashboard.html', {'all_posts': viewable})
+    formatted = []
+    for post in viewable:
+        post_data = format_local_post_from_db(post)
+        formatted.append(post_data)
+
+    return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
 def format_comment(comment):
     comment_obj = model_to_dict(comment)
@@ -494,10 +493,31 @@ def like_post_handler(request):
 
     return JsonResponse({'new_post_count': post.likeCount}) #return new post count
 
+def format_local_post_from_db(post: Posts):
+    post_data = model_to_dict(post)
+
+    ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
+    author = ad.formatAuthorInfo()
+
+    post_data.update({
+        "author": author,
+        "type": "post",
+        "id": f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}",
+        "published": str(post.published),
+        "author_uuid": post.author_uuid,
+        "uuid": post.uuid,
+        "delta": time_since_posted(str(post.published))
+    })
+
+    for k in ("author_url", "author_local", "author_host", "sharedWith"):
+        post_data.pop(k)
+
+    return post_data
+
 def format_local_post(post):
     post_data = model_to_dict(post)
     post_data["type"] = "post"
-    post_data["id"] = f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}"
+    post_data["id"] = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
     post_data["published"] = str(post.published)
 
     ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
@@ -534,6 +554,8 @@ def format_local_post(post):
     request_body=PostsSerializer
 )
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_posts(request, uuid, post_id):
     if request.method == 'PUT':
         post = Posts.objects.create(uuid=post_id, author_uuid=uuid)
@@ -623,6 +645,8 @@ def api_posts(request, uuid, post_id):
     auto_schema=None,
 )
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def get_image_post(request, author_id, post_id):
     
     unique_id_pic = str(post_id) + "_pic"
@@ -709,6 +733,8 @@ def get_image_post(request, author_id, post_id):
     method='post',
 )
 @api_view(['GET', 'POST'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_post_creation(request, uuid):
     if request.method == 'GET':
         # check query params for pagination
@@ -772,6 +798,8 @@ def api_post_creation(request, uuid):
     }
 )
 @api_view(['GET', 'POST'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_comments(request, uuid, post_id):
     if request.method == 'GET':
         # check if post exists
@@ -859,6 +887,8 @@ def api_comments(request, uuid, post_id):
     }
 )
 @api_view(['GET'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_post_likes(request, uuid, post_id):
     # TODO auth for private posts
     author = get_object_or_404(AuthorUser, uuid=uuid)
@@ -902,6 +932,8 @@ def api_post_likes(request, uuid, post_id):
     }
 )
 @api_view(['GET'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_comment_likes(request, uuid, post_id, comment_id):
     # TODO auth for private posts
     author = get_object_or_404(AuthorUser, uuid=uuid)
@@ -938,6 +970,8 @@ def api_comment_likes(request, uuid, post_id, comment_id):
     }
 )
 @api_view(['GET'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_author_liked(request, uuid):
     author = get_object_or_404(AuthorUser, uuid=uuid)
 

@@ -10,13 +10,13 @@ class AuthorDetail():
         self.uuid = uuid
         self.url = url
         self.host = host
-        self.isLocal = self.url == ENDPOINT
+        self.isLocal = self.host == ENDPOINT
     
     def setMapping(self, detail_mapping):
         self.uuid = detail_mapping.get("uuid")
         self.url = detail_mapping.get("url")
         self.host = detail_mapping.get("host")
-        self.isLocal = self.url == ENDPOINT
+        self.isLocal = self.host == ENDPOINT
 
     def formMapping(self):
         return {
@@ -36,10 +36,10 @@ class AuthorDetail():
         default = {"id": self.host,
                 "host": self.host,
                 "url": self.url,
-                "github": "http://github.com/user/not/found",
+                "github": None,
                 "displayName": "User Not Found",
-                "profileImage": "http://image/not/found.jpg"}
-
+                "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg"}
+        
         if self.isLocal:
             author = AuthorUser.objects.get(uuid=self.uuid)
             serializer = AuthorUserSerializer(author)
@@ -50,7 +50,7 @@ class AuthorDetail():
             response = requests.get(request)
             if response.ok:
                 author = response.json()
-                serializer = AuthorDetailSerializer(data=author)
+                serializer = AuthorDetailSerializer(data=author, timeout=1)
                 if serializer.is_valid():
                     return serializer.validated_data
         except:
