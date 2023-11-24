@@ -41,13 +41,13 @@ class InboxItem():
 @swagger_auto_schema(
     methods=['POST'], 
     tags=['inbox', 'remote'],
-    operation_description="Refer to the <API Documentation>",
+    operation_description="Refer to the following: <a href='http://www.chimp-chat.win/extra/docs#Inbox'>Section</a>",
     responses={
         200: openapi.Response("Returns the newly created object from the request body."),
-        300: openapi.Response("Poorly formatted request body."),
+        400: openapi.Response("Poorly formatted request body."),
         404: openapi.Response("Author not found."),
     }
-    )
+)
 @swagger_auto_schema(
     methods=['DELETE'], 
     tags=['inbox'], 

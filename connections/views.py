@@ -21,6 +21,9 @@ def get_all_connections(request):
 def docs_viewer(request):
     return render(request, "docs.html")
 
+def extra_docs_viewer(request):
+    return render(request, "remote_docs.html")
+
 def get_auth_for_host(host):
     global NODES 
 

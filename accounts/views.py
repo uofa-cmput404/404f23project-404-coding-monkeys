@@ -11,6 +11,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponseForbidden, JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from pages.views import get_id_from_url, get_part_from_url
 import uuid
 
 
@@ -41,6 +44,18 @@ class AuthorUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def get_success_url(self): # gpt
         return reverse_lazy('author_profile', kwargs={'uuid': self.object.uuid})
 
+
+# Create your views here.
+@swagger_auto_schema(
+    methods=['POST'], 
+    tags=['remote','token'],
+    operation_description="Refer to the following: <a href='http://www.chimp-chat.win/extra/docs#AuthCookie'>Section</a>",
+    request_body=TokenSerializer,
+    responses={
+        200: openapi.Response("Success."),
+        400: openapi.Response("Bad Request."),
+    }
+)
 @api_view(["POST"])
 def generate_jwt_token(request):
     if request.method == 'POST':
