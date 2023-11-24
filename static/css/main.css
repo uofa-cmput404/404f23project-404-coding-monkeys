@@ -18,6 +18,35 @@ a{
     color:rgb(255, 255, 255)
 }
 
+
+
+
+
+/* Works on Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color:  #2a2a2a #695f5b;
+}
+
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #695f5b;
+  border-radius: 60px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  border: 2px solid #2a2a2a;
+}
+
+
+
+
 .user_icon{
     border-radius: 50%;
     width:200px;
@@ -304,6 +333,72 @@ a{
 
 
 
+.InboxNavbar {/*This bit is for the navbar for Inbox stuff*/
+    margin: 27px auto 0;
+  
+    position: relative;
+    width: 880px;
+    height: 45px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    border-style: solid;
+    border-color: #FFD553;
+    font-size: 0;
+  }
+  .InboxNavbar .InboxNavbar_Link {
+    line-height: 50px;
+    height: 100%;
+    font-size: 17px;
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    text-align: center;
+    color: white;
+    cursor: pointer;
+  }
+  .InboxNavbar .animation {
+    position: absolute;
+    height: 100%;
+    top: 0;
+    z-index: 0;
+    transition: all .4s ease 0s;
+    border-radius: 8px;
+  }
+  .InboxNavbar_Link:nth-child(1) {
+    width: 220px;
+  }
+  .InboxNavbar_Link:nth-child(2) {
+    width: 220px;
+  }
+  .InboxNavbar_Link:nth-child(3) {
+    width: 220px;
+  }
+  .InboxNavbar_Link:nth-child(4) {
+    width: 220px;
+  }
+
+  .InboxNavbar .start-FollowRequestsPage, a:nth-child(1):hover~.animation {
+    width: 221px;
+    left: -2.3px;
+    background-color: #FFD553;
+  }
+  .InboxNavbar .start-LikesPage, a:nth-child(2):hover~.animation {
+    width: 220px;
+    left: 220px;
+    background-color: #FFD553;
+  }
+  .InboxNavbar .start-CommentsPage, a:nth-child(3):hover~.animation {
+    width: 220px;
+    left: 440px;
+    background-color: #FFD553;
+  }
+  .InboxNavbar .start-PostsPage, a:nth-child(4):hover~.animation {
+    width: 221px;
+    left: 662.3px;
+    background-color: #FFD553;
+  }
 
 
 
