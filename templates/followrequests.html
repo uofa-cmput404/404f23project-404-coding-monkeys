@@ -1,46 +1,65 @@
 {% extends "base_with_sidebar.html" %}
 
-{% load static %}
-
-{% block title %}Follow Requests{% endblock title %}
-
-
 {% block css %}
-<link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
-<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
-<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/main.css' %} ">
-
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock css %}
 
-
-
 {% block content %}
-<h1 style="padding-left:35px; margin-top:20px;"><u>Inbox</u></h1>
 
-<nav class="InboxNavbar">
-    <a class="InboxNavbar_Link" href="{% url 'author_requests' uuid=user.uuid%}">Follow Requests</a>
-    <a class="InboxNavbar_Link" href="#">Likes</a>
-    <a class="InboxNavbar_Link" href="#">Comments</a>
-    <a class="InboxNavbar_Link" href="#">Posts</a>
-    <div class="animation start-FollowRequestsPage"></div><!--THIS IS WHERE YOU CHANGE THE STARTING POINT OF THE ANIMATION!-->
-                        <!--Your options are "start-FollowRequestsPage"-->
-                        <!--Your options are "start-LikesPage"-->
-                        <!--Your options are "start-CommentsPage"-->
-                        <!--Your options are "start-PostsPage"-->
-    <!-- TODO: make 3 more .html pages. just make sure to change start-XXXXPage respectively -->                     
-
-</nav>
-
-
+<h1>Follow Requests</h1>
 <ul>
-
 {% for request in requests_list %}
-    {% if user.username == request.recipient.username %} <!--only show requests where user is the recipient-->
-        <h3>{{request.requester.username}} wants to follow you.</h3>
-        <a href="{% url 'fq_accept' uuid=user.uuid fq_uuid=request.requester_uuid %}">Accept</a> | <a href="{% url 'fq_deny' uuid=user.uuid fq_uuid=request.requester_uuid %}">Deny</a> <!--CHATAGPT - 2023-10-22 - Prompt #1-->
-    {% endif %}
+    <img src="{{ request.data.profileImage }}">
+    <h3>{{request.data.displayName}} wants to follow you.</h3>
+    <button class="accept-follow" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+        <span class="material-symbols-outlined">done</span>
+    </button>
+    <button class="deny-follow" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+        <span class="material-symbols-outlined">close</span>
+    </button>
 {% empty %}
     <li>No friend requests yet.</li>
 {% endfor %}
 </ul>
+
+<script>
+    $(document).ready(function () {
+        var csrfToken = $('meta[name=csrf-token]').attr('content');
+
+        $(".accept-follow").click(function () {
+            var recipient_uuid = $(this).data("recipient-uuid");
+            var requester_uuid = $(this).data("requester-uuid");
+            $.ajax({
+                url: '{% url "accept_fq" %}',
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                data: { recipient_uuid: recipient_uuid, requester_uuid: requester_uuid },
+                success: function (data) {
+                    console.log("success")
+                }
+            });
+        });
+
+        $(".deny-follow").click(function () {
+            var recipient_uuid = $(this).data("recipient-uuid");
+            var requester_uuid = $(this).data("requester-uuid");
+            $.ajax({
+                url: '{% url "deny_fq" %}',
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                data: { recipient_uuid: recipient_uuid, requester_uuid: requester_uuid },
+                success: function (data) {
+                    console.log("success")
+                }
+            });
+        });
+    });
+</script>
+
 {% endblock content %}

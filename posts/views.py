@@ -5,10 +5,10 @@ from django.views.generic import CreateView
 from django.forms.models import model_to_dict
 import pytz
 import requests
-from connections.views import get_auth_for_host
+from connections.caches import AuthorCache, PostCache
 from pages.seralizers import AuthorUserSerializer, CommentListSerializer, CommentSerializer
 from pages.util import AuthorDetail
-from pages.views import get_id_from_url, get_part_from_url
+from util import get_id_from_url, get_part_from_url
 from rest_framework.response import Response
 from posts.serializers import LikeListSerializer, LocalCommentSerializer, LocalPostsSerializer, PostsSerializer, ResponsePosts
 from .models import Posts, Likes, Comments
@@ -31,7 +31,6 @@ from django.http import HttpResponse
 from django.core.serializers import serialize
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from static.vars import AUTHOR_CACHE, POST_CACHE, CLIENT
 import copy
 from requests.auth import HTTPBasicAuth
 
@@ -46,10 +45,10 @@ class PostCreate(CreateView):
 
 def make_new_post(request, form=None):
     if request.method == 'GET':
-        
+        author_cache = AuthorCache()
         url = f"{ENDPOINT}/authors/{request.user.id}"
         authors = []
-        for author in AUTHOR_CACHE.values():
+        for author in author_cache.values():
             if author["url"] != url:
                 author["uuid"] = get_id_from_url(author["id"])
                 authors.append(author)
@@ -76,7 +75,7 @@ def get_picture_info(picture):
     return image_base64, contentType_pic
 
 def update_or_create_post(request, post_uuid):
-    global AUTHOR_CACHE
+    author_cache = AuthorCache()
 
     # create or grab post first
     try:
@@ -101,10 +100,9 @@ def update_or_create_post(request, post_uuid):
 
     post.save()
 
-    print(AUTHOR_CACHE.keys())
     if request.POST.get('author_list') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('author_list')
-        details = AUTHOR_CACHE.get(selected_author_id)
+        details = author_cache.get(selected_author_id)
         ad = AuthorDetail()
         ad.setMappingFromAPI(details)
 
@@ -241,61 +239,6 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-# TODO schedule update every 5 mins
-def update_author_cache(request):
-    # get all authors from all hosts
-    global AUTHOR_CACHE, CLIENT
-
-    for host in HOSTS:
-        
-        auth = get_auth_for_host(host)
-        try:
-            authors_url = f"{host}/authors/"
-            # print(f"{host}/")
-            # print(ENDPOINT)
-            # print(f"{host}/" == ENDPOINT)
-            # if f"{host}/" == ENDPOINT:
-            #     print("equals")
-            #     CLIENT.login(username=auth[0], password=auth[1])
-            #     response = CLIENT.get("/authors/")
-            # else:
-                # response = requests.get(authors_url, BasicAuthentication=auth)
-            
-            response = requests.get(authors_url)
-
-            if response.ok:
-                authors = response.json()
-                
-                for author in authors["items"]:
-                    uuid = get_id_from_url(author["id"])
-                    AUTHOR_CACHE.add(uuid, author)
-        except Exception as e:
-            print(e)
-            continue
-    print(AUTHOR_CACHE.items())
-
-def update_post_cache(request):
-
-    for author, details in AUTHOR_CACHE.items():
-        try:
-            posts_url = f"{details['host']}authors/{author}/posts?page=1&size=100"
-            host = details['host'] if details['host'][-1] != "/" else details['host'][:-1]
-            auth = get_auth_for_host(host)
-            
-            if f"{host}/" == ENDPOINT:
-                response = Client.get(posts_url)
-            else:
-                response = requests.get(posts_url)
-            if response.ok:
-                posts = response.json()
-                
-                for post in posts["items"]:
-                    uuid = get_id_from_url(post["id"])
-                    POST_CACHE.add(uuid, post)
-        except Exception as e:
-            print(e)
-            continue
-
 
 def time_since_posted(created_at):
     import humanize
@@ -313,13 +256,11 @@ def time_since_posted(created_at):
     return humanize.naturaltime(time_difference)
 
 def post_stream(request):
-    # get all authors from all hosts
-
-    update_author_cache(request)
-    update_post_cache(request)
-    # get all posts from all hosts
     toReturn = []
-    posts = POST_CACHE.values()
+
+    post_cache = PostCache()
+    posts = PostCache.values()
+
     for post in posts:
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
         post["uuid"] = get_part_from_url(post["id"], "posts")
@@ -890,12 +831,11 @@ def api_comments(request, uuid, post_id):
 @authentication_classes([BasicAuthentication])
 @permission_classes([IsAuthenticated])
 def api_post_likes(request, uuid, post_id):
+    author_cache = AuthorCache()
+
     # TODO auth for private posts
     author = get_object_or_404(AuthorUser, uuid=uuid)
     post = get_object_or_404(Posts, uuid=post_id)
-
-    # TODO remove
-    update_author_cache(request)
 
     # TODO check if user should be able to see this post
     if post.visibility != "PUBLIC":
@@ -908,7 +848,7 @@ def api_post_likes(request, uuid, post_id):
             "type": "like",
             "context": like.context,
             "summary": like.summary,
-            "author": AUTHOR_CACHE.get(like.author_uuid),
+            "author": author_cache.get(like.author_uuid),
             "object": like.liked_object
         })
     
@@ -936,6 +876,7 @@ def api_post_likes(request, uuid, post_id):
 @permission_classes([IsAuthenticated])
 def api_comment_likes(request, uuid, post_id, comment_id):
     # TODO auth for private posts
+    author_cache = AuthorCache()
     author = get_object_or_404(AuthorUser, uuid=uuid)
     post = get_object_or_404(Posts, uuid=post_id)
     comment = get_object_or_404(Comments, uuid=comment_id)
@@ -947,7 +888,7 @@ def api_comment_likes(request, uuid, post_id, comment_id):
             "type": "like",
             "context": like.context,
             "summary": like.summary,
-            "author": AUTHOR_CACHE.get(like.author_uuid),
+            "author": author_cache.get(like.author_uuid),
             "object": like.liked_object
         })
     
@@ -973,10 +914,8 @@ def api_comment_likes(request, uuid, post_id, comment_id):
 @authentication_classes([BasicAuthentication])
 @permission_classes([IsAuthenticated])
 def api_author_liked(request, uuid):
+    author_cache = AuthorCache()
     author = get_object_or_404(AuthorUser, uuid=uuid)
-
-    # TODO remove
-    update_author_cache(request)
 
     public = []
     likes = Likes.objects.filter(author_uuid=uuid)
@@ -985,7 +924,7 @@ def api_author_liked(request, uuid):
             "type": "like",
             "context": like.context,
             "summary": like.summary,
-            "author": AUTHOR_CACHE.get(like.author_uuid),
+            "author": author_cache.get(like.author_uuid),
             "object": like.liked_object
         }
         # determine if local items are public

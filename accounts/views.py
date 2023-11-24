@@ -13,7 +13,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from pages.views import get_id_from_url, get_part_from_url
+from util import get_id_from_url, get_part_from_url
 import uuid
 
 

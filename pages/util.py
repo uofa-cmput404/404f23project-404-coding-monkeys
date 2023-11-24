@@ -1,6 +1,7 @@
 from accounts.models import AuthorUser
 from pages.seralizers import AuthorDetailSerializer, AuthorUserSerializer
 from static.vars import ENDPOINT
+from util import get_id_from_url
 import requests
 
 
@@ -58,9 +59,3 @@ class AuthorDetail():
     
         return default
 
-def get_id_from_url(url):
-    if url:
-        url = url[:-1] if url[-1] == "/" else url
-        url = url.split("/")
-        return url[-1]
-    return ""
