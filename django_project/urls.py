@@ -51,7 +51,8 @@ urlpatterns = [
     # path("inbox/", include("inbox.urls")), # if inbox request, forward to inbox.urls (follow, unfollow
     path("", include("pages.urls")), # goto pages.urls if generic request 
     path('api/', schema_view.with_ui('swagger', cache_timeout=0),name='schema-swagger-ui'),
-    path('docs/', connections.views.docs_viewer, name='markdown_docs'),
+    path('full/docs', connections.views.docs_viewer, name='markdown_docs'),
+    path('extra/docs', connections.views.extra_docs_viewer, name='docs_extra'),
 
     path('api/token/', accounts.views.generate_jwt_token, name='get_token'),
     # path('fullDocs/', full_schema_view.with_ui('swagger', cache_timeout=0),name='full-schema-swagger-ui')
