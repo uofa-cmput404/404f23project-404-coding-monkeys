@@ -1,0 +1,1713 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Api</title>
+        <meta charset='utf-8'/>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap" rel="stylesheet">
+        <style>
+pre {
+    background-color: #333;
+    border-radius: 5px;
+    padding: 2px;
+    margin: 2px;
+}
+
+body {
+    line-height: 1.6;
+    font-family: 'Lalezar', sans-serif;
+    font-size: 16px;
+    background-color: #1C1A19;
+    color:#FFD553
+}
+
+p, ul {
+    font-family: 'Lalezar', sans-serif;
+    color: white;
+}
+
+th, td {
+    border: 1px solid white;
+    padding: 8px;
+    text-align: left;
+}
+p strong {
+    color: #c2abed;
+    font-weight: normal;
+}
+a {
+    color: #8d42f5;
+    font-weight: normal;
+}
+
+code {
+    background-color: #333;
+    color: #8d42f5;
+    border-radius: 5px;
+    padding: 2px;
+    margin: 2px;
+}
+
+ .ͼ1.cm-focused {outline: 1px dotted #212121;}
+.ͼ1 {position: relative !important; box-sizing: border-box; display: flex !important; flex-direction: column;}
+.ͼ1 .cm-scroller {display: flex !important; align-items: flex-start !important; font-family: monospace; line-height: 1.4; height: 100%; overflow-x: auto; position: relative; z-index: 0;}
+.ͼ1 .cm-content[contenteditable=true] {-webkit-user-modify: read-write-plaintext-only;}
+.ͼ1 .cm-content {margin: 0; flex-grow: 2; flex-shrink: 0; display: block; white-space: pre; word-wrap: normal; box-sizing: border-box; padding: 4px 0; outline: none;}
+.ͼ1 .cm-lineWrapping {white-space: pre-wrap; white-space: break-spaces; word-break: break-word; overflow-wrap: anywhere; flex-shrink: 1;}
+.ͼ2 .cm-content {caret-color: black;}
+.ͼ3 .cm-content {caret-color: white;}
+.ͼ1 .cm-line {display: block; padding: 0 2px 0 6px;}
+.ͼ1 .cm-layer > * {position: absolute;}
+.ͼ1 .cm-layer {position: absolute; left: 0; top: 0; contain: size style;}
+.ͼ2 .cm-selectionBackground {background: #d9d9d9;}
+.ͼ3 .cm-selectionBackground {background: #222;}
+.ͼ2.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground {background: #d7d4f0;}
+.ͼ3.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground {background: #233;}
+.ͼ1 .cm-cursorLayer {pointer-events: none;}
+.ͼ1.cm-focused > .cm-scroller > .cm-cursorLayer {animation: steps(1) cm-blink 1.2s infinite;}
+@keyframes cm-blink {50% {opacity: 0;}}
+@keyframes cm-blink2 {50% {opacity: 0;}}
+.ͼ1 .cm-cursor, .ͼ1 .cm-dropCursor {border-left: 1.2px solid black; margin-left: -0.6px; pointer-events: none;}
+.ͼ1 .cm-cursor {display: none;}
+.ͼ3 .cm-cursor {border-left-color: #444;}
+.ͼ1 .cm-dropCursor {position: absolute;}
+.ͼ1.cm-focused > .cm-scroller > .cm-cursorLayer .cm-cursor {display: block;}
+.ͼ2 .cm-activeLine {background-color: #cceeff44;}
+.ͼ3 .cm-activeLine {background-color: #99eeff33;}
+.ͼ2 .cm-specialChar {color: red;}
+.ͼ3 .cm-specialChar {color: #f78;}
+.ͼ1 .cm-gutters {flex-shrink: 0; display: flex; height: 100%; box-sizing: border-box; left: 0; z-index: 200;}
+.ͼ2 .cm-gutters {background-color: #f5f5f5; color: #6c6c6c; border-right: 1px solid #ddd;}
+.ͼ3 .cm-gutters {background-color: #333338; color: #ccc;}
+.ͼ1 .cm-gutter {display: flex !important; flex-direction: column; flex-shrink: 0; box-sizing: border-box; min-height: 100%; overflow: hidden;}
+.ͼ1 .cm-gutterElement {box-sizing: border-box;}
+.ͼ1 .cm-lineNumbers .cm-gutterElement {padding: 0 3px 0 5px; min-width: 20px; text-align: right; white-space: nowrap;}
+.ͼ2 .cm-activeLineGutter {background-color: #e2f2ff;}
+.ͼ3 .cm-activeLineGutter {background-color: #222227;}
+.ͼ1 .cm-panels {box-sizing: border-box; position: sticky; left: 0; right: 0;}
+.ͼ2 .cm-panels {background-color: #f5f5f5; color: black;}
+.ͼ2 .cm-panels-top {border-bottom: 1px solid #ddd;}
+.ͼ2 .cm-panels-bottom {border-top: 1px solid #ddd;}
+.ͼ3 .cm-panels {background-color: #333338; color: white;}
+.ͼ1 .cm-tab {display: inline-block; overflow: hidden; vertical-align: bottom;}
+.ͼ1 .cm-widgetBuffer {vertical-align: text-top; height: 1em; width: 0; display: inline;}
+.ͼ1 .cm-placeholder {color: #888; display: inline-block; vertical-align: top;}
+.ͼ1 .cm-highlightSpace:before {content: attr(data-display); position: absolute; pointer-events: none; color: #888;}
+.ͼ1 .cm-highlightTab {background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="20"><path stroke="%23888" stroke-width="1" fill="none" d="M1 10H196L190 5M190 15L196 10M197 4L197 16"/></svg>'); background-size: auto 100%; background-position: right 90%; background-repeat: no-repeat;}
+.ͼ1 .cm-trailingSpace {background-color: #ff332255;}
+.ͼ1 .cm-button {vertical-align: middle; color: inherit; font-size: 70%; padding: .2em 1em; border-radius: 1px;}
+.ͼ2 .cm-button:active {background-image: linear-gradient(#b4b4b4, #d0d3d6);}
+.ͼ2 .cm-button {background-image: linear-gradient(#eff1f5, #d9d9df); border: 1px solid #888;}
+.ͼ3 .cm-button:active {background-image: linear-gradient(#111, #333);}
+.ͼ3 .cm-button {background-image: linear-gradient(#393939, #111); border: 1px solid #888;}
+.ͼ1 .cm-textfield {vertical-align: middle; color: inherit; font-size: 70%; border: 1px solid silver; padding: .2em .5em;}
+.ͼ2 .cm-textfield {background-color: white;}
+.ͼ3 .cm-textfield {border: 1px solid #555; background-color: inherit;}
+.ͼ1 .cm-foldPlaceholder {background-color: #eee; border: 1px solid #ddd; color: #888; border-radius: .2em; margin: 0 1px; padding: 0 1px; cursor: pointer;}
+.ͼ1 .cm-foldGutter span {padding: 0 1px; cursor: pointer;}
+ /*highlighter style*/
+/*lowlight*/
+.highlightr-lowlight mark,
+.highlightr-lowlight span.cm-highlight,
+.highlightr-lowlight .markdown-preview-view mark {
+  --lowlight-background: var(--background-primary);
+  border-radius: 0;
+  background-image: linear-gradient(
+    360deg,
+    rgba(255, 255, 255, 0) 40%,
+    var(--lowlight-background) 40%
+  ) !important;
+}
+
+.highlightr-lowlight .workspace-split.mod-left-split mark,
+.highlightr-lowlight .workspace-split.mod-left-split span.cm-highlight,
+.highlightr-lowlight
+  .workspace-split.mod-left-split
+  .markdown-preview-view
+  mark,
+.highlightr-lowlight .workspace-split.mod-right-split mark,
+.highlightr-lowlight .workspace-split.mod-right-split span.cm-highlight,
+.highlightr-lowlight
+  .workspace-split.mod-right-split
+  .markdown-preview-view
+  mark {
+  --lowlight-background: var(--background-secondary);
+}
+
+.highlightr-lowlight .admonition-content mark,
+.highlightr-lowlight .admonition-content span.cm-highlight,
+.highlightr-lowlight .admonition-content > .markdown-preview-view mark {
+  --lowlight-background: var(--background-primary-alt);
+}
+
+/*floating*/
+.highlightr-floating mark,
+.highlightr-floating span.cm-highlight,
+.highlightr-floating .markdown-preview-view mark {
+  --floating-background: var(--background-primary);
+  border-radius: 0;
+  padding-bottom: 5px;
+  background-image: linear-gradient(
+    360deg,
+    rgba(255, 255, 255, 0) 28%,
+    var(--floating-background) 28%
+  ) !important;
+}
+
+.highlightr-floating .workspace-split.mod-left-split mark,
+.highlightr-floating .workspace-split.mod-left-split span.cm-highlight,
+.highlightr-floating
+  .workspace-split.mod-left-split
+  .markdown-preview-view
+  mark,
+.highlightr-floating .workspace-split.mod-right-split mark,
+.highlightr-floating .workspace-split.mod-right-split span.cm-highlight,
+.highlightr-floating
+  .workspace-split.mod-right-split
+  .markdown-preview-view
+  mark {
+  --floating-background: var(--background-secondary);
+}
+
+.highlightr-floating .admonition-content mark,
+.highlightr-floating .admonition-content span.cm-highlight,
+.highlightr-floating .admonition-content > .markdown-preview-view mark {
+  --floating-background: var(--background-primary-alt);
+}
+
+/*rounded*/
+.highlightr-rounded mark,
+.highlightr-rounded .markdown-preview-view mark {
+  margin: 0 -0.05em;
+  padding: 0.125em 0.15em;
+  border-radius: 0.2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.highlightr-rounded span.cm-highlight {
+  border-radius: 0.2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.highlightr-rounded .cm-s-obsidian span.cm-highlight {
+  font-weight: inherit;
+}
+
+.highlightr-rounded .cm-highlight + span.cm-formatting-highlight {
+  padding-left: 0em;
+  padding-right: 0.15em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/*realistic*/
+.highlightr-realistic mark,
+.highlightr-realistic .markdown-preview-view mark {
+  margin: 0 -0.05em;
+  padding: 0.1em 0.4em;
+  border-radius: 0.8em 0.3em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  text-shadow: 0 0 0.75em var(--background-primary-alt);
+}
+
+.highlightr-realistic.hide-tokens .cm-s-obsidian span.cm-highlight,
+.hide-tokens.highlightr-realistic .cm-s-obsidian span.cm-highlight {
+  border-radius: 0.8em 0.3em;
+}
+
+.highlightr-realistic .cm-s-obsidian span.cm-highlight {
+  padding: 0.15em 0.25em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  text-shadow: 0 0 0.75em var(--background-primary-alt);
+}
+
+.highlightr-realistic .cm-s-obsidian span.cm-formatting-highlight {
+  margin: 0 0 0 -0.05em;
+  padding: 0.15em 0.25em;
+  border-radius: 0.8em 0 0 0.3em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.highlightr-realistic
+  .cm-s-obsidian
+  .cm-highlight
+  + span.cm-formatting-highlight {
+  margin: 0 -0.05em 0 0;
+  padding: 0.15em 0.25em;
+  border-radius: 0 0.3em 0.8em 0;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/**/
+
+button.copy-highlights {
+  padding: 4px 14px;
+  border-radius: 5px;
+  background-color: var(--interactive-accent);
+}
+
+.copy-highlights svg {
+  width: 1.3em;
+  height: 1.3em;
+  display: flex;
+}
+
+details summary.highlight-summary:before {
+  width: 2em;
+  height: 2em;
+  content: "☐";
+  font-size: 9px;
+  cursor: pointer;
+  margin-right: 5px;
+  display: inline-block;
+  vertical-align: 0.05em;
+  background-color: currentColor;
+  -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path fill="black" d="M10.707 17.707L16.414 12l-5.707-5.707l-1.414 1.414L13.586 12l-4.293 4.293z"></path></svg>');
+}
+
+details[open] summary.highlight-summary::before {
+  transform: rotate(90deg);
+}
+
+/*highlightr component*/
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  40% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.menu.highlighterContainer {
+  min-width: 140px;
+  max-width: 225px;
+  max-height: 180px;
+  padding-left: 0em;
+  padding: 0;
+  margin: 0 auto;
+  border-radius: 6px;
+  font-size: 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: fixed;
+  animation: fade 300ms ease-in-out;
+  background-color: var(--background-primary);
+  box-shadow: 0px 3px 25px rgba(31, 38, 135, 0.1);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.menu.highlighterContainer .menu-item .menu-item-icon {
+  display: inline-block;
+  width: 25px;
+  position: relative;
+  top: 2px;
+}
+
+.menu.highlighterContainer .menu-item {
+  display: flex;
+  padding: 2px 14px 3px 14px;
+  align-items: unset;
+  margin: auto;
+  cursor: pointer;
+  font-size: 14px;
+  height: 32px;
+  line-height: 31px;
+  white-space: nowrap;
+  border-radius: 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.menu.highlighterContainer .menu-item:last-of-type {
+  border-bottom: none;
+}
+
+/*----------------------------------------------------------------
+SETTINGS TAB
+----------------------------------------------------------------*/
+
+button.HighlightrSettingsButton {
+  padding: 4px 14px;
+  border-radius: 6px;
+  height: fit-content;
+}
+
+button.HighlightrSettingsButton svg {
+  width: 1.3em;
+  height: 1.3em;
+  display: flex;
+}
+
+.highlighter-settings-color,
+.highlighter-settings-value {
+  width: 42%;
+  color: var(--text-normal);
+}
+
+.highlighterplugin-setting-item {
+  display: block;
+}
+
+.highlighterplugin-setting-item .setting-item-control {
+  justify-content: space-between;
+  margin-top: 12px;
+  align-content: center;
+  align-items: flex-end;
+  grid-gap: 6px;
+}
+
+.modal.mod-settings
+  button:not(.mod-cta):not(.mod-warning).HighlightrSettingsButton.HighlightrSettingsButtonAdd,
+button:not(.mod-cta):not(.mod-warning).HighlightrSettingsButton.HighlightrSettingsButtonAdd {
+  background-color: var(--interactive-accent);
+}
+
+.modal.mod-settings
+  button:not(.mod-cta):not(.mod-warning).HighlightrSettingsButton.HighlightrSettingsButtonDelete,
+button:not(.mod-cta):not(.mod-warning).HighlightrSettingsButton.HighlightrSettingsButtonDelete {
+  background-color: #989cab;
+}
+
+/**/
+.highlighter-setting-icon {
+  display: flex;
+  height: 24px;
+  width: 24px;
+}
+
+.highlighter-item-draggable {
+  cursor: grab;
+  display: grid;
+  grid-gap: 8px;
+  grid-template-columns: 0.5fr 7fr;
+  align-items: center;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.HighlightrSettingsTabsContainer {
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.setting-item.highlighter-setting-item:first-child {
+  padding-top: 18px;
+}
+
+.highlighter-setting-item {
+  padding: 18px 0 18px 0;
+  border-top: none;
+}
+
+.highlighter-sortable-fallback {
+  cursor: grabbing;
+  box-shadow: 0px 3px 32px rgb(31 38 135 / 15%);
+}
+
+.highlighter-sortable-grab {
+  cursor: grabbing !important;
+}
+
+.highlighter-sortable-ghost {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+.highlighter-sortable-chosen {
+  cursor: grabbing;
+  padding: 0 0 0 18px;
+  background-color: var(--background-primary);
+}
+
+.highlighter-sortable-drag {
+  cursor: grabbing;
+  box-shadow: 0px 3px 32px rgb(31 38 135 / 15%);
+}
+
+/*----------------------------------------------------------------
+HIGHLIGHTR SUPPORT
+----------------------------------------------------------------*/
+
+.hltrDonationSection {
+  width: 65%;
+  height: 50vh;
+  margin: 0 auto;
+  text-align: center;
+  color: var(--text-normal);
+}
+
+.pcr-app .pcr-swatches > button {
+  padding: 0;
+}
+
+.pickr .pcr-button {
+  margin-right: 0;
+}
+
+.themed-color-wrapper > div {
+  background: var(--background-primary);
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.themed-color-wrapper > div + div {
+  margin-top: 6px;
+}
+
+.themed-color-wrapper button {
+  display: block;
+}
+
+.themed-color-wrapper .pickr-reset > button {
+  margin: 0 0 0 10px;
+  padding: 9px;
+  line-height: 1;
+}
+
+.themed-color-wrapper .pickr-reset > button > svg {
+  display: block;
+}
+
+/*----------------------------------------------------------------
+PICKR 1.8.2 MIT | https://github.com/Simonwep/pickr
+----------------------------------------------------------------*/
+.pickr {
+  position: relative;
+  overflow: visible;
+  transform: translateY(0);
+}
+.pickr * {
+  box-sizing: border-box;
+  outline: none;
+  border: none;
+  -webkit-appearance: none;
+}
+.pickr .pcr-button {
+  position: relative;
+  height: 2em;
+  width: 2em;
+  padding: 0.5em;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Helvetica Neue", Arial, sans-serif;
+  border-radius: 0.15em;
+  background: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" stroke="%2342445A" stroke-width="5px" stroke-linecap="round"><path d="M45,45L5,5"></path><path d="M45,5L5,45"></path></svg>')
+    no-repeat center;
+  background-size: 0;
+  transition: all 0.3s;
+}
+.pickr .pcr-button::before {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path fill="white" d="M1,0H2V1H1V0ZM0,1H1V2H0V1Z"/><path fill="gray" d="M0,0H1V1H0V0ZM1,1H2V2H1V1Z"/></svg>');
+  background-size: 0.5em;
+  border-radius: 0.15em;
+  z-index: -1;
+}
+.pickr .pcr-button::before {
+  z-index: initial;
+}
+.pickr .pcr-button::after {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  transition: background 0.3s;
+  background: var(--pcr-color);
+  border-radius: 0.15em;
+}
+.pickr .pcr-button.clear {
+  background-size: 70%;
+}
+.pickr .pcr-button.clear::before {
+  opacity: 0;
+}
+.pickr .pcr-button.clear:focus {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85), 0 0 0 3px var(--pcr-color);
+}
+.pickr .pcr-button.disabled {
+  cursor: not-allowed;
+}
+.pickr *,
+.pcr-app * {
+  box-sizing: border-box;
+  outline: none;
+  border: none;
+  -webkit-appearance: none;
+}
+.pickr input:focus,
+.pickr input.pcr-active,
+.pickr button:focus,
+.pickr button.pcr-active,
+.pcr-app input:focus,
+.pcr-app input.pcr-active,
+.pcr-app button:focus,
+.pcr-app button.pcr-active {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85), 0 0 0 3px var(--pcr-color);
+}
+.pickr .pcr-palette,
+.pickr .pcr-slider,
+.pcr-app .pcr-palette,
+.pcr-app .pcr-slider {
+  transition: box-shadow 0.3s;
+}
+.pickr .pcr-palette:focus,
+.pickr .pcr-slider:focus,
+.pcr-app .pcr-palette:focus,
+.pcr-app .pcr-slider:focus {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85), 0 0 0 3px rgba(0, 0, 0, 0.25);
+}
+.pcr-app {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  z-index: 10000;
+  border-radius: 0.1em;
+  background: #fff;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0s 0.3s;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Helvetica Neue", Arial, sans-serif;
+  box-shadow: 0 0.15em 1.5em 0 rgba(0, 0, 0, 0.1), 0 0 1em 0 rgba(0, 0, 0, 0.03);
+  left: 0;
+  top: 0;
+}
+.pcr-app.visible {
+  transition: opacity 0.3s;
+  visibility: visible;
+  opacity: 1;
+}
+.pcr-app .pcr-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 0.75em;
+}
+.pcr-app .pcr-swatches.pcr-last {
+  margin: 0;
+}
+@supports (display: grid) {
+  .pcr-app .pcr-swatches {
+    display: grid;
+    align-items: center;
+    grid-template-columns: repeat(auto-fit, 1.75em);
+  }
+}
+.pcr-app .pcr-swatches > button {
+  font-size: 1em;
+  position: relative;
+  width: calc(1.75em - 5px);
+  height: calc(1.75em - 5px);
+  border-radius: 0.15em;
+  cursor: pointer;
+  margin: 2.5px;
+  flex-shrink: 0;
+  justify-self: center;
+  transition: all 0.15s;
+  overflow: hidden;
+  background: transparent;
+  z-index: 1;
+}
+.pcr-app .pcr-swatches > button::before {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path fill="white" d="M1,0H2V1H1V0ZM0,1H1V2H0V1Z"/><path fill="gray" d="M0,0H1V1H0V0ZM1,1H2V2H1V1Z"/></svg>');
+  background-size: 6px;
+  border-radius: 0.15em;
+  z-index: -1;
+}
+.pcr-app .pcr-swatches > button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--pcr-color);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 0.15em;
+  box-sizing: border-box;
+}
+.pcr-app .pcr-swatches > button:hover {
+  filter: brightness(1.05);
+}
+.pcr-app .pcr-swatches > button:not(.pcr-active) {
+  box-shadow: none;
+}
+.pcr-app .pcr-interaction {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 -0.2em 0 -0.2em;
+}
+.pcr-app .pcr-interaction > * {
+  margin: 0 0.2em;
+}
+.pcr-app .pcr-interaction input {
+  letter-spacing: 0.07em;
+  font-size: 0.75em;
+  text-align: center;
+  cursor: pointer;
+  color: #75797e;
+  background: #f1f3f4;
+  border-radius: 0.15em;
+  transition: all 0.15s;
+  padding: 0.45em 0.5em;
+  margin-top: 0.75em;
+}
+.pcr-app .pcr-interaction input:hover {
+  filter: brightness(0.975);
+}
+.pcr-app .pcr-interaction input:focus {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85),
+    0 0 0 3px rgba(66, 133, 244, 0.75);
+}
+.pcr-app .pcr-interaction .pcr-result {
+  color: #75797e;
+  text-align: left;
+  flex: 1 1 8em;
+  min-width: 8em;
+  transition: all 0.2s;
+  border-radius: 0.15em;
+  background: #f1f3f4;
+  cursor: text;
+}
+.pcr-app .pcr-interaction .pcr-result::-moz-selection {
+  background: #4285f4;
+  color: #fff;
+}
+.pcr-app .pcr-interaction .pcr-result::selection {
+  background: #4285f4;
+  color: #fff;
+}
+.pcr-app .pcr-interaction .pcr-type.active {
+  color: #fff;
+  background: #4285f4;
+}
+.pcr-app .pcr-interaction .pcr-save,
+.pcr-app .pcr-interaction .pcr-cancel,
+.pcr-app .pcr-interaction .pcr-clear {
+  color: #fff;
+  width: auto;
+}
+.pcr-app .pcr-interaction .pcr-save,
+.pcr-app .pcr-interaction .pcr-cancel,
+.pcr-app .pcr-interaction .pcr-clear {
+  color: #fff;
+}
+.pcr-app .pcr-interaction .pcr-save:hover,
+.pcr-app .pcr-interaction .pcr-cancel:hover,
+.pcr-app .pcr-interaction .pcr-clear:hover {
+  filter: brightness(0.925);
+}
+.pcr-app .pcr-interaction .pcr-save {
+  background: #4285f4;
+}
+.pcr-app .pcr-interaction .pcr-clear,
+.pcr-app .pcr-interaction .pcr-cancel {
+  background: #f44250;
+}
+.pcr-app .pcr-interaction .pcr-clear:focus,
+.pcr-app .pcr-interaction .pcr-cancel:focus {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85),
+    0 0 0 3px rgba(244, 66, 80, 0.75);
+}
+.pcr-app .pcr-selection .pcr-picker {
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  border: 2px solid #fff;
+  border-radius: 100%;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.pcr-app .pcr-selection .pcr-color-palette,
+.pcr-app .pcr-selection .pcr-color-chooser,
+.pcr-app .pcr-selection .pcr-color-opacity {
+  position: relative;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  cursor: grab;
+  cursor: -webkit-grab;
+}
+.pcr-app .pcr-selection .pcr-color-palette:active,
+.pcr-app .pcr-selection .pcr-color-chooser:active,
+.pcr-app .pcr-selection .pcr-color-opacity:active {
+  cursor: grabbing;
+  cursor: -webkit-grabbing;
+}
+.pcr-app[data-theme="nano"] {
+  width: 14.25em;
+  max-width: 95vw;
+}
+.pcr-app[data-theme="nano"] .pcr-swatches {
+  margin-top: 0.6em;
+  padding: 0 0.6em;
+}
+.pcr-app[data-theme="nano"] .pcr-interaction {
+  padding: 0 0.6em 0.6em 0.6em;
+}
+.pcr-app[data-theme="nano"] .pcr-selection {
+  display: grid;
+  grid-gap: 0.6em;
+  grid-template-columns: 1fr 4fr;
+  grid-template-rows: 5fr auto auto;
+  align-items: center;
+  height: 10.5em;
+  width: 100%;
+  align-self: flex-start;
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-preview {
+  grid-area: 2 / 1 / 4 / 1;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-left: 0.6em;
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-preview .pcr-last-color {
+  display: none;
+}
+.pcr-app[data-theme="nano"]
+  .pcr-selection
+  .pcr-color-preview
+  .pcr-current-color {
+  position: relative;
+  background: var(--pcr-color);
+  width: 2em;
+  height: 2em;
+  border-radius: 50em;
+  overflow: hidden;
+}
+.pcr-app[data-theme="nano"]
+  .pcr-selection
+  .pcr-color-preview
+  .pcr-current-color::before {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path fill="white" d="M1,0H2V1H1V0ZM0,1H1V2H0V1Z"/><path fill="gray" d="M0,0H1V1H0V0ZM1,1H2V2H1V1Z"/></svg>');
+  background-size: 0.5em;
+  border-radius: 0.15em;
+  z-index: -1;
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-palette {
+  grid-area: 1 / 1 / 2 / 3;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-palette .pcr-palette {
+  border-radius: 0.15em;
+  width: 100%;
+  height: 100%;
+}
+.pcr-app[data-theme="nano"]
+  .pcr-selection
+  .pcr-color-palette
+  .pcr-palette::before {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path fill="white" d="M1,0H2V1H1V0ZM0,1H1V2H0V1Z"/><path fill="gray" d="M0,0H1V1H0V0ZM1,1H2V2H1V1Z"/></svg>');
+  background-size: 0.5em;
+  border-radius: 0.15em;
+  z-index: -1;
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-chooser {
+  grid-area: 2 / 2 / 2 / 2;
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-opacity {
+  grid-area: 3 / 2 / 3 / 2;
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-chooser,
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-opacity {
+  height: 0.5em;
+  margin: 0 0.6em;
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-chooser .pcr-picker,
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-opacity .pcr-picker {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-chooser .pcr-slider,
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-opacity .pcr-slider {
+  flex-grow: 1;
+  border-radius: 50em;
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-chooser .pcr-slider {
+  background: linear-gradient(to right, red, #ff0, lime, cyan, blue, #f0f, red);
+}
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-opacity .pcr-slider {
+  background: linear-gradient(to right, transparent, black),
+    url('data:image/svg+xml;utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path fill="white" d="M1,0H2V1H1V0ZM0,1H1V2H0V1Z"/><path fill="gray" d="M0,0H1V1H0V0ZM1,1H2V2H1V1Z"/></svg>');
+  background-size: 100%, 0.25em;
+}
+ 
+.pandoc-plugin-error {
+    color: red;
+}
+  .hltr-pink,
+mark.hltr-pink,
+.markdown-preview-view mark.hltr-pink{
+ background: #FFB8EBA6;
+}
+
+.hltr-red,
+mark.hltr-red,
+.markdown-preview-view mark.hltr-red{
+ background: #FF5582A6;
+}
+
+.hltr-orange,
+mark.hltr-orange,
+.markdown-preview-view mark.hltr-orange{
+ background: #FFB86CA6;
+}
+
+.hltr-yellow,
+mark.hltr-yellow,
+.markdown-preview-view mark.hltr-yellow{
+ background: #FFF3A3A6;
+}
+
+.hltr-green,
+mark.hltr-green,
+.markdown-preview-view mark.hltr-green{
+ background: #BBFABBA6;
+}
+
+.hltr-cyan,
+mark.hltr-cyan,
+.markdown-preview-view mark.hltr-cyan{
+ background: #ABF7F7A6;
+}
+
+.hltr-blue,
+mark.hltr-blue,
+.markdown-preview-view mark.hltr-blue{
+ background: #ADCCFFA6;
+}
+
+.hltr-purple,
+mark.hltr-purple,
+.markdown-preview-view mark.hltr-purple{
+ background: #D2B3FFA6;
+}
+
+.hltr-grey,
+mark.hltr-grey,
+.markdown-preview-view mark.hltr-grey{
+ background: #CACFD9A6;
+}
+
+undefined
+</style>
+    </head>
+    <body>
+<h1 data-heading="Remote API Documentation">Remote API Documentation</h1>
+<br></br>
+<h2 data-heading="Table of Contents">Table of Contents</h2>
+<hr>
+<p><a class="internal-link" data-href="#Authentication Cookie" href="#AuthCookie">Authentication Cookie</a><br>
+<a class="internal-link" data-href="#Authors" href="#Authors">Authors</a><br>
+<a class="internal-link" data-href="#Followers" href="#Followers">Followers</a><br>
+<a class="internal-link" data-href="#Follow Requests" href="#FollowRequests">Follow Requests</a><br>
+<a class="internal-link" data-href="#Posts" href="#Posts">Posts</a><br>
+<a class="internal-link" data-href="#Image Posts" href="#ImagePosts">Image Posts</a><br>
+<a class="internal-link" data-href="#Comments" href="#Comments">Comments</a><br>
+<a class="internal-link" data-href="#Likes" href="#Likes">Likes</a><br>
+<a class="internal-link" data-href="#Liked" href="#Liked">Liked</a><br>
+<a data-href="#Inbox" href="#Inbox" class="internal-link">Inbox</a></p>
+<br></br>
+<h2 data-heading="Notes">Notes</h2>
+<hr>
+<ul>
+<li><code>service</code> in our API calls will be represented by our public URI</li>
+<li>Most calls have:
+<ul>
+<li><code>2XX</code> for success</li>
+<li><code>401</code> if authentication/cookie is required</li>
+<li><code>404</code> if the resource you are trying to access does not exist</li>
+<li><code>500</code> if a server error occurred</li>
+</ul>
+</li>
+</ul>
+<br></br>
+<h2 id="AuthCookie" data-heading="Authentication Cookie">Authentication Cookie</h2>
+<hr>
+<h3 data-heading="Request Items">Request Items</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>ID of the Author</td>
+</tr>
+<tr>
+<td>username</td>
+<td>the display name of the author</td>
+</tr>
+<tr>
+<td>host</td>
+<td>the home host of the author</td>
+</tr>
+<tr>
+<td>url</td>
+<td>url to the author's profile</td>
+</tr>
+</tbody>
+</table>
+<p>Our webservice utilizes cookies to gather user information from remote servers. Typically, cookies should be re-assigned per request and only be active for a short period of time. To make your life easier, though, a cookie will only need to be established after a user successfully logs in to your server. This cookie is used to identify users for remote requests and will not need to be explicitly included in any of the API calls.</p>
+<p><strong>Request URL</strong>: <code>http://service/api/token/</code><br>
+<strong>Method</strong>: POST<br>
+<strong>Description</strong>: POST to this URL after every successful authentication in your server. The request body contains information about the user who logged in.<br>
+<strong>Example Request Body:</strong></p>
+<pre><code>{
+	"user_id" : "1c946b62-e7ca-4d05-8f1d-8e25b6f214c5",
+	"username" : "user1",
+	"host" : "http://server",
+	"url" : "http://server/authors/1c946b62-e7ca-4d05-8f1d-8e25b6f214c5"
+}
+</code></pre>
+<p><strong>Example Response Body</strong>:</p>
+<pre><code>{
+  "message": "Succesfully set cookie."
+}
+</code></pre>
+<br></br>
+<h2 id="Authors" data-heading="Authors">Authors</h2>
+<hr>
+<h3 data-heading="Response Items">Response Items</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>type of object, in our case "author"</td>
+</tr>
+<tr>
+<td>id</td>
+<td>ID of the Author</td>
+</tr>
+<tr>
+<td>host</td>
+<td>the home host of the author</td>
+</tr>
+<tr>
+<td>displayName</td>
+<td>the display name of the author</td>
+</tr>
+<tr>
+<td>url</td>
+<td>url to the author's profile</td>
+</tr>
+<tr>
+<td>github</td>
+<td>HATEOS URL for Github API</td>
+</tr>
+<tr>
+<td>profileImage</td>
+<td>Image from a public domain</td>
+</tr>
+</tbody>
+</table>
+<h3 data-heading="List">List</h3>
+<p><strong>Request URL</strong>: `http://service/authors/<br>
+<strong>Method:</strong> GET<br>
+<strong>Description:</strong> Returns a JSON-encoded list containing local author information<br>
+<strong>Example Response Body:</strong></p>
+<pre><code>{
+&nbsp; &nbsp; "type": "authors",
+&nbsp; &nbsp; "items": [
+&nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "author",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "id": "http://127.0.0.1:8000/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "host": "http://127.0.0.1:8000/",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "displayName": "biguser2",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "url": "http://127.0.0.1:8000/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "github": "https://github.com/uofa-cmput404/project-socialdistribution",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "profileImage": "https://wiki.teamfortress.com/w/images/4/4a/Pyroava.jpg"
+&nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "author",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "id": "http://127.0.0.1:8000/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "host": "http://127.0.0.1:8000/",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "displayName": "admin",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "url": "http://127.0.0.1:8000/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "github": "https://docs.djangoproject.com/en/4.2/ref/contrib/auth",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "profileImage": "https://wiki.teamfortress.com/w/images/4/44/Sniperava.jpg"
+&nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; ]
+}
+</code></pre>
+<h3 data-heading="View">View</h3>
+<p><strong>Request URL</strong>: <code>http://service/authors/{author_id}/</code><br>
+<strong>Method:</strong> GET<br>
+<strong>Description:</strong> Returns a single JSON-encoded object containing information for the provided author id.<br>
+<strong>Example Response Body:</strong></p>
+<pre><code>{
+&nbsp; &nbsp; "type": "author",
+	"id": "http://127.0.0.1:8000/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+	"host": "http://127.0.0.1:8000/",
+	"displayName": "biguser2",
+	"url": "http://127.0.0.1:8000/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+	"github": "https://github.com/uofa-cmput404/project-socialdistribution",
+	"profileImage": "https://wiki.teamfortress.com/w/images/4/4a/Pyroava.jpg"
+}
+</code></pre>
+<br></br>
+<h2 id="Followers" data-heading="Followers">Followers</h2>
+<hr>
+<h3 data-heading="List">List</h3>
+<p><strong>Request URL</strong>: <code>http://service/authors/{author_id}/</code><br>
+<strong>Method:</strong> GET<br>
+<strong>Description:</strong> Returns a list of authors who are following <code>author_id</code>.<br>
+<strong>Example Response Body:</strong></p>
+<pre><code>{
+	"type": "followers"
+	"items": [
+&nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "author",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "id": "http://127.0.0.1:8000/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "host": "http://127.0.0.1:8000/",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "displayName": "biguser2",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "url": "http://127.0.0.1:8000/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "github": "https://github.com/uofa-cmput404/project-socialdistribution",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "profileImage": "https://wiki.teamfortress.com/w/images/4/4a/Pyroava.jpg"
+&nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "author",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "id": "http://127.0.0.1:8000/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "host": "http://127.0.0.1:8000/",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "displayName": "admin",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "url": "http://127.0.0.1:8000/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "github": "https://docs.djangoproject.com/en/4.2/ref/contrib/auth",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "profileImage": "https://wiki.teamfortress.com/w/images/4/44/Sniperava.jpg"
+&nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; ]
+}
+</code></pre>
+<br></br>
+<h2 id="FollowRequests" data-heading="Follow Requests">Follow Requests</h2>
+<hr>
+<h3 data-heading="Request Items">Request Items</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>"Follow"</td>
+</tr>
+<tr>
+<td>summary</td>
+<td>summary of friend request</td>
+</tr>
+<tr>
+<td>actor</td>
+<td>friend request sender</td>
+</tr>
+<tr>
+<td>object</td>
+<td>friend request recipient</td>
+</tr>
+</tbody>
+</table>
+<h3 id="FollowRequestInbox" data-heading="Create">Create</h3>
+<p><strong>Request URL</strong>: <code>http://service/authors/{author_id}/inbox</code><br>
+<strong>Method:</strong> POST<br>
+<strong>Description:</strong> Sends a follow request object to <code>author_id</code>'s inbox. <code>object</code> in the request is the receiver.<br>
+<strong>Example Request Body:</strong></p>
+<pre><code>{
+    "type": "Follow",      
+    "summary":"Lara wants to follow Greg",
+    "actor":{
+        "type":"author",
+        "id":"http://socialdistribution/authors/
+		        9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+        "host":"http://socialdistribution/",
+        "displayName":"Lara Croft",
+        "url":"http://socialdistribution/authors/
+		        9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+        "github": "http://github.com/laracroft",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "object":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/authors/d5a40a82-d7cb-48f6-9436-14c2937a76f2",
+        "url":"http://127.0.0.1:8000/authors/d5a40a82-d7cb-48f6-9436-14c2937a76f2",
+        "host":"http://127.0.0.1:8000/",
+        "displayName":"Greg Johnson",
+        "github": "http://github.com/gjohnson",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    }
+}
+    
+</code></pre>
+<p><strong>Example Response Body</strong>: if the POST was successful, you should receive a <code>2XX</code> status and a response body that displays the newly created object (it should match the request body).</p>
+<br></br>
+<h2 id="Posts" data-heading="Posts">Posts</h2>
+<hr>
+<h3 data-heading="Response Items">Response Items</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>"post"</td>
+</tr>
+<tr>
+<td>title</td>
+<td>title of the post</td>
+</tr>
+<tr>
+<td>id</td>
+<td>ID of the post (URL)</td>
+</tr>
+<tr>
+<td>source</td>
+<td>most recent source</td>
+</tr>
+<tr>
+<td>origin</td>
+<td>original source</td>
+</tr>
+<tr>
+<td>description</td>
+<td>a brief description of the post</td>
+</tr>
+<tr>
+<td>contentType</td>
+<td>the content type of the post</td>
+</tr>
+<tr>
+<td>content</td>
+<td>the content of the post</td>
+</tr>
+<tr>
+<td>author</td>
+<td>information about the author</td>
+</tr>
+<tr>
+<td>author.type</td>
+<td>type of object, in our case "author"</td>
+</tr>
+<tr>
+<td>author.id</td>
+<td>ID of the Author</td>
+</tr>
+<tr>
+<td>author.host</td>
+<td>the home host of the author</td>
+</tr>
+<tr>
+<td>author.displayName</td>
+<td>the display name of the author</td>
+</tr>
+<tr>
+<td>author.url</td>
+<td>url to the author's profile</td>
+</tr>
+<tr>
+<td>author.github</td>
+<td>HATEOS URL for Github API</td>
+</tr>
+<tr>
+<td>author.profileImage</td>
+<td>Image from a public domain</td>
+</tr>
+<tr>
+<td>categories</td>
+<td>categories this post fits into (a list of strings)</td>
+</tr>
+<tr>
+<td>count</td>
+<td>total number of comments for this post</td>
+</tr>
+<tr>
+<td>comments</td>
+<td>URL for the comments</td>
+</tr>
+<tr>
+<td>commentsSrc</td>
+<td>we included this key, but we do not utilize it; it will always be <code>{}</code></td>
+</tr>
+<tr>
+<td>published</td>
+<td>ISO 8601 TIMESTAMP for when the post was published</td>
+</tr>
+<tr>
+<td>visibility</td>
+<td>visibility of the post ("PUBLIC", "FRIENDS", "PRIVATE")</td>
+</tr>
+<tr>
+<td>unlisted</td>
+<td>whether the post is unlisted (true/false)</td>
+</tr>
+</tbody>
+</table>
+<h3 data-heading="View">View</h3>
+<p><strong>Request URL</strong>: <code>http://service/authors/{author_id}/posts/{post_id}/</code><br>
+<strong>Method:</strong> GET<br>
+<strong>Description:</strong> Returns a single JSON-encoded object containing information for the provided post and author ID (if it exists and is permissible).<br>
+<strong>Example Response Body:</strong></p>
+<pre><code>"type":"post",
+&nbsp; &nbsp; "title":"First Post",
+	"id":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+			04a9d1b429c9/posts/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9",
+&nbsp; &nbsp; "source":"http://lastplaceigotthisfrom.com/posts/yyyyy",
+&nbsp; &nbsp; "origin":"http://whereitcamefrom.com/posts/zzzzz",
+&nbsp; &nbsp; "description":"This post discusses stuff -- brief",
+&nbsp; &nbsp; "contentType":"text/plain",
+&nbsp; &nbsp; "content":"My first post!",
+&nbsp; &nbsp; "author": {
+	&nbsp; &nbsp; "type": "author",
+		"id": "http://127.0.0.1:8000/authors/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+		"host": "http://127.0.0.1:8000/",
+		"displayName": "biguser2",
+		"url": "http://127.0.0.1:8000/authors/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+		"github": "https://github.com/uofa-cmput404/project-socialdistribution",
+		"profileImage": "https://wiki.teamfortress.com/w/images/4/4a/Pyroava.jpg"
+		},
+&nbsp; &nbsp; "categories":["web","tutorial"],
+	"count": 1023
+	"comments":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+			04a9d1b429c9/posts/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9/comments",
+&nbsp; &nbsp; "commentsSrc": {},
+&nbsp; &nbsp; "published": "2015-03-09T13:07:04+00:00",
+&nbsp; &nbsp; "visibility": "PUBLIC",
+&nbsp; &nbsp; "unlisted": "false"
+</code></pre>
+<h3 data-heading="List">List</h3>
+<p><strong>Request URL</strong>: <code>http://service/authors/{author_id}/posts/?page=1&amp;size=2</code><br>
+<strong>Method:</strong>GET<br>
+<strong>Description:</strong>Gets the recent posts from <code>author_id</code>. This call has <strong>pagination</strong> support.<br>
+<strong>Example Response Body:</strong></p>
+<pre><code>{
+	"type": "posts"
+	"items": [
+		{
+			"type":"post",
+		&nbsp; &nbsp; "title":"First Post",
+			"id":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+					04a9d1b429c9/posts/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9",
+		&nbsp; &nbsp; "source":"",
+		&nbsp; &nbsp; "origin":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+					04a9d1b429c9/posts/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9",
+		&nbsp; &nbsp; "description":"Here I am for the first time.",
+		&nbsp; &nbsp; "contentType":"text/plain",
+		&nbsp; &nbsp; "content":"My first post!",
+		&nbsp; &nbsp; "author": {
+			&nbsp; &nbsp; "type": "author",
+				"id": "http://127.0.0.1:8000/authors/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+				"host": "http://127.0.0.1:8000/",
+				"displayName": "biguser2",
+				"url": "http://127.0.0.1:8000/authors/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+				"github": "https://github.com/uofa-cmput404/project-socialdistribution",
+				"profileImage": "https://wiki.teamfortress.com/w/images/
+						4/4a/Pyroava.jpg"
+				},
+		&nbsp; &nbsp; "categories":["test"],
+			"count": 523
+			"comments":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+					04a9d1b429c9/posts/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9/comments",
+		&nbsp; &nbsp; "commentsSrc": {},
+		&nbsp; &nbsp; "published": "2023-03-09T13:07:04+00:00",
+		&nbsp; &nbsp; "visibility": "PUBLIC",
+		&nbsp; &nbsp; "unlisted": "false"
+	&nbsp; &nbsp; },
+	&nbsp; &nbsp; {
+			"type":"post",
+		&nbsp; &nbsp; "title":"Second Post",
+			"id":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+					04a9d1b429c9/posts/a52e39f4-aeb8-432c-9499-b36fc7da1a1a",
+		&nbsp; &nbsp; "source":"",
+		&nbsp; &nbsp; "origin":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+					04a9d1b429c9/posts/a52e39f4-aeb8-432c-9499-b36fc7da1a1a",
+		&nbsp; &nbsp; "description":"Here I am again.",
+		&nbsp; &nbsp; "contentType":"text/plain",
+		&nbsp; &nbsp; "content":"My second post!",
+		&nbsp; &nbsp; "author": {
+			&nbsp; &nbsp; "type": "author",
+				"id": "http://127.0.0.1:8000/authors/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+				"host": "http://127.0.0.1:8000/",
+				"displayName": "biguser2",
+				"url": "http://127.0.0.1:8000/authors/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+				"github": "https://github.com/uofa-cmput404/project-socialdistribution",
+				"profileImage": "https://wiki.teamfortress.com/w/images/
+						4/4a/Pyroava.jpg"
+				},
+		&nbsp; &nbsp; "categories":[],
+			"count": 2
+			"comments":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+					04a9d1b429c9/posts/a52e39f4-aeb8-432c-9499-b36fc7da1a1a/comments",
+		&nbsp; &nbsp; "commentsSrc": {},
+		&nbsp; &nbsp; "published": "2023-03-09T13:07:04+00:00",
+		&nbsp; &nbsp; "visibility": "PUBLIC",
+		&nbsp; &nbsp; "unlisted": "false"
+	&nbsp; &nbsp; },
+	]
+}
+</code></pre>
+<h3 id="PostInbox" data-heading="Sending">Sending</h3>
+<p><strong>Request URL:</strong><code>http://service/authors/{author_id}/inbox</code><br>
+<strong>Method:</strong>POST<br>
+<strong>Description:</strong>Sends a post object to <code>author_id</code>'s inbox.<br>
+<strong>Example Request Body:</strong></p>
+<pre><code>{
+	"type":"post",
+&nbsp; &nbsp; "title":"First Post",
+	"id":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+			04a9d1b429c9/posts/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9",
+&nbsp; &nbsp; "source":"http://lastplaceigotthisfrom.com/posts/yyyyy",
+&nbsp; &nbsp; "origin":"http://whereitcamefrom.com/posts/zzzzz",
+&nbsp; &nbsp; "description":"This post discusses stuff -- brief",
+&nbsp; &nbsp; "contentType":"text/plain",
+&nbsp; &nbsp; "content":"My first post!",
+&nbsp; &nbsp; "author": {
+	&nbsp; &nbsp; "type": "author",
+		"id": "http://127.0.0.1:8000/authors/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+		"host": "http://127.0.0.1:8000/",
+		"displayName": "biguser2",
+		"url": "http://127.0.0.1:8000/authors/9d38f159-64f4-4ee3-9c4e-5232daa3c7b7",
+		"github": "https://github.com/uofa-cmput404/project-socialdistribution",
+		"profileImage": "https://wiki.teamfortress.com/w/images/4/4a/Pyroava.jpg"
+		},
+&nbsp; &nbsp; "categories":["web","tutorial"],
+	"count": 1023
+	"comments":"http://127.0.0.1:8000/authors/4e1b44c9-2df6-4e2c-8a19-
+			04a9d1b429c9/posts/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9/comments",
+&nbsp; &nbsp; "commentsSrc": {},
+&nbsp; &nbsp; "published": "2015-03-09T13:07:04+00:00",
+&nbsp; &nbsp; "visibility": "PUBLIC",
+&nbsp; &nbsp; "unlisted": "false"
+&nbsp; &nbsp;}
+</code></pre>
+<p><strong>Example Response Body</strong>: if the POST was successful, you should receive a <code>2XX</code> status and a response body that displays the newly created object (it should match the request body).</p>
+<br></br>
+<h2 id="ImagePosts" data-heading="Image Posts">Image Posts</h2>
+<hr>
+<h3 data-heading="View">View</h3>
+<p><strong>Request URL</strong>: <code>http://service/authors/{author_id}/posts/{post_id}/image</code><br>
+<strong>Method:</strong>GET<br>
+<strong>Description:</strong>Gets the image associated with <code>post_id</code>, if one exists. This does not return a JSON object and merely returns the b64-encoded image data. Access the content type using the <code>content-type</code> header.<br>
+<strong>Example Response Body:</strong></p>
+<pre><code>iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAFjAAABYwBQNL4DAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlL . . .
+</code></pre>
+<br></br>
+<h2 id="Comments" data-heading="Comments">Comments</h2>
+<hr>
+<h3 data-heading="Request/Response Items">Request/Response Items</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>type of object, in our case "comments"</td>
+</tr>
+<tr>
+<td>page</td>
+<td>page number of the comments</td>
+</tr>
+<tr>
+<td>size</td>
+<td>number of comments per page</td>
+</tr>
+<tr>
+<td>post</td>
+<td>URL of the post associated with the comments</td>
+</tr>
+<tr>
+<td>id</td>
+<td>URL of the comments</td>
+</tr>
+<tr>
+<td>comments</td>
+<td>list of comments</td>
+</tr>
+<tr>
+<td>comments.type</td>
+<td>type of object, in our case "comment"</td>
+</tr>
+<tr>
+<td>comments.author</td>
+<td>information about the comment's author</td>
+</tr>
+<tr>
+<td>comments.author.type</td>
+<td>type of object, in our case "author"</td>
+</tr>
+<tr>
+<td>comments.author.id</td>
+<td>ID of the Comment Author</td>
+</tr>
+<tr>
+<td>comments.author.url</td>
+<td>URL to the author's information</td>
+</tr>
+<tr>
+<td>comments.author.host</td>
+<td>Home host of the author</td>
+</tr>
+<tr>
+<td>comments.author.displayName</td>
+<td>Display name of the author</td>
+</tr>
+<tr>
+<td>comments.author.github</td>
+<td>HATEOS URL for Github API</td>
+</tr>
+<tr>
+<td>comments.author.profileImage</td>
+<td>Image from a public domain</td>
+</tr>
+<tr>
+<td>comments.comment</td>
+<td>the content of the comment</td>
+</tr>
+<tr>
+<td>comments.contentType</td>
+<td>the content type of the comment</td>
+</tr>
+<tr>
+<td>comments.published</td>
+<td>ISO 8601 TIMESTAMP for when the comment was published</td>
+</tr>
+<tr>
+<td>comments.id</td>
+<td>ID of the comment</td>
+</tr>
+</tbody>
+</table>
+<h3 data-heading="List">List</h3>
+<p><strong>Request URL</strong>: <code>http://service/authors/{author_id}/posts/{post_id}/comments?page=1&amp;size=2</code><br>
+<strong>Method:</strong> GET<br>
+<strong>Description:</strong>> Gets the list of comments of the post whose id is <code>post_id</code>. This call has <strong>pagination</strong> support.<br>
+<strong>Example Response Body:</strong></p>
+<pre><code>{
+    "type":"comments",
+    "page":1,
+    "size":5,
+	"post":"http://127.0.0.1:5454/authors/a02e3525-bb5a-44eb-852d-
+			0f93f63d1a2c/posts/3d9f1a06-0d98-4466-9f64-8b79d97325db"
+	"id":"http://127.0.0.1:5454/authors/a02e3525-bb5a-44eb-852d-
+			0f93f63d1a2c/posts/3d9f1a06-0d98-4466-9f64-8b79d97325db/comments"
+    "comments":[
+        {
+            "type":"comment",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/authors/48002331-c8fa-4947-a012-
+		                a2a8bafeff12",
+                "url":"http://127.0.0.1:8000/authors/48002331-c8fa-4947-a012-
+		                a2a8bafeff12",
+                "host":"http://127.0.0.1:8000/",
+                "displayName":"Skittles",
+                "github": "http://github.com/skittlz",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "comment":"I like skittles",
+            "contentType":"text/plaintext",
+            "published":"2023-03-09T13:07:04+00:00",
+            "id":"http://127.0.0.1:5454/authors/a02e3525-bb5a-44eb-852d-
+					0f93f63d1a2c/posts/3d9f1a06-0d98-4466-9f64-8b79d97325db/comments/
+					e6e04955-63a7-445f-a97e-aaab143e73ea",
+        },
+        {
+            "type":"comment",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/authors/6d44a8df-dc0b-44a1-b3a0-
+		                1f6939a949ca",
+                "url":"http://127.0.0.1:8000/authors/6d44a8df-dc0b-44a1-b3a0-
+		                1f6939a949ca",
+                "host":"http://127.0.0.1:8000/",
+                "displayName":"Greg Johnson",
+                "github": "http://github.com/gjohnson",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "comment":"Nice dude",
+            "contentType":"text/plaintext",
+            "published":"2023-04-09T13:07:04+00:00",
+            "id":"http://127.0.0.1:5454/authors/a02e3525-bb5a-44eb-852d-
+					0f93f63d1a2c/posts/3d9f1a06-0d98-4466-9f64-8b79d97325db/comments/
+					c1eb1d0a-3300-433c-b5dc-740248c764c1",
+        }
+    ]
+}
+    
+</code></pre>
+<h3 id="CommentInbox" data-heading="Create">Create</h3>
+<p><strong>Request URL</strong>: <code>http://service/authors/{author_id}/inbox</code><br>
+<strong>Method:</strong> POST <br>
+<strong>Description:</strong> Sends a comment object to <code>author_id</code>'s inbox. Creates the object.<br>
+<strong>Example Request Body:</strong></p>
+<pre><code>{
+      "type": "comment",
+      "author": {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/authors/7bdcfebf-6870-461b-b9ff-4f75f938f4e1",
+        "url": "http://127.0.0.1:8000/authors/7bdcfebf-6870-461b-b9ff-4f75f938f4e1",
+        "host": "http://127.0.0.1:8000/",
+        "github": "https://github.com/sudo",
+        "displayName": "sudo",
+        "profileImage": "https://wiki.teamfortress.com/w/images/thumb/0/0f/
+		        Meet_the_Heavy_SFM.png/550px-Meet_the_Heavy_SFM.png"
+      },
+      "comment": "hmmmmm",
+      "contentType": "text/plain",
+      "published": "2023-11-21 04:34:24.883929+00:00",
+      "id": "http://127.0.0.1:8000/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/
+		      posts/adsigjdoasig/comments/35f9bb9c-9b3f-4029-8592-05f6db3b4018"
+}
+</code></pre>
+<p><strong>Example Response Body</strong>: if the POST was successful, you should receive a <code>2XX</code> status and a response body that displays the newly created object (it should match the request body).</p>
+<br></br>
+<h2 id="Likes" data-heading="Likes">Likes</h2>
+<hr>
+<h3 data-heading="Request/Response Items">Request/Response Items</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>"Like"</td>
+</tr>
+<tr>
+<td>summary</td>
+<td>summary of like</td>
+</tr>
+<tr>
+<td>context</td>
+<td>context of like (URL)</td>
+</tr>
+<tr>
+<td>author</td>
+<td>author sending like</td>
+</tr>
+<tr>
+<td>object</td>
+<td>the liked object (URL to a post or comment)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="LikeInbox" data-heading="Create">Create</h3>
+<p><strong>Request URL</strong>: <code>http://service/authors/{author_id}/inbox</code><br>
+<strong>Method:</strong> POST<br>
+<strong>Description:</strong> Sends a like object to <code>author_id</code>'s inbox. Creates the object.<br>
+<strong>Example Request Body:</strong></p>
+<pre><code> {
+     "context": "https://www.w3.org/ns/activitystreams",
+     "summary": "Lara Croft Likes your post",         
+     "type": "Like",
+     "author":{
+         "type":"author",
+         "id":"http://remote/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+         "host":"http://remote/",
+         "displayName":"Lara Croft",
+         "url":"http://remote/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+         "github":"http://github.com/laracroft",
+         "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+     },
+     "object":"http://127.0.0.1:8000/authors/6d44a8df-dc0b-44a1-b3a0-
+		     1f6939a949ca/posts/c3b38515-d6da-4c23-9df1-15ac4be5d929"
+}
+</code></pre>
+<p><strong>Example Response Body</strong>: if the POST was successful, you should receive a <code>2XX</code> status and a response body that displays the newly created object (it should match the request body).</p>
+<h3 data-heading="Post Likes">Post Likes</h3>
+<p><mark style="background: #FF5582A6;">Still in progress</mark><br>
+<strong>Request URL</strong>: <code>http://service/authors/{author_id}/posts/{post_id}/likes</code><br>
+<strong>Method:</strong> GET<br>
+<strong>Description:</strong> Retrieves a list of likes from other authors on <code>author_id</code>'s post <code>post_id</code></p>
+<h3 data-heading="Comment Likes">Comment Likes</h3>
+<p><mark style="background: #FF5582A6;">Still in progress</mark><br>
+<strong>Request URL</strong>: <code>http://service/authors/{author_id}/posts/{post_id}/comments/{comment_id}/likes</code><br>
+<strong>Method:</strong> GET<br>
+<strong>Description:</strong> Retrieves a list of likes from other authors on <code>author_id</code>’s post <code>post_id</code> comment <code>comment_id</code></p>
+<br></br>
+<h2 id="Liked" data-heading="Liked">Liked</h2>
+<hr>
+<h3 data-heading="List">List</h3>
+<p><mark style="background: #FF5582A6;">Still in progress</mark><br>
+<strong>Request URL</strong>: <code>http://service/authors/{author_id}/liked</code><br>
+<strong>Method:</strong> GET <br>
+<strong>Description:</strong> Retrieves the list of public things that <code>author_id</code> has liked.</p>
+<br></br>
+<h2 id="Inbox" data-heading="Inbox">Inbox</h2>
+<hr>
+<p>Likes, comments, and follow requests sent to an author's inbox will create those objects and notify the user. Shared posts, however, will only notify the user; foreign posts are not stored, but should be retrievable for a user's timeline through the posts API.<br>
+</p><div src="Pasted image 20231122120126.png" class="internal-embed"></div><p></p>
+<p>Reference the following documentation for sending each item:<br>
+<a class="internal-link" data-href="#Likes#Create" href="#LikeInbox">Likes</a><br>
+<a class="internal-link" data-href="#Create" href="#CommentInbox">Comments</a><br>
+<a class="internal-link" data-href="#FollowRequestInbox" href="#FollowRequestInbox">Follow Requests</a><br>
+<a class="internal-link" data-href="#PostInbox" href="#PostInbox">Posts</a></p>
+    </body>
+</html>

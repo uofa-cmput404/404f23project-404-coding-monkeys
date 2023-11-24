@@ -13,13 +13,23 @@ from accounts.models import AuthorUser, FollowRequests, Followers
 from django.core import serializers
 from django.shortcuts import get_object_or_404, redirect, render 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .seralizers import AuthorUserSerializer, FollowerSerializer, FollowerListSerializer, AuthorUserReferenceSerializer
-from static.vars import HOSTS
+
+from connections.views import get_auth_for_host
+
+from .util import AuthorDetail
+from .seralizers import AuthorDetailSerializer, AuthorUserSerializer, FollowRequestsSerializer, FollowerListSerializer, AuthorUserReferenceSerializer, ResponseAuthorsSerializer, ResponseFollowersSerializer
+from static.vars import ENDPOINT, HOSTS
 import requests
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from requests.auth import HTTPBasicAuth
 
 # DFB pg. 60
 def home_page_view(request): # basic generic view that just displays template
@@ -48,8 +58,9 @@ def list_profiles(request):
         full_url = host + url
         headers = {"Accept": "application/json"}
 
+        auth = get_auth_for_host(host)
         # send request to get list of profiles
-        response = requests.get(full_url, headers=headers)
+        response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
 
         # if 2XX response code
         if response.ok:
@@ -117,6 +128,20 @@ def get_id_from_url(url):
         return url[-1]
     return ""
 
+def get_part_from_url(url, part):
+    # part is one of authors, posts, or comments and will return the id for that part
+    if url:
+        url = url[:-1] if url[-1] == "/" else url
+        url = url.split("/")
+
+        index = 0
+        while index < len(url) and url[index] != part:
+            index += 1
+        
+        # return id right after we find the part
+        return url[index+1] if index < len(url) - 1 else ""
+    return ""
+
 def get_author_detail(request):
 
     author_detail_url = request.POST.get("get_url")
@@ -129,9 +154,11 @@ def get_author_detail(request):
     return HttpResponse(content=json.dumps({"host_index":index, "uuid": plain_id}))
 
 def render_author_detail(request, host_id, uuid):
+    global HOSTS
     # grab the author information
     path = HOSTS[host_id] + "/authors/" + uuid + "/"
-    response = requests.get(path)
+    auth = get_auth_for_host(HOSTS[host_id])
+    response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
 
     if response.ok:
         author = response.json()
@@ -145,7 +172,7 @@ def render_author_detail(request, host_id, uuid):
     all_followers = []
 
     path = HOSTS[host_id] + "/authors/" + uuid + "/followers/"
-    response = requests.get(path)
+    response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
     if response.ok:
         followers = response.json()
         for follower in followers["items"]:
@@ -161,7 +188,7 @@ def render_author_detail(request, host_id, uuid):
 
             # grab the latest profile image
             path = HOSTS[host_id] + "/authors/" + valid_follower["uuid"] + "/"
-            response = requests.get(path)
+            response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
             # if response was good, get pfp from response data
             if response.ok:
                 data = response.json()
@@ -172,7 +199,7 @@ def render_author_detail(request, host_id, uuid):
     # check if we are following the user in view
     following = False
     path = HOSTS[host_id] + "/authors/" + uuid + "/followers/" + request.user.uuid + "/"
-    response = requests.get(path)
+    response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
     if response.ok:
         following = True                            
 
@@ -218,22 +245,22 @@ def follow_author(request, uuid): # CHATGPT - 2023-10-20 Prompt #1
         'type': user.type,
         'id': user.url,
         'uuid': user.uuid,
-        'username': user.username,
+        'displayName': user.username,
         'host': user.host,
         'url': user.url,
         'github': user.github,
-        'profile_image': user.profile_image
+        'profileImage': user.profile_image
     }
 
     author_data = {# author put in dictionary to follow fields to be added to json
         'type': author.type,
-        'id': user.url,
+        'id': author.url,
         'uuid': author.uuid,
-        'username': author.username,
+        'displayName': author.username,
         'host': author.host,
         'url': author.url,
         'github': author.github,
-        'profile_image': author.profile_image,
+        'profileImage': author.profile_image,
     }
 
     # create FollowRequest instance in db
@@ -312,13 +339,44 @@ def get_follower_info(request):
     
     return follower_dict
 
+
+
+# API CALLS
+# ================================================================================================================================
+
+
+
+# SINGLE AUTHOR
+# =====================
+@swagger_auto_schema(
+    method='get',
+    tags=['authors', 'remote'],
+    operation_description="Retrieves the profile of a single author.",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
+        ],
+    responses={
+        200: AuthorUserSerializer,
+        404: openapi.Response("The provided author does not exist."),
+    }
+)
+@swagger_auto_schema(
+    method='post',
+    tags=['authors'],
+    request_body=AuthorDetailSerializer
+    )
 @api_view(['GET', 'POST'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_single_author(request, uuid):
     if request.method == "GET":
         author = get_object_or_404(AuthorUser, uuid=uuid)
         serializer = AuthorUserSerializer(author, many=False)
         return Response(serializer.data)
     elif request.method == "POST":
+        if not request.user.is_authenticated or request.user.uuid != uuid:
+            return Response(status=401, data="Unauthorized.")
+        
         author = get_object_or_404(AuthorUser, uuid=uuid)
         serializer = AuthorUserSerializer(author, data=request.data, partial=True)
 
@@ -328,9 +386,29 @@ def api_single_author(request, uuid):
 
         return Response(status=400, data=serializer.errors)
 
+
+
+# AUTHOR LIST 
+# =====================
+@swagger_auto_schema(
+    method='get',
+    tags=['authors', 'remote'],
+    operation_description="Retrieves all profiles on the server (paginated). Example query: GET ://service/authors?page=10&size=5",
+    manual_parameters=[
+            openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Page number"),
+            openapi.Parameter('size', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Number of profiles per page"),
+        ],
+    responses={
+        200: ResponseAuthorsSerializer,
+    }
+)
 @api_view(['GET'])
 def api_all_authors(request):
     # check query params for pagination
+
+    if not request.user.is_authenticated:
+        return Response(status=401, data="You must be logged in to view all authors")
+
     page = request.GET.get("page")
     size = request.GET.get("size")
     authors = AuthorUser.objects.all()
@@ -345,13 +423,40 @@ def api_all_authors(request):
     response = {"type": "authors", "items": serializer.data}
     return Response(response)
 
+
+
+# FOLLOW LIST
+# =====================
+@swagger_auto_schema(
+    method='get',
+    tags=['followers', 'remote'],
+    operation_description="Get the list of followers for the provided author ID.",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
+        ],
+    responses={
+            200: ResponseFollowersSerializer,
+            404: openapi.Response("The provided author does not exist."),
+        }
+)
 @api_view(['GET'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_follow_list(request, uuid):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     try: 
         followers = Followers.objects.get(author=author)
-        serializer = FollowerSerializer(followers.followers, many=True)
-        response = {"type": "followers", "items": serializer.data}
+        formatted = []
+        for follower in followers:
+            ad = AuthorDetail()
+            ad.setMapping(follower)
+            formatted.append(ad.formatAuthorInfo())
+
+        serializer = AuthorDetailSerializer(data=formatted, many=True)
+        if not serializer.is_valid():
+            return Response(status=500, data="Server Error")
+        
+        return {"type": "followers", "items": serializer.data}
     # case if author has no followers yet
     except Followers.DoesNotExist:
         response = {"type": "followers", "items": []}
@@ -360,7 +465,30 @@ def api_follow_list(request, uuid):
     
     return Response(response)
 
+
+
+# FOREIGN FOLLOWER
+# =====================
+@swagger_auto_schema(
+    method='get',
+    tags=['followers', 'remote'],
+    operation_description="Checks if the foreign author is a follower of the author.",
+    manual_parameters=[
+            openapi.Parameter('uuid', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author in check."),
+            openapi.Parameter('foreign_author_id', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the foreign author."),
+        ],
+    responses={
+            200: openapi.Response("The foreign author is a follower of the author."),
+            404: openapi.Response("The foreign author is not following the author."),
+        }
+)
+@swagger_auto_schema(
+    methods=['put', 'delete'],
+    tags=['followers']
+)
 @api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_foreign_follower(request, uuid, foreign_author_id):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     noFollowers = False
@@ -427,7 +555,13 @@ def api_foreign_follower(request, uuid, foreign_author_id):
         followers.save()
         return Response(status=200, data=follower)
 
+
+
+# FOLLOW REQUESTS
+# =====================
 @api_view(['GET', 'POST'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def api_follow_requests(request):
     if request.method == "GET":
         follow_requests = FollowRequests.objects.all()
@@ -440,3 +574,4 @@ def api_follow_requests(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
