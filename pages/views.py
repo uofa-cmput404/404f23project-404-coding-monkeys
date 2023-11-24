@@ -158,7 +158,6 @@ def render_author_detail(request, host_id, uuid):
     # grab the author information
     path = HOSTS[host_id] + "/authors/" + uuid + "/"
     auth = get_auth_for_host(HOSTS[host_id])
-    print("auth object", auth)
     response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
 
     if response.ok:
