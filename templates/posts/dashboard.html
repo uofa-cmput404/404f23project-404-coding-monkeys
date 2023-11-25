@@ -22,16 +22,16 @@
             var post = JSON.parse(post_json); //parse the json into an object
 
             $.ajax({
-                //Send the post data to the backend using a PUT command, and specify content is json
+                //Send the post data to the backend using a POST command, and specify content is json
                 url: '{% url "like_post" %}',
-                method: 'PUT',
+                method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ post: post }),
                 headers: { 'X-CSRFToken': csrfToken }, //include authentication token
 
                 //Handle the response data from the server, and update the corresponding like count on the webpage
                 success: function (data) {
-                    // Update the like count
+                    // Update the like count using the returned value (from the backend)
                     $('#result-' + post.uuid).text(data.new_post_count);
                 }
             });
@@ -217,7 +217,7 @@
                     <p class="likes"id="result-{{ post.uuid }}">{{ post.likeCount}} </p>
                     <!-- Post like button -->
                     <button style="padding-top: 10px;" type="button"class="like-button"><i class="material-symbols-outlined">favorite</i></button>
-                    <div class="post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data. We will read this in our ajax handler for the like button -->
+                    <div class="post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the like button -->
                     <!-- comment button-->
                     <button style="padding-top: 10px;" type="button"class="comment-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">tooltip</i></button>
                     {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->
