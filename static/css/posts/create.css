@@ -81,8 +81,8 @@ p {
 
     padding: 20px;
 
-    width: 100vh;
-    height: 60vh;
+    width: 140vh;
+    height: 70vh;
 
     background-color: #4a4444;
     border-color: white;
@@ -143,7 +143,7 @@ input[type=url], input[type=email] {
 }
 
 input[type=file] {
-    background-color: transparent;
+    background: transparent;
 }
 
 textarea {
@@ -163,7 +163,21 @@ textarea {
     
 }
 
+.contentTypeButton {
+    background-color: #363232;
+    border-radius: 40px;
+    border-style: none;
+    font-size: 20px;
+    padding: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    margin: 20px;
+    margin-top: 15px;
+}
 
+.contentTypeButton:hover {
+    background-color: #6e6767;
+}
 
 .list_profiles_gradience{
     max-width: 70%; 

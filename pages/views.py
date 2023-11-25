@@ -460,23 +460,20 @@ def api_all_authors(request):
 @permission_classes([IsAuthenticated])
 def api_follow_list(request, uuid):
     author = get_object_or_404(AuthorUser, uuid=uuid)
+    author_cache = AuthorCache()
     try: 
         followers = Followers.objects.get(author=author)
         formatted = []
-        for follower in followers:
-            ad = AuthorDetail()
-            ad.setMapping(follower)
-            formatted.append(ad.formatAuthorInfo())
+        for row in followers.followers:
+            follower_uuid = row["uuid"]
+            formatted.append(author_cache.get(follower_uuid))
 
-        serializer = AuthorDetailSerializer(data=formatted, many=True)
-        if not serializer.is_valid():
-            return Response(status=500, data="Server Error")
-        
-        return {"type": "followers", "items": serializer.data}
+        return Response({"type": "followers", "items": formatted})
     # case if author has no followers yet
     except Followers.DoesNotExist:
         response = {"type": "followers", "items": []}
-    except:
+    except Exception as e:
+        print(e)
         return Response(status=500, data="Something went wrong")
     
     return Response(response)
@@ -537,34 +534,35 @@ def api_foreign_follower(request, uuid, foreign_author_id):
     elif request.method == "PUT":
         # this is expecting the request body to be the json of the follower, as per the spec
 
-        if not request.user.is_authenticated:
-            return Response(status=401, data="You must be logged in to follow someone")
+        if request.user.uuid != uuid:
+            return Response(status=401, data="Unauthorized")
         
         if found:
-            return Response(status=400, data="You are already following this user")
+            return Response(status=400, data="This user is already following you")
         
-        new_follower = get_follower_info(request)
-        serializer = FollowerSerializer(data=new_follower, partial=True)
+        author_cache = AuthorCache()
+        follower = author_cache.get(foreign_author_id)
 
-        if not serializer.is_valid():
-            return Response(status=400, data=serializer.errors)
-        
-        new_follower = serializer.validated_data
+        ad = AuthorDetail()
+        ad.setMappingFromAPI(follower)
+        follower_db_data = ad.formMapping()
+
         if noFollowers:
-            followers = Followers.objects.create(author=author, followers=[new_follower])
+            followers = Followers.objects.create(author=author, followers=[follower_db_data])
         else:
-            followers.followers.append(new_follower)
+            followers.followers.append(follower_db_data)
 
         followers.save()
         # respond with 200 and the follower json
-        return Response(status=200, data=new_follower)
+        return Response(status=200, data=follower)
         
     elif request.method == "DELETE":
-        if not request.user.is_authenticated:
-            return Response(status=401, data="You must be logged in to unfollow someone")
+        
+        if request.user.uuid != uuid and request.user.uuid != foreign_author_id:
+            return Response(status=401, data="Unauthorized")
         
         if not found:
-            return Response(status=400, data="You are not following this user")
+            return Response(status=404, data="You are not following this user")
         
         follower = followers.followers[index]
         followers.followers.pop(index)

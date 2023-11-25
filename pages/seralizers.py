@@ -30,9 +30,9 @@ class AuthorDetailSerializer(serializers.Serializer):
     id = serializers.CharField()
     url = serializers.CharField()
     host = serializers.CharField()
-    github = serializers.CharField()
+    github = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     displayName = serializers.CharField(max_length=50)
-    profileImage = serializers.CharField()
+    profileImage = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
 class ResponseAuthorsSerializer(serializers.Serializer):
     type = serializers.CharField(default="authors", max_length=7)

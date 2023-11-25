@@ -5,6 +5,7 @@ urlpatterns = [
     path('authors/<str:author_id>/posts/detail/', views.view_posts, name='detail'),
     path('authors/<str:author_id>/posts/<str:post_uuid>/edit', views.edit_post, name='edit_post'),
     path('authors/<str:author_id>/posts/<str:post_uuid>/delete', views.delete_post, name='delete_post'),
+    path('test/', views.test, name='test'),
     path('new/', views.make_new_post, name='new_post'),
     path('delete_post/', views.edit_post, name='delete_post'),
     path('stream/', views.view_posts, name='stream'),

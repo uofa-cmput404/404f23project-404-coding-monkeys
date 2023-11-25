@@ -1,5 +1,6 @@
 import datetime
 import json
+import bleach
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
 from django.forms.models import model_to_dict
@@ -87,16 +88,41 @@ def update_or_create_post(request, post_uuid):
     except Posts.DoesNotExist:
         unique_id = uuid.uuid4()
         author = get_author_info(request.user.id) # convert author object to dictionary
-        post = Posts(uuid=unique_id, author_uuid=author["id"], author_local=1, author_host=ENDPOINT, author_url=author["url"], contentType="text/plain", count=0, comments="", unlisted=False)
+        post_url = f"{ENDPOINT}authors/{author['id']}/posts/{unique_id}"
+        post = Posts(uuid=unique_id, author_uuid=author["id"], source=post_url, origin=post_url, author_local=1, author_host=ENDPOINT, author_url=author["url"], count=0, comments="", unlisted=False)
 
     unique_id_pic = str(unique_id) + "_pic"
 
     post.title = request.POST.get('title')
     post.description = request.POST.get('description')
-    post.content = request.POST.get('content')
-    post.categories = request.POST.get('categories') if request.POST.get('categories') != "" else []
-    post.comments = f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}/comments"
+    post.categories = request.POST.get('categories') if request.POST.get('categories') not in ("", "[]") else []
+    post.comments = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/comments"
     post.visibility = request.POST.get('visibility')
+
+    # strip html tags
+    user_input = request.POST.get('content')
+    bleached = bleach.clean(user_input)
+    post.content = bleached
+
+    cType = request.POST.get('contentType')
+    if cType == "Text":
+        post.contentType = "text/plain"
+    elif cType == "Markdown":
+        post.contentType = "text/markdown"
+    elif cType == "Image":
+        image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
+        post.contentType = contentType_pic
+        post.content = image_base64
+
+    # add images and links to content
+    # if request.FILES.get('picture') is not None:
+    #     source = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/image"
+    #     if post.contentType == "text/plain":
+    #         image_tag = f"<img src=\"{source}\" alt=\"{post.title}\" />"
+    #         post.content += "\n" + image_tag
+    #     elif post.contentType == "text/markdown":
+    #         image_tag = f"![{post.title}]({source})"
+    #         post.content += "\n" + image_tag
 
     post.save()
 
@@ -132,7 +158,7 @@ def update_or_create_post(request, post_uuid):
         except Exception as e:
             print(e)
 
-    # deal with updating picture
+    # deal with embedded pictures
     try:
         post = Posts.objects.get(uuid=unique_id_pic)
     except Posts.DoesNotExist:
@@ -140,7 +166,7 @@ def update_or_create_post(request, post_uuid):
         post.unlisted = True
 
     # update existing pic post
-    if request.FILES.get('picture') is not None:
+    if cType != "Image" and request.FILES.get('picture') is not None:
         image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
         post.content = image_base64
         post.contentType = contentType_pic
@@ -470,6 +496,32 @@ def format_local_post(post):
     return post_data
 
 
+def test(request):
+    return render(request, 'posts/test.html')
+
+
+@api_view(['GET'])
+def serve_image(request, uuid, post_id):
+    unique_id_pic = str(post_id) + "_pic"
+    author = get_object_or_404(AuthorUser, uuid=uuid)
+    pic_post = get_object_or_404(Posts, uuid=unique_id_pic, author_uuid=uuid)
+
+    if pic_post.visibility != "PUBLIC":
+        return HttpResponse(status=404)
+
+    content_type = pic_post.contentType.split(";")[0]
+
+    try:
+        # Set the appropriate content type for the image
+        pic_bytes = base64.b64decode(pic_post.content)
+        response = HttpResponse(content_type=content_type)
+        response.write(pic_bytes)
+        return response
+        # return render(request, "posts/image.html", {"image_base64": pic_post.content})
+    except Exception as e:
+        return HttpResponse(status=500)
+
+
 # API CALLS
 # ===============================================================================================================
 
@@ -523,14 +575,9 @@ def api_posts(request, uuid, post_id):
 
         return Response(serializer.validated_data)
 
-    # print(request.user.uuid)
-    # print(uuid)
-    # if request.user.uuid != uuid:
-    #     return Response(status=403, data="You are not authorized to edit this post")
-    
     elif request.method == 'POST':
-        if not request.user.is_authenticated:
-            return Response(status=401, data="You must be logged in to edit a post")
+        if not request.user.uuid != uuid:
+            return Response(status=401, data="Unauthorized")
         
         serializer = PostsSerializer(post, data=request.data, partial=True)
 

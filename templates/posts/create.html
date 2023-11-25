@@ -21,6 +21,7 @@
         const sharedWith = document.getElementById("{{ form.sharedWith.id_for_label }}");
 
         sharedWith.style.display = "none";
+        document.getElementById("{{ form.contentType.id_for_label }}").value = "Text";
 
         // Check the initial value
         if (visibilityField.value === "PRIVATE") {
@@ -42,14 +43,35 @@
         document.getElementById("author_dropdown").addEventListener("change", function() {
             document.getElementById("{{ form.sharedWith.id_for_label }}").value = this.value;
         });
+
+        document.getElementById("contentTypeButton").addEventListener("click", function() {
+            const options = ["Text", "Markdown", "Image"]
+            const index = options.indexOf(document.getElementById("{{ form.contentType.id_for_label }}").value);
+
+            if (index == 2) {
+                document.getElementById("{{ form.contentType.id_for_label }}").value = options[0];
+            } else {
+                document.getElementById("{{ form.contentType.id_for_label }}").value = options[index + 1];
+            }
+            
+            if (document.getElementById("{{ form.contentType.id_for_label }}").value == "Image") {
+                document.getElementById("{{ form.content.id_for_label }}").style.visibility = "hidden";
+            } else {
+                document.getElementById("{{ form.content.id_for_label }}").style.visibility = "visible"
+            }
+
+            this.textContent = document.getElementById("{{ form.contentType.id_for_label }}").value;
+        });
     });
 </script>
 
 <form id="popup" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    <div class="container_flex">
+    <div id="root" class="container_flex">
         <div class="row-flex" style="justify-content: space-evenly;">
-            <h1 style="margin-top:15px;">Create Post</h1>
+            <div class="row-flex">
+                <h1 style="margin-top:15px;">Create Post</h1><button class="contentTypeButton" type="button" id="contentTypeButton">Text</button>
+            </div>
             <div style="flex: 1; margin-left: 10px; margin-right:10px; max-width: 2px; background-color: white;"></div>
             <div class="col-flex" style="align-items: center; justify-content: center;">
                 <p class="form_input" style="margin-top:10px;">Who should be able to see your post?</p>
@@ -66,9 +88,9 @@
                 </select>
             </div>
 
-            <script>
-                
-            </script>
+            <div style="display:none;">
+                {{ form.contentType }}
+            </div>
             
             <!-- <div class="grow-flex"></div>
             <button type="button"><i class="material-symbols-outlined">close</i></button> -->
@@ -87,7 +109,9 @@
         </div>
         <div class=row-flex style="margin-top:15px; height: 100%;">{{ form.content }}</div>
         <div class="row-flex" style="margin-top:15px;">
-            {{ form.picture }}
+            <div class="custom-file-upload">
+                {{ form.picture }}
+            </div>
             <div class="grow-flex"></div>
             <button class="post_button" type="submit">Post</button>
         </div>

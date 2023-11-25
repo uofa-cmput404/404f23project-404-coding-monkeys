@@ -28,7 +28,7 @@ urlpatterns = [
     path("authors/<str:uuid>/inbox/", inbox_views.api_inbox, name="api_inbox"),
 
     #Post Image API calls
-    path('authors/<str:author_id>/posts/<str:post_id>/image/', post_views.get_image_post, name='get_image_post'),
+    path('authors/<str:uuid>/posts/<str:post_id>/image/', post_views.serve_image, name='get_image_post'),
 
     # Comment API Calls
     path('authors/<str:uuid>/posts/<str:post_id>/comments/', post_views.api_comments, name='api_comments'),
@@ -46,6 +46,8 @@ urlpatterns = [
     # restful and connection-cognizant author profile
     path("authors/<int:host_id>/<str:uuid>/", views.render_author_detail, name="author_detail"), # display given author's profile
     path("authors/profile/determine-args/", views.get_author_detail, name="determine_author_detail"), # edit user's profile; sensitive
+
+    # path("authors/<str:uuid>/posts/<str:post_id>/post-image", post_views.serve_image, name="serve_image"),
 
     path("authors/profiles/listall", views.list_profiles, name="authors_list"), # display list of users on server
     
