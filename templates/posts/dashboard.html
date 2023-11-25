@@ -18,11 +18,13 @@
         var csrfToken = $('meta[name=csrf-token]').attr('content');
 
         $(".like-button").click(function () {
-            var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
+            var post = $(this).data("post"); // Get the post ID from the button's data attribute
+            var post_json = JSON.stringify(post)
+            console.log(post_json);
             $.ajax({
                 url: '{% url "like_post" %}',
                 method: 'GET',
-                data: { post_uuid: post_uuid }, // Pass the post UUID as a parameter
+                data: { post_json: post_json }, // Pass the post UUID as a parameter
                 success: function (data) {
                     // Update the like count
                     $('#result-' + post_uuid).text(data.new_post_count);
@@ -209,7 +211,7 @@
                     <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span>
                     <p class="likes"id="result-{{ post.uuid }}">{{ post.likeCount}} </p>
                     <!-- https://www.w3schools.com/howto/howto_css_icon_buttons.asp -->
-                    <button style="padding-top: 10px;" type="button"class="like-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">favorite</i></button>
+                    <button style="padding-top: 10px;" type="button"class="like-button" data-post="{{ post }}"><i class="material-symbols-outlined">favorite</i></button>
                     <!-- comment button-->
                     <button style="padding-top: 10px;" type="button"class="comment-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">tooltip</i></button>
                     {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->

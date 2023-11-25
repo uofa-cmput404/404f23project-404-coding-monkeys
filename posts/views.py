@@ -1,4 +1,5 @@
 import datetime
+import re
 import json
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
@@ -378,57 +379,85 @@ def get_object_type(url):
     return "post" if sections[-2] == "posts" else "comment"
 
 def like_post_handler(request):
+    print (f"Entered Like Handler!")
+
+    post_json = request.GET.get('post_json', None)
+    post = json.loads(post_json)
+    print(post)
+
+    pattern = re.compile(r"(')| (')|('),|(')")
+    post = pattern.sub('"', post)
+    print(post)
+
+    post = json.loads(post_json)
+    print(post)
+    print(type(post))
+    
+    # print(type(post))
+
+    #TODO: Get the number of likes from the browser (should I just get the entire post object? Yes.)
+
+    #TODO: Get formatted author info for API Usage
+
+    #TODO: Read all like objects originating from the user
+
+    #TODO: find out if the user has already liked the post in question
+
+    #TODO: if the user already liked the post, remove the like
+
+    #TODO: If the like is new, send a like object to the poster's inbox
+
     #The user has clicked the like button for a post.
 
-    post_uuid = request.GET.get('post_uuid', None) #get the post in question
-    author = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
+    # post_uuid = request.GET.get('post_uuid', None) #get the post in question
+    # author = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
 
-    #read the post (whose like button the user clicked) object from db
-    try: post = Posts.objects.get(uuid=post_uuid)
-    except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
+    # #read the post (whose like button the user clicked) object from db
+    # try: post = Posts.objects.get(uuid=post_uuid)
+    # except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
 
-    #get list of all of the current user's likes
-    likes = Likes.objects.filter(author_uuid=request.user.uuid)
+    # #get list of all of the current user's likes
+    # likes = Likes.objects.filter(author_uuid=request.user.uuid)
 
-    #find out if user has already liked this post
-    alreadyLikedPost = False
-    existingLikeObj = None
-    for like in likes:
-        if like.liked_object.endswith(post.uuid):
-            alreadyLikedPost = True
-            existingLikeObj = like
-            break
+    # #find out if user has already liked this post
+    # alreadyLikedPost = False
+    # existingLikeObj = None
+    # for like in likes:
+    #     if like.liked_object.endswith(post.uuid):
+    #         alreadyLikedPost = True
+    #         existingLikeObj = like
+    #         break
 
-    if alreadyLikedPost:
-        existingLikeObj.delete()#remove like from db
+    # if alreadyLikedPost:
+    #     existingLikeObj.delete()#remove like from db
 
-        #decrement like counter
-        post.likeCount = post.likeCount - 1
-        post.save()
+    #     #decrement like counter
+    #     post.likeCount = post.likeCount - 1
+    #     post.save()
     
-    else:
-        #create and save new like object
-        likeContext = "TODO: IDK what to put here"
-        likeSummary = f"{author.username} likes your post"
+    # else:
+    #     #create and save new like object
+    #     likeContext = "TODO: IDK what to put here"
+    #     likeSummary = f"{author.username} likes your post"
 
-        likeAuthorID = author.uuid
-        likeAuthorHost = author.host
-        likeAuthorURL = author.url
+    #     likeAuthorID = author.uuid
+    #     likeAuthorHost = author.host
+    #     likeAuthorURL = author.url
 
-        postObjLnk = f"http://127.0.0.1:8000/authors/{post.author_uuid}/posts/{post.uuid}"
-        likedID = post_uuid
-        likedObjType = "post"
-        likeObj = Likes(context= likeContext, summary= likeSummary, liked_id=likedID, author_uuid=author.uuid, author_host=author.host, author_url=author.url, liked_object_type=likedObjType, liked_object= postObjLnk)
-        likeObj.save(force_insert=True)
+    #     postObjLnk = f"http://127.0.0.1:8000/authors/{post.author_uuid}/posts/{post.uuid}"
+    #     likedID = post_uuid
+    #     likedObjType = "post"
+    #     likeObj = Likes(context= likeContext, summary= likeSummary, liked_id=likedID, author_uuid=author.uuid, author_host=author.host, author_url=author.url, liked_object_type=likedObjType, liked_object= postObjLnk)
+    #     likeObj.save(force_insert=True)
 
-        #increment the like count
-        post.likeCount = post.likeCount + 1
-        post.save()
-        print(f"User: {author.username} has liked post:{post_uuid}")
+    #     #increment the like count
+    #     post.likeCount = post.likeCount + 1
+    #     post.save()
+    #     print(f"User: {author.username} has liked post:{post_uuid}")
     
 
 
-    return JsonResponse({'new_post_count': post.likeCount}) #return new post count
+    return JsonResponse({'new_post_count': 69}) #return new post count
 
 def format_local_post_from_db(post: Posts):
     post_data = model_to_dict(post)
