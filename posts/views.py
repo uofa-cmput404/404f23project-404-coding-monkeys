@@ -380,36 +380,10 @@ def get_object_type(url):
     sections = url.split("/")
     return "post" if sections[-2] == "posts" else "comment"
 
-def fix_json(json_string):
-    #this function fixes the json coming from the frontend. It replaces single quotes with double quotes (so it can be read
-    # by json.loads(), as well as it puts quotes around booleans and None)
-
-    result = json_string
-
-    #Replace single quotes with double quotes
-    pattern = re.compile(r"(')| (')|('),|(')")
-    result = pattern.sub('"', result)
-
-    #Replace False with "False"
-    pattern = re.compile(r"False")
-    result = pattern.sub('"False"', result)
-
-    #Replace True with "True"
-    pattern = re.compile(r"True")
-    result = pattern.sub('"True"', result)
-
-    #Replace None with "None"
-    pattern = re.compile(r"None")
-    result = pattern.sub('"None"', result)
-
-    return result
-
 def like_post_handler(request):
     print (f"Entered Like Handler!")
 
-    post_json_broken = json.loads(request.body).get('post', {})
-    post_json_fixed = fix_json(post_json_broken)
-    post = json.loads(post_json_fixed)
+    post = json.loads(request.body).get('post', {})
 
     print(post)
     print(type(post))
