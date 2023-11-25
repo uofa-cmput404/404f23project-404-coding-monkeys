@@ -974,23 +974,28 @@ def api_author_liked(request, uuid):
             "author": author_cache.get(like.author_uuid),
             "object": like.liked_object
         }
+
+        found = False
         # determine if local items are public
-        if like.liked_object.startswith(ENDPOINT):
-            if like.liked_object_type == "post":
-                post = Posts.objects.filter(uuid=like.liked_id).first() if len(Posts.objects.filter(uuid=like.liked_id)) > 0 else None
+        if like.liked_object_type == "post":
+            post = Posts.objects.filter(uuid=like.liked_id).first() if len(Posts.objects.filter(uuid=like.liked_id)) > 0 else None
+            if post:
+                found = True
+            if post and post.visibility == "PUBLIC":
+                public.append(formatted)
+        
+        elif like.liked_object_type == "comment":
+            comment = Comments.objects.filter(uuid=like.liked_id).first() if len(Comments.objects.filter(uuid=like.liked_id)) > 0 else None
+            if comment:
+                post = Posts.objects.filter(uuid=comment.post_id).first() if len(Posts.objects.filter(uuid=comment.post_id)) > 0 else None
+                if post:
+                    found = True
                 if post and post.visibility == "PUBLIC":
                     public.append(formatted)
-            
-            elif like.liked_object_type == "comment":
-                comment = Comments.objects.filter(uuid=like.liked_id).first() if len(Comments.objects.filter(uuid=like.liked_id)) > 0 else None
-                if comment:
-                    post = Posts.objects.filter(uuid=comment.post_id).first() if len(Posts.objects.filter(uuid=comment.post_id)) > 0 else None
-                    if post and post.visibility == "PUBLIC":
-                        public.append(formatted)
         
-        # determine if remote items are public
-        else:
+        if not found:
             # do a get on the liked object; it should not return an OK status if it is not public
+            # TODO add basic auth
             try:
                 object_url = like.liked_object
                 response = requests.get(object_url)
