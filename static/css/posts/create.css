@@ -82,7 +82,7 @@ p {
     padding: 20px;
 
     width: 100vh;
-    height: 60vh;
+    height: 83vh;
 
     background-color: #4a4444;
     border-color: white;
@@ -127,6 +127,9 @@ select, input[type=text], input, textarea {
     background-color: #363232;
     color: white;
     padding: 5px;
+    font-family: 'Lalezar', sans-serif;
+
+
 }
 
 select {

@@ -381,6 +381,16 @@ def get_object_type(url):
     sections = url.split("/")
     return "post" if sections[-2] == "posts" else "comment"
 
+
+def single_posts(request):
+  post = Posts.objects.order_by('-published').first()
+  post_data = format_local_post_from_db(post)
+  
+  return render(request, "single_unlisted_post.html", {"post": post_data})
+
+
+
+
 def like_post_handler(request):
     #The user has clicked the like button for a post.
 
