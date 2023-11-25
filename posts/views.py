@@ -36,6 +36,7 @@ import copy
 from requests.auth import HTTPBasicAuth
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from connections.caches import Nodes
 
 
 class PostCreate(CreateView):
@@ -384,12 +385,27 @@ def like_post_handler(request):
     print (f"Entered Like Handler!")
 
     post = json.loads(request.body).get('post', {})
+    author_uuid = AuthorUser.objects.get(uuid=request.user.uuid).uuid #get the uuid of the current user
+    author_cache = AuthorCache()
+    author_cache.get(author_uuid) # will contain all details for author in the correct format for the API call
 
-    print(post)
-    print(type(post))
-    print(post['uuid'])
+    # Working API call:
+    # curl -X 'GET' -u 'api:apiadminuser' 'http://www.chimp-chat.win/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a2c/liked/' -H 'accept: application/json'
 
-    return JsonResponse({'new_post_count': 69}) #return new post count
+    nodes = Nodes()
+    host = "http://www.chimp-chat.win"
+    full_url = "INSERT URL"
+    headers = {"Accept": "application/json"}
+    auth = nodes.get_auth_for_host(host)
+
+    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+
+
+
+    print(f"Post: {post['uuid']} was liked by user: {author_uuid}")
+    print(author_cache)
+
+
     
     # print(type(post))
 
@@ -404,6 +420,10 @@ def like_post_handler(request):
     #TODO: if the user already liked the post, remove the like
 
     #TODO: If the like is new, send a like object to the poster's inbox
+
+
+
+    return JsonResponse({'new_post_count': 69}) #return new post count
 
     #The user has clicked the like button for a post.
 
