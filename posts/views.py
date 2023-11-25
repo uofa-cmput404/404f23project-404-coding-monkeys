@@ -115,14 +115,14 @@ def update_or_create_post(request, post_uuid):
         post.content = image_base64
 
     # add images and links to content
-    # if request.FILES.get('picture') is not None:
-    #     source = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/image"
-    #     if post.contentType == "text/plain":
-    #         image_tag = f"<img src=\"{source}\" alt=\"{post.title}\" />"
-    #         post.content += "\n" + image_tag
-    #     elif post.contentType == "text/markdown":
-    #         image_tag = f"![{post.title}]({source})"
-    #         post.content += "\n" + image_tag
+    if request.FILES.get('picture') is not None:
+        source = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/image"
+        if post.contentType == "text/plain":
+            image_tag = f"<img src=\"{source}\" alt=\"{post.title}\" />"
+            post.content += "\n" + image_tag
+        elif post.contentType == "text/markdown":
+            image_tag = f"![{post.title}]({source})"
+            post.content += "\n" + image_tag
 
     post.save()
 
@@ -756,7 +756,25 @@ def api_post_creation(request, uuid):
         response = {"type": "posts", "items": serializer.validated_data}
         return Response(response)
     elif request.method == 'POST':
-        pass
+        if request.user.uuid != uuid:
+            return Response(status=401, data="Unauthorized")
+        
+        serializer = PostsSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(status=400, data=serializer.errors)
+        
+        data = serializer.validated_data
+        author_uuid = get_id_from_url(data["author"]["id"])
+
+        if author_uuid != uuid:
+            return Response(status=401, data="Author details in post do not match")
+
+        post_url = data["id"]
+        post_uuid = get_part_from_url(post_url, "posts")
+
+        Posts.objects.update_or_create(title=data["title"], source=data["source"], origin=data["origin"], description=data["description"], contentType=data["contentType"], content=data["content"], count=data["count"], comments=data["comments"], commentSrc=data["commentsSrc"], commenvisibility=data["visibility"], categories=data["categories"], uuid=post_uuid, author_uuid=author_uuid, author_host=author_host, author_url=author_url)
+
+        return Response(status=200, data=serializer.validated_data)
 
 
 
