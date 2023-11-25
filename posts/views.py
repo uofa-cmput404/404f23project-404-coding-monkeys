@@ -543,8 +543,12 @@ def serve_image(request, uuid, post_id):
 )
 @swagger_auto_schema(
     tags=['posts'],
-    methods=['post', 'delete', 'put'],
+    methods=['post', 'put'],
     request_body=PostsSerializer
+)
+@swagger_auto_schema(
+    tags=['posts'],
+    methods=['delete'],
 )
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
 @authentication_classes([BasicAuthentication])
@@ -618,6 +622,7 @@ def api_posts(request, uuid, post_id):
 # =====================
 @swagger_auto_schema(
     method='get',
+    tags=['posts'],
     operation_description="Retrieves the binary of the image for the post, if one exists.",
     manual_parameters=[
             openapi.Parameter('author_id', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
@@ -719,6 +724,7 @@ def get_image_post(request, author_id, post_id):
 @swagger_auto_schema(
     tags=['posts'],
     method='post',
+    request_body=PostsSerializer
 )
 @api_view(['GET', 'POST'])
 @authentication_classes([BasicAuthentication])
