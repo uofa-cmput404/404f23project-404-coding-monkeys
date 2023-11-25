@@ -17,17 +17,34 @@
     $(document).ready(function () {
         var csrfToken = $('meta[name=csrf-token]').attr('content');
 
+        // $(".like-button").click(function () {
+        //     var post = $(this).data("post"); // Get the post ID from the button's data attribute
+        //     var post_json = JSON.stringify(post)
+        //     console.log(post_json);
+        //     $.ajax({
+        //         url: '{% url "like_post" %}',
+        //         method: 'GET',
+        //         data: { post_json: post_json }, // Pass the post UUID as a parameter
+        //         success: function (data) {
+        //             // Update the like count
+        //             $('#result-' + post_uuid).text(data.new_post_count);
+        //         }
+        //     });
+        // });
+
         $(".like-button").click(function () {
-            var post = $(this).data("post"); // Get the post ID from the button's data attribute
-            var post_json = JSON.stringify(post)
-            console.log(post_json);
+            var post = $(this).data("post");
+
             $.ajax({
                 url: '{% url "like_post" %}',
-                method: 'GET',
-                data: { post_json: post_json }, // Pass the post UUID as a parameter
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ post: post }),
+                headers: { 'X-CSRFToken': csrfToken },
                 success: function (data) {
                     // Update the like count
-                    $('#result-' + post_uuid).text(data.new_post_count);
+                    console.log(data.new_post_count)
+                    $('#result-' + post.uuid).text(data.new_post_count);
                 }
             });
         });

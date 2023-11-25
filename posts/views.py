@@ -34,6 +34,8 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import copy
 from requests.auth import HTTPBasicAuth
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 class PostCreate(CreateView):
@@ -381,17 +383,50 @@ def get_object_type(url):
 def like_post_handler(request):
     print (f"Entered Like Handler!")
 
-    post_json = request.GET.get('post_json', None)
-    post = json.loads(post_json)
-    print(post)
+    data = json.loads(request.body)
+    print(data)
+    post_json = data.get('post', {})
+    print(post_json)
+    print(type(post_json))
 
+    #Replace single quotes with double quotes
     pattern = re.compile(r"(')| (')|('),|(')")
-    post = pattern.sub('"', post)
-    print(post)
+    post = pattern.sub('"', post_json)
 
-    post = json.loads(post_json)
+    #Replace False with "False"
+    pattern = re.compile(r"False")
+    post = pattern.sub('"False"', post)
+
+    #Replace True with "True"
+    pattern = re.compile(r"True")
+    post = pattern.sub('"True"', post)
+
+    #Replace None with "None"
+    pattern = re.compile(r"None")
+    post = pattern.sub('"None"', post)
+
+
+    print(post)
+    post = json.loads(post)
     print(post)
     print(type(post))
+
+    # post_json = request.GET.get('post_json', None)
+    # post_json = json.loads(request.PUT.get('post_json', '{}'))
+    # print(post_json)
+    # print(type(post_json))
+
+    # pattern = re.compile(r"(')| (')|('),|(')")
+    # post = pattern.sub('"', post_json)
+    # post = json.dumps(post)
+    # post = json.loads(post_json)
+    # print(post)
+
+    # post = json.loads(post_json)
+    # print(post)
+    # print(type(post))
+
+    return JsonResponse({'new_post_count': 69}) #return new post count
     
     # print(type(post))
 
@@ -454,10 +489,7 @@ def like_post_handler(request):
     #     post.likeCount = post.likeCount + 1
     #     post.save()
     #     print(f"User: {author.username} has liked post:{post_uuid}")
-    
 
-
-    return JsonResponse({'new_post_count': 69}) #return new post count
 
 def format_local_post_from_db(post: Posts):
     post_data = model_to_dict(post)
