@@ -1,6 +1,7 @@
 import datetime
 import json
 import bleach
+import commonmark
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
 from django.forms.models import model_to_dict
@@ -329,6 +330,8 @@ def view_posts(request):
 
     formatted = []
     for post in viewable:
+        if post.contentType == "text/markdown":
+            post.content = commonmark.commonmark(post.content)
         post_data = format_local_post_from_db(post)
         formatted.append(post_data)
 
