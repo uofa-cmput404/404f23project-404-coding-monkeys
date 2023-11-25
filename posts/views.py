@@ -380,51 +380,40 @@ def get_object_type(url):
     sections = url.split("/")
     return "post" if sections[-2] == "posts" else "comment"
 
-def like_post_handler(request):
-    print (f"Entered Like Handler!")
+def fix_json(json_string):
+    #this function fixes the json coming from the frontend. It replaces single quotes with double quotes (so it can be read
+    # by json.loads(), as well as it puts quotes around booleans and None)
 
-    data = json.loads(request.body)
-    print(data)
-    post_json = data.get('post', {})
-    print(post_json)
-    print(type(post_json))
+    result = json_string
 
     #Replace single quotes with double quotes
     pattern = re.compile(r"(')| (')|('),|(')")
-    post = pattern.sub('"', post_json)
+    result = pattern.sub('"', result)
 
     #Replace False with "False"
     pattern = re.compile(r"False")
-    post = pattern.sub('"False"', post)
+    result = pattern.sub('"False"', result)
 
     #Replace True with "True"
     pattern = re.compile(r"True")
-    post = pattern.sub('"True"', post)
+    result = pattern.sub('"True"', result)
 
     #Replace None with "None"
     pattern = re.compile(r"None")
-    post = pattern.sub('"None"', post)
+    result = pattern.sub('"None"', result)
 
+    return result
 
-    print(post)
-    post = json.loads(post)
+def like_post_handler(request):
+    print (f"Entered Like Handler!")
+
+    post_json_broken = json.loads(request.body).get('post', {})
+    post_json_fixed = fix_json(post_json_broken)
+    post = json.loads(post_json_fixed)
+
     print(post)
     print(type(post))
-
-    # post_json = request.GET.get('post_json', None)
-    # post_json = json.loads(request.PUT.get('post_json', '{}'))
-    # print(post_json)
-    # print(type(post_json))
-
-    # pattern = re.compile(r"(')| (')|('),|(')")
-    # post = pattern.sub('"', post_json)
-    # post = json.dumps(post)
-    # post = json.loads(post_json)
-    # print(post)
-
-    # post = json.loads(post_json)
-    # print(post)
-    # print(type(post))
+    print(post['uuid'])
 
     return JsonResponse({'new_post_count': 69}) #return new post count
     
