@@ -98,7 +98,7 @@ def update_or_create_post(request, post_uuid):
     post.description = request.POST.get('description')
     post.content = request.POST.get('content')
     post.categories = request.POST.get('categories') if request.POST.get('categories') != "" else []
-    post.comments = f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}/comments"
+    post.comments = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/comments"
     post.visibility = request.POST.get('visibility')
 
     post.save()
@@ -123,7 +123,7 @@ def update_or_create_post(request, post_uuid):
     elif post.visibility == "FRIENDS":
         friends = get_friends(request.user.id)
         try:
-            post_url = f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}"
+            post_url = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
             response = requests.get(post_url)
             if response.ok:
                 payload = response.json()
@@ -431,6 +431,19 @@ def like_post_handler(request):
     #TODO: If the like is new, send a like object to the poster's inbox
 
 
+    # Good error handling example:
+        #     # send to inbox
+        # try:
+        #     post_url = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
+        #     response = requests.get(post_url)
+        #     if response.ok:
+        #         payload = response.json()
+        #         inbox_url = f"{ad.host}authors/{ad.uuid}/inbox"
+        #         response = requests.post(inbox_url, json=payload)
+        # except Exception as e:
+        #     print(e)
+
+
 
     return JsonResponse({'new_post_count': 69}) #return new post count
 
@@ -492,7 +505,7 @@ def format_local_post_from_db(post: Posts):
     post_data.update({
         "author": author,
         "type": "post",
-        "id": f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}",
+        "id": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}",
         "published": str(post.published),
         "author_uuid": post.author_uuid,
         "uuid": post.uuid,
