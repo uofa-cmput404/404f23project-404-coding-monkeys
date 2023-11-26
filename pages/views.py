@@ -73,7 +73,7 @@ def list_profiles(request):
             authors = response.json().get("items")
             # iterate through authors and check that they are valid using serializer, exclude authors that are deemed invalid (missing or misformed data)
             for author in authors:
-                serializer = AuthorUserReferenceSerializer(data=author)
+                serializer = AuthorDetailSerializer(data=author)
                 if not serializer.is_valid():
                     continue
                 valid_author = serializer.validated_data
