@@ -70,7 +70,7 @@ p {
     border-style: solid;
     border-radius: 10px;
     border-color: #FFD553;
-    border-width: 7px;
+    border-width: 5px;
 
     box-shadow: 2px 10px 13px 2px rgba(255, 213, 83, 0.15), 0 14px 42px 0 rgba(226, 2, 2, 0.19);
 
@@ -91,12 +91,12 @@ p {
     margin: auto;
     margin-bottom: 20px;
 
-    height: 85vh;
-    width: 60vh;
+    height: 628px;
+    width: 450px;
     border-style: solid;
     border-radius: 10px;
     border-color: #FFD553;
-    border-width: 7px;
+    border-width: 4px;
 
     box-shadow: 2px 10px 13px 2px rgba(255, 213, 83, 0.15), 0 14px 42px 0 rgba(226, 2, 2, 0.19);
 
@@ -122,6 +122,13 @@ p {
 
 }
 .comment-textbox{
+    background-color: #1C1A19;
+    border-style: solid;
+    border-width: 1px;
+    border-radius:3px;
+    border-color: #FFD553;
+    color:white;
+    font-family: 'Lalezar', sans-serif;
     flex-grow: 1;
 }
 
@@ -134,8 +141,16 @@ p {
     display: flex;
     flex-direction: row;
     width: 100%;
-    /* TODO: Change the above height to dynamically change based on comment length */
+    margin-bottom: 5px;
 }
+
+.comment:hover{
+    background-color: #2a2a2a;
+    border-radius: 2px;
+
+}
+
+
 
 .comment-details{
     margin: 0;
@@ -143,23 +158,41 @@ p {
 }
 
 .comment-username{
-    font-weight: bold;
+    font-weight: normal;
+
+
 }
 
 .comment-text{
     font-size: 12px;
+    
 }
 
 .like-comment-button{
     margin-left: auto;
+    font-size: 11px;
+    margin-top:9px;
+    margin-right:5px;
+    
+
+    min-width:11.3%;
+    min-height:11.3%;
+
+
 }
 
 .comment-profile-picture{
-    width: 5vh;
-    height: 5vh;
-    padding: 2vh;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    border-color: white;
+    margin-left:4px;
+    margin-right:6px;
+    margin-top:8px;
+    background-color: #2a2a2a;
+    border-width: 0.12em;
+    border-style: solid;
+    border-color:#FFD553;
+    object-fit: cover;
 }
 
 #post_author {
@@ -193,11 +226,11 @@ p {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    border-color: white;
     background-color: #2a2a2a;
     border-width: 0.2em;
     border-style: solid;
     border-color:#FFD553;
+    object-fit: cover;
 }
 
 #post_body {
