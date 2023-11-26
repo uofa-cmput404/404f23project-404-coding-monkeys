@@ -51,19 +51,38 @@
     });
 </script>
 
-<ul style="list-style-type: none; padding:8px; padding-left:20px">
-<h2 style="padding-left:20px; padding-bottom:10px;"><u>List of Users</u></h2>
-{% for author in authors_list %}
-    
-    <div class="list_profiles_gradience"></div>
 
-    <div class="userProfile_List_of_Users" data-host="{{ author.host }}" data-get-url="{{ author.id }}" style="display: flex; flex-direction: column; padding:15px; padding-left:45px; ">
-        <li> <img src="{{ author.profileImage }}" class="user_icon" style="width: 90px; height: 90px; border-color:#FFD553;"> </li>
-        <li>{{ author.displayName }}</li>
-    </div>
-{% empty %}
-    <li>No users yet. Database must be empty.</li>
-{% endfor %}
+<ul style="list-style-type: none; padding:8px; padding-left:20px">
+
+        <h2 style="padding-left:15x; padding-bottom:15px;"><u>List of Users</u></h2>
+        <form method=POST action="{%url 'authors_list' %}">
+            {%csrf_token%}
+            <div class="row-flex" style=" justify-self:left; margin-bottom:20px;">
+                <input type="search" placeholder="Search Usernames..." style="max-width:400px; height:40px;" name="search_bar">
+            
+                <button style="margin-left: 20px;" 
+                class="search_ListProfiles_button" type="submit">Search</button>
+            </div>
+        </form>
+  
+
+
+
+    {% for author in authors_list %}
+            
+        <div class="list_profiles_gradience"></div>
+
+        <div class="userProfile_List_of_Users" data-host="{{ author.host }}" data-get-url="{{ author.id }}" style="display: flex; flex-direction: column; padding:15px; padding-left:45px; ">
+            <li> <img src="{{ author.profileImage }}" class="user_icon" style="width: 90px; height: 90px; border-color:#FFD553;"> </li>
+            <li>{{ author.displayName }}</li>
+        </div>
+        {% empty %}
+            <li style="padding-left:20px;">No Users Found</li>
+    {% endfor %}
+
+
+
+
 </ul>
 {% endblock content %}
 
