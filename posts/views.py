@@ -385,7 +385,7 @@ def get_object_type(url):
 def single_posts(request):
   post = Posts.objects.order_by('-published').first()
   post_data = format_local_post_from_db(post)
- 
+
   
   return render(request, "single_unlisted_post.html", {"post": post_data})
 
