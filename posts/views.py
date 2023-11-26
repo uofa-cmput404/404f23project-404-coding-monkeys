@@ -381,6 +381,19 @@ def get_object_type(url):
     sections = url.split("/")
     return "post" if sections[-2] == "posts" else "comment"
 
+def get_API_formatted_author_dict_from_author_obj(authorObj):
+    formatted_dict = {
+        "type": "author",
+        "id": authorObj.url,
+        "host": authorObj.host,
+        "displayName": authorObj.username,
+        "url": authorObj.url,
+        "github": authorObj.github,
+        "profileImage": authorObj.profile_image
+    }
+
+    return formatted_dict
+
 def like_post_handler(request):
     print (f"Entered Like Handler!")
     nodes = Nodes()
@@ -394,28 +407,15 @@ def like_post_handler(request):
 
     #Get current user info
     currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
-    API_formatted_currUser_details = {
-        "type": "author",
-        "id": currUser.url,
-        "host": currUser.host,
-        "displayName": currUser.username,
-        "url": currUser.url,
-        "github": currUser.github,
-        "profileImage": currUser.profile_image
-    }
-
-    # Working API call:
-    # curl -X 'GET' -u 'api:apiadminuser' 'http://www.chimp-chat.win/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a2c/liked/' -H 'accept: application/json'
+    currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
 
     # Determine if the current user has already liked the post
     full_url = f"{post_host}/authors/{currUser.uuid}/liked/"
     headers = {"accept": "application/json"}
     auth = nodes.get_auth_for_host(post_host)
-
-    print(f"First API Call:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}")
-    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1])) #TODO: Add try / catch?
-    print(response)
-    print(response.text)
+    # print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
+    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
 
     #TODO: Handle the case for if the user has already liked the post
 
@@ -427,29 +427,13 @@ def like_post_handler(request):
         "context": "https://www.w3.org/ns/activitystreams",
         "summary": f"{currUser.username} Likes your post",
         "type": "Like",
-        "author": API_formatted_currUser_details,
+        "author": currUser_API,
         "object": post['id']
     }
     body_json = json.dumps(body_dict)
-
-    print(f"\nSecond API Call:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}")
-    response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json) #Send the like object to the posting author's inbox #TODO: Add try / catch?
-    print(response)
-    print(response.text)
-
-
-    # Good error handling example:
-        #     # send to inbox
-        # try:
-        #     post_url = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
-        #     response = requests.get(post_url)
-        #     if response.ok:
-        #         payload = response.json()
-        #         inbox_url = f"{ad.host}authors/{ad.uuid}/inbox"
-        #         response = requests.post(inbox_url, json=payload)
-        # except Exception as e:
-        #     print(e)
-
+    # print(f"\nAPI Call for Sending Like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
+    response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json) #Send the like object to the posting author's inbox
+    if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
 
 
     return JsonResponse({'new_post_count': 69}) #return new post count
