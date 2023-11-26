@@ -59,6 +59,20 @@ def list_profiles(request):
     all_authors = []
     nodes = Nodes()
 
+    search_text=""
+    usernames_found=""
+    
+    searchbar_is_used=False
+
+    if request.method == "POST":#if the search bar is used
+        all_authors = []
+        search_text=request.POST['search_bar']#get the string from the search bar
+        usernames_found=AuthorUser.objects.filter(username__startswith=search_text)#go through our usernames in AuthorUser to find matches! Note: can be "__contains" instead
+        searchbar_is_used=True
+
+
+
+
     # for all connected hosts
     for host in HOSTS:
         full_url = host + url
@@ -78,9 +92,20 @@ def list_profiles(request):
                     continue
                 valid_author = serializer.validated_data
                 valid_author["uuid"] = get_id_from_url(valid_author["url"])
-                all_authors.append(valid_author)
-
-    return render(request, 'listprofiles.html', {'authors_list': all_authors})
+                
+                if(searchbar_is_used==True):
+                    for username in usernames_found:
+                        if(str(username) == valid_author["displayName"]):
+                            #print("match!",str(username),valid_author["displayName"])
+                    
+                            all_authors.append(valid_author)
+                else:
+                
+                    all_authors.append(valid_author)
+        
+    
+        #return the output in render as 'usernames_found'
+    return render(request, 'listprofiles.html', {'authors_list': all_authors, 'search_text':search_text})
 
 @DeprecationWarning
 class AuthorDetailView(DetailView): # basic generic view that just displays template
