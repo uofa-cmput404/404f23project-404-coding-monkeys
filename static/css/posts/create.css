@@ -139,7 +139,6 @@ textarea {
 }
 
 
-
 .list_profiles_gradience{
     max-width: 70%; 
     border-width: 3px;
@@ -165,3 +164,7 @@ textarea {
 }
 
 
+.post-button-wrapper {
+    position: relative;
+    top: -10px; 
+}

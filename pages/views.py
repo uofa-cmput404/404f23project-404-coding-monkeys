@@ -17,7 +17,7 @@ from django.http import HttpResponseForbidden
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .seralizers import AuthorUserSerializer, FollowerSerializer, FollowerListSerializer, AuthorUserReferenceSerializer
+from .seralizers import AuthorUserSerializer, FollowerSerializer, AuthorUserReferenceSerializer
 from static.vars import HOSTS
 import requests
 
@@ -432,11 +432,11 @@ def api_follow_requests(request):
     if request.method == "GET":
         follow_requests = FollowRequests.objects.all()
         serializer = FollowRequestsSerializer(follow_requests, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=200)
     elif request.method == "POST":
         serializer = FollowRequestsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+    return Response({'error': 'Invalid request method'}, status=405)

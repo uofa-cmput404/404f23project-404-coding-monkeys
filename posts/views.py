@@ -17,6 +17,7 @@ from drf_yasg.utils import swagger_auto_schema
 from static.vars import ENDPOINT
 from django.http import HttpResponse
 from django.core.serializers import serialize
+import markdown2 as md
 
 class PostCreate(CreateView):
     model = Posts
@@ -69,9 +70,9 @@ def update_or_create_post(request, post_uuid):
 
     unique_id_pic = str(unique_id) + "_pic"
 
-    post.title = request.POST.get('title')
-    post.description = request.POST.get('description')
-    post.content = request.POST.get('content')
+    post.title =md.markdown(request.POST.get('title'))
+    post.description = md.markdown(request.POST.get('description'))
+    post.content = md.markdown(request.POST.get('content'))
     post.categories = request.POST.get('categories')
     post.comments = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}/comments"
     post.visibility = request.POST.get('visibility')

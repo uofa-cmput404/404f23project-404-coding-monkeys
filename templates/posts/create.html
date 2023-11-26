@@ -49,17 +49,17 @@
     {% csrf_token %}
     <div class="container_flex">
         <div class="row-flex" style="justify-content: space-evenly;">
-            <h1 style="margin-top:15px;">Create Post</h1>
-            <div style="flex: 1; margin-left: 10px; margin-right:10px; max-width: 2px; background-color: white;"></div>
+            <h1 style="margin-top: 15px;">Create Post</h1>
+            <div style="flex: 1; margin-left: 10px; margin-right: 10px; max-width: 2px; background-color: white;"></div>
             <div class="col-flex" style="align-items: center; justify-content: center;">
-                <p class="form_input" style="margin-top:10px;">Who should be able to see your post?</p>
-                <div style="margin-left: 10px; margin-top:5px;">{{ form.visibility }}</div>
+                <p class="form_input" style="margin-top: 10px;">Who should be able to see your post?</p>
+                <div style="margin-left: 10px; margin-top: 5px;">{{ form.visibility }}</div>
             </div>
-            
+
             {{ form.sharedWith }}
             <div id="author_list" class="author_list" style="margin-left: 10px; align-items: center; justify-content: center;">
-                <p class="form_input" style="margin-top:10px;">Share with:</p>
-                <select id="author_dropdown" name="author_list" style="margin-left: 10px; margin-top:5px;">
+                <p class="form_input" style="margin-top: 10px;">Share with:</p>
+                <select id="author_dropdown" name="author_list" style="margin-left: 10px; margin-top: 5px;">
                     {% for author in author_list %}
                         <option value="{{ author.id }}">{{ author.username }}</option>
                     {% endfor %}
@@ -67,30 +67,34 @@
             </div>
 
             <script>
-                
+                // Add any JavaScript code here if needed
             </script>
-            
-            <!-- <div class="grow-flex"></div>
-            <button type="button"><i class="material-symbols-outlined">close</i></button> -->
         </div>
-        <div class="row-flex" style="margin-top:15px;">
-            <div class="col-flex" style="width:30%;">
+        <div class="row-flex" style="margin-top: 15px;">
+            <div class="col-flex" style="width: 30%;">
                 <p class="form_input">Title:</p>
                 <p class="form_input">Short Description:</p>
                 <p class="form_input">Categories:</p>
             </div>
-            <div class="col-flex" style="width:70%;">
-                {{ form.title }}
-                {{ form.description }}
-                {{ form.categories }}
+            <div class="col-flex" style="width: 70%;">
+                {{ form.title | safe}}
+                {{ form.description | safe }}
+                {{ form.categories | safe }}
             </div>
         </div>
-        <div class=row-flex style="margin-top:15px; height: 100%;">{{ form.content }}</div>
-        <div class="row-flex" style="margin-top:15px;">
-            {{ form.picture }}
-            <div class="grow-flex"></div>
-            <button class="post_button" type="submit">Post</button>
+        <div class="row-flex" style="margin-top: -8px; height: 100%;">
+            {{ form.content }}
         </div>
+        <div class="row-flex" style="margin-top: -20px;">
+            <div class="form-picture">
+                {{ form.picture }}
+            </div>
+            <div class="grow-flex"></div>
+            <div class="post-button-wrapper">
+                <button class="post_button" type="submit">Post</button>
+            </div>
+        </div>
+              
     </div>
 </form>
 {% endblock content %}
