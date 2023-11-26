@@ -34,7 +34,7 @@ class PostsSerializer(serializers.Serializer):
     categories = serializers.ListField(required=False, default=[])
     count = serializers.IntegerField()
     comments = serializers.CharField()
-    commentsSrc = serializers.CharField(required=False, allow_blank=True, default={})
+    commentsSrc = serializers.JSONField(required=False, allow_blank=True, default={})
     # DateTimeField isn't JSON serializable
     published = serializers.CharField()
     visibility = serializers.CharField(max_length=10)
