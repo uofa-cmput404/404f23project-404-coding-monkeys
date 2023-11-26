@@ -185,16 +185,14 @@
         </section>
         <section id="post_body">
             <h1>{{ post.title }}</h1>
-            <p class="body_style">{{ post.content }}</p> <!--THE CAUSE OF THE BIG FAT WALL OF TEXT!!!-->}
+            <p class="body_style">{{ post.content}}</p> <!--This is the cause of the infinite text. see db.sqlite3 "content" row for more detail. it is currently incorrect-->
         </section>
-        {% for image in all_posts %}
-            {% if image.uuid == post.uuid|add:"_pic" %}
-                
-                <div style=" margin-bottom:2px;" >
-                    <img class="postImage" src="data:{{ image.contentType }},{{ image.content }}" alt="Image for {{ post.title }}" />
-                </div>
-            {% endif %}
-        {% endfor %}
+
+              
+        <div style=" margin-bottom:2px;" >
+            <img class="postImage" src="data:{{ post.contentType }},{{ post.content }}" alt="Image for {{ post.title }}" />
+        </div>
+
         <div class="flex_grow"></div>
         <div class="footer">
             <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span>

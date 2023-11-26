@@ -71,6 +71,24 @@ p {
 
 }
 
+.search_ListProfiles_button{
+    padding: 0.25em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    font-weight: bold;
+    font-size:12px;
+    border-radius: 5px;
+    background-color: #1C1A19;
+    border: 2px solid #FFD553;
+    color:#FFD553;
+
+}
+.search_ListProfiles_button:hover{
+    color:#1C1A19;
+    background-color: #FFD553;
+
+}
+
 
 
 
