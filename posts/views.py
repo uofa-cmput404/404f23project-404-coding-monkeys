@@ -749,6 +749,8 @@ def api_post_creation(request, uuid):
 
         formatted = []
         for post in posts:
+            if post.uuid.endswith("_pic"):
+                continue
             formatted.append(format_local_post(post))
 
         serializer = PostsSerializer(posts, data=formatted, many=True, partial=True)
