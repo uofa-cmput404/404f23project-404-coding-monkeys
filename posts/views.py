@@ -383,6 +383,7 @@ def get_object_type(url):
 
 def like_post_handler(request):
     print (f"Entered Like Handler!")
+    nodes = Nodes()
 
     #Get the post object from the front end
     post = json.loads(request.body).get('post', {})
@@ -407,17 +408,18 @@ def like_post_handler(request):
     # curl -X 'GET' -u 'api:apiadminuser' 'http://www.chimp-chat.win/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a2c/liked/' -H 'accept: application/json'
 
     # Determine if the current user has already liked the post
-    nodes = Nodes()
     full_url = f"{post_host}/authors/{currUser.uuid}/liked/"
     headers = {"accept": "application/json"}
     auth = nodes.get_auth_for_host(post_host)
+
+    print(f"First API Call:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}")
     response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1])) #TODO: Add try / catch?
-    # print(response.text)
+    print(response)
+    print(response.text)
 
     #TODO: Handle the case for if the user has already liked the post
 
     #If the user has not yet liked the post, send new like object to the post's host
-    nodes = Nodes()
     full_url = f"{post_host}/authors/{currUser.uuid}/inbox/"
     headers = {"Content-Type": "application/json"}
     auth = nodes.get_auth_for_host(post_host)
@@ -430,6 +432,7 @@ def like_post_handler(request):
     }
     body_json = json.dumps(body_dict)
 
+    print(f"\nSecond API Call:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}")
     response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json) #Send the like object to the posting author's inbox #TODO: Add try / catch?
     print(response)
     print(response.text)
