@@ -392,16 +392,23 @@ def like_post_handler(request):
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
     #Get current user info
-    currUser_uuid = AuthorUser.objects.get(uuid=request.user.uuid).uuid #get the current user
-    currUser_cache = AuthorCache()
-    currUser_details = currUser_cache.get(currUser_uuid) # will contain all details for author in the correct format for the API call
+    currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
+    API_formatted_currUser_details = {
+        "type": "author",
+        "id": currUser.url,
+        "host": currUser.host,
+        "displayName": currUser.username,
+        "url": currUser.url,
+        "github": currUser.github,
+        "profileImage": currUser.profile_image
+    }
 
     # Working API call:
     # curl -X 'GET' -u 'api:apiadminuser' 'http://www.chimp-chat.win/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a2c/liked/' -H 'accept: application/json'
 
     # Determine if the current user has already liked the post
     nodes = Nodes()
-    full_url = f"{post_host}/authors/{currUser_uuid}/liked/"
+    full_url = f"{post_host}/authors/{currUser.uuid}/liked/"
     headers = {"accept": "application/json"}
     auth = nodes.get_auth_for_host(post_host)
     response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1])) #TODO: Add try / catch?
@@ -411,30 +418,19 @@ def like_post_handler(request):
 
     #If the user has not yet liked the post, send new like object to the post's host
     nodes = Nodes()
-    full_url = f"{post_host}/authors/{currUser_uuid}/inbox/"
-    headers = {"accept": "application/json"}
+    full_url = f"{post_host}/authors/{currUser.uuid}/inbox/"
+    headers = {"Content-Type": "application/json"}
     auth = nodes.get_auth_for_host(post_host)
     body_dict = {
-        "@context": "https://www.w3.org/ns/activitystreams",
-        "summary": f"{currUser_details['displayName']} Likes your post",
+        "context": "https://www.w3.org/ns/activitystreams",
+        "summary": f"{currUser.username} Likes your post",
         "type": "Like",
-        "author": currUser_details,
+        "author": API_formatted_currUser_details,
         "object": post['id']
     }
     body_json = json.dumps(body_dict)
-    print(body_dict)
-    print(full_url)
 
-
-    session = requests.Session()
-    request = requests.Request('POST', full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json)
-    prepared_request = request.prepare()
-    print(f'Request method: {prepared_request.method}')
-    print(f'Request URL: {prepared_request.url}')
-    print(f'Request headers: {prepared_request.headers}')
-    print(f'Request body: {prepared_request.body}')
-    response = session.send(prepared_request)
-    # response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_json) #Send the like object to the posting author's inbox #TODO: Add try / catch?
+    response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json) #Send the like object to the posting author's inbox #TODO: Add try / catch?
     print(response)
     print(response.text)
 
