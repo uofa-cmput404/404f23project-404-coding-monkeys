@@ -393,10 +393,10 @@ def like_post_handler(request):
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
     #Get author info
-    author_uuid = AuthorUser.objects.get(uuid=request.user.uuid).uuid #get the uuid of the current user
+    author_uuid = AuthorUser.objects.get(uuid=request.user.uuid).uuid #get the current user
     author_cache = AuthorCache()
     author_details = author_cache.get(author_uuid) # will contain all details for author in the correct format for the API call
-
+    print(author_details)
 
     # Working API call:
     # curl -X 'GET' -u 'api:apiadminuser' 'http://www.chimp-chat.win/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a2c/liked/' -H 'accept: application/json'
@@ -419,21 +419,12 @@ def like_post_handler(request):
     auth = nodes.get_auth_for_host(post_host)
     body_dict = {
         "@context": "https://www.w3.org/ns/activitystreams",
-        "summary": f"{post_author_display_name} Likes your post",
+        "summary": f"{author_details['displayName']} Likes your post",
         "type": "Like",
-        "author": {
-            "type": "author",
-            "id": post_author_id,
-            "host": post_author_host,
-            "displayName": post_author_display_name,
-            "url": f"{post_author_id}",
-            "github": post_author_github,
-            "profileImage": post_author_profile_image
-        },
-        "object": post_object_url
+        "author": author_details,
+        "object": post['id']
     }
-    body = body.replace('\n', '')  # Remove newlines
-    print(body)
+    print(body_dict)
     # response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1])) #TODO: Add try / catch?
 
 
