@@ -19,7 +19,10 @@
 
         $(".like-button").click(function () {
             var post_json = $(this).siblings(".post-data").text(); // get the corresponding post as json from the html
+            var likedDataElement = $(this).siblings(".already-liked");
+            var alreadyLiked = likedDataElement.data('liked');
             var post = JSON.parse(post_json); //parse the json into an object
+            console.log(alreadyLiked);
 
             $.ajax({
                 //Send the post data to the backend using a POST command, and specify content is json
@@ -32,7 +35,17 @@
                 //Handle the response data from the server, and update the corresponding like count on the webpage
                 success: function (data) {
                     // Update the like count using the returned value (from the backend)
-                    $('#result-' + post.uuid).text(data.new_post_count);
+                    console.log(post.likeCount);
+                    console.log(data.new_post_count);
+                    if (!alreadyLiked){
+                        console.log('made it 1')
+                        if (data.new_post_count !== post.likeCount) {
+                            console.log('made it 2')
+                            // The like has been incremented
+                            likedDataElement.data('liked', 'true');
+                            $('#result-' + post.uuid).text(data.new_post_count); //only update the displayed value if it has not already been liked
+                        }
+                    }   
                 }
             });
         });
@@ -218,6 +231,7 @@
                     <!-- Post like button -->
                     <button style="padding-top: 10px;" type="button"class="like-button"><i class="material-symbols-outlined">favorite</i></button>
                     <div class="post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the like button -->
+                    <div class="already-liked" style="display: none;" data-liked="false"></div>
                     <!-- comment button-->
                     <button style="padding-top: 10px;" type="button"class="comment-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">tooltip</i></button>
                     {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->

@@ -409,82 +409,44 @@ def like_post_handler(request):
     currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
     currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
 
-    # Determine if the current user has already liked the post
+    #Get list of likes from the current user
     full_url = f"{post_host}/authors/{currUser.uuid}/liked/"
     headers = {"accept": "application/json"}
     auth = nodes.get_auth_for_host(post_host)
     # print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
     response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
     if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
-
-    #TODO: Handle the case for if the user has already liked the post
-
-    #If the user has not yet liked the post, send new like object to the post's host
-    full_url = f"{post_host}/authors/{currUser.uuid}/inbox/"
-    headers = {"Content-Type": "application/json"}
-    auth = nodes.get_auth_for_host(post_host)
-    body_dict = {
-        "context": "https://www.w3.org/ns/activitystreams",
-        "summary": f"{currUser.username} Likes your post",
-        "type": "Like",
-        "author": currUser_API,
-        "object": post['id']
-    }
-    body_json = json.dumps(body_dict)
-    # print(f"\nAPI Call for Sending Like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
-    response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json) #Send the like object to the posting author's inbox
-    if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
-
-
-    return JsonResponse({'new_post_count': 69}) #return new post count
-
-    #The user has clicked the like button for a post.
-
-    # post_uuid = request.GET.get('post_uuid', None) #get the post in question
-    # author = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
-
-    # #read the post (whose like button the user clicked) object from db
-    # try: post = Posts.objects.get(uuid=post_uuid)
-    # except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
-
-    # #get list of all of the current user's likes
-    # likes = Likes.objects.filter(author_uuid=request.user.uuid)
-
-    # #find out if user has already liked this post
-    # alreadyLikedPost = False
-    # existingLikeObj = None
-    # for like in likes:
-    #     if like.liked_object.endswith(post.uuid):
-    #         alreadyLikedPost = True
-    #         existingLikeObj = like
-    #         break
-
-    # if alreadyLikedPost:
-    #     existingLikeObj.delete()#remove like from db
-
-    #     #decrement like counter
-    #     post.likeCount = post.likeCount - 1
-    #     post.save()
+    returned_likes = response.json()
     
-    # else:
-    #     #create and save new like object
-    #     likeContext = "TODO: IDK what to put here"
-    #     likeSummary = f"{author.username} likes your post"
+    #Determine if the current user has already liked the post
+    post_already_liked = False
+    for like in returned_likes["items"]:
+        if like['object'] == post['id']:
+            post_already_liked = True
+            break
 
-    #     likeAuthorID = author.uuid
-    #     likeAuthorHost = author.host
-    #     likeAuthorURL = author.url
+    if post_already_liked:
+        #dont do anything
+        # return JsonResponse({'new_post_count': post['likeCount']}) #return existing post count
+        return JsonResponse({'new_post_count': post['likeCount']}) #return new post count
+    else:
+        #send like
+        full_url = f"{post_host}/authors/{currUser.uuid}/inbox/"
+        headers = {"Content-Type": "application/json"}
+        auth = nodes.get_auth_for_host(post_host)
+        body_dict = {
+            "context": "https://www.w3.org/ns/activitystreams",
+            "summary": f"{currUser.username} Likes your post",
+            "type": "Like",
+            "author": currUser_API,
+            "object": post['id']
+        }
+        body_json = json.dumps(body_dict)
+        # print(f"\nAPI Call for Sending Like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json) #Send the like object to the posting author's inbox
+        if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
 
-    #     postObjLnk = f"http://127.0.0.1:8000/authors/{post.author_uuid}/posts/{post.uuid}"
-    #     likedID = post_uuid
-    #     likedObjType = "post"
-    #     likeObj = Likes(context= likeContext, summary= likeSummary, liked_id=likedID, author_uuid=author.uuid, author_host=author.host, author_url=author.url, liked_object_type=likedObjType, liked_object= postObjLnk)
-    #     likeObj.save(force_insert=True)
-
-    #     #increment the like count
-    #     post.likeCount = post.likeCount + 1
-    #     post.save()
-    #     print(f"User: {author.username} has liked post:{post_uuid}")
+        return JsonResponse({'new_post_count': post['likeCount'] +1 }) #return new post count
 
 def format_local_post_from_db(post: Posts):
     post_data = model_to_dict(post)
