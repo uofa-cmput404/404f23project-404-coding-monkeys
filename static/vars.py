@@ -5,5 +5,5 @@
 # ENDPOINT = "http://www.chimp-chat.win/"
 # HOSTS = ["http://www.chimp-chat.win"]
 
-ENDPOINT = "http://127.0.0.1:8000/"
-HOSTS = ["http://127.0.0.1:8000", "http://www.chimp-chat.win"]
+ENDPOINT = "http://127.0.0.1:8000"
+HOSTS = ["http://127.0.0.1:8000/", "http://www.chimp-chat.win/"]
