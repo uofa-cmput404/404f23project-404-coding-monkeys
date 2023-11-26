@@ -386,49 +386,57 @@ def like_post_handler(request):
 
     #Get the post object from the front end
     post = json.loads(request.body).get('post', {})
-    print(json.dumps(post, indent=2)) #pretty print the post
 
     #gather the host of the post
     post_host = post['author']['host']
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
-    #Get author info
-    author_uuid = AuthorUser.objects.get(uuid=request.user.uuid).uuid #get the current user
-    author_cache = AuthorCache()
-    author_details = author_cache.get(author_uuid) # will contain all details for author in the correct format for the API call
-    print(author_details)
+    #Get current user info
+    currUser_uuid = AuthorUser.objects.get(uuid=request.user.uuid).uuid #get the current user
+    currUser_cache = AuthorCache()
+    currUser_details = currUser_cache.get(currUser_uuid) # will contain all details for author in the correct format for the API call
 
     # Working API call:
     # curl -X 'GET' -u 'api:apiadminuser' 'http://www.chimp-chat.win/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a2c/liked/' -H 'accept: application/json'
 
     # Determine if the current user has already liked the post
     nodes = Nodes()
-    full_url = f"{post_host}/authors/{author_uuid}/liked/"
+    full_url = f"{post_host}/authors/{currUser_uuid}/liked/"
     headers = {"accept": "application/json"}
     auth = nodes.get_auth_for_host(post_host)
     response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1])) #TODO: Add try / catch?
-    print(response.text)
+    # print(response.text)
 
     #TODO: Handle the case for if the user has already liked the post
 
-
     #If the user has not yet liked the post, send new like object to the post's host
     nodes = Nodes()
-    full_url = f"{post_host}/authors/{author_uuid}/inbox/"
+    full_url = f"{post_host}/authors/{currUser_uuid}/inbox/"
     headers = {"accept": "application/json"}
     auth = nodes.get_auth_for_host(post_host)
     body_dict = {
         "@context": "https://www.w3.org/ns/activitystreams",
-        "summary": f"{author_details['displayName']} Likes your post",
+        "summary": f"{currUser_details['displayName']} Likes your post",
         "type": "Like",
-        "author": author_details,
+        "author": currUser_details,
         "object": post['id']
     }
+    body_json = json.dumps(body_dict)
     print(body_dict)
-    # response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1])) #TODO: Add try / catch?
+    print(full_url)
 
 
-    #TODO: If the like is new, send a like object to the poster's inbox
+    session = requests.Session()
+    request = requests.Request('POST', full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json)
+    prepared_request = request.prepare()
+    print(f'Request method: {prepared_request.method}')
+    print(f'Request URL: {prepared_request.url}')
+    print(f'Request headers: {prepared_request.headers}')
+    print(f'Request body: {prepared_request.body}')
+    response = session.send(prepared_request)
+    # response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_json) #Send the like object to the posting author's inbox #TODO: Add try / catch?
+    print(response)
+    print(response.text)
 
 
     # Good error handling example:
@@ -494,7 +502,6 @@ def like_post_handler(request):
     #     post.likeCount = post.likeCount + 1
     #     post.save()
     #     print(f"User: {author.username} has liked post:{post_uuid}")
-
 
 def format_local_post_from_db(post: Posts):
     post_data = model_to_dict(post)
