@@ -24,30 +24,25 @@
             var post = JSON.parse(post_json); //parse the json into an object
             console.log(alreadyLiked);
 
-            $.ajax({
-                //Send the post data to the backend using a POST command, and specify content is json
-                url: '{% url "like_post" %}',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ post: post }),
-                headers: { 'X-CSRFToken': csrfToken }, //include authentication token
+            if (!alreadyLiked){
+                console.log('made it 1')
+                $.ajax({
+                    //Send the post data to the backend using a POST command, and specify content is json
+                    url: '{% url "like_post" %}',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ post: post }),
+                    headers: { 'X-CSRFToken': csrfToken }, //include authentication token
 
-                //Handle the response data from the server, and update the corresponding like count on the webpage
-                success: function (data) {
-                    // Update the like count using the returned value (from the backend)
-                    console.log(post.likeCount);
-                    console.log(data.new_post_count);
-                    if (!alreadyLiked){
-                        console.log('made it 1')
-                        if (data.new_post_count !== post.likeCount) {
-                            console.log('made it 2')
-                            // The like has been incremented
-                            likedDataElement.data('liked', 'true');
-                            $('#result-' + post.uuid).text(data.new_post_count); //only update the displayed value if it has not already been liked
-                        }
-                    }   
-                }
-            });
+                    //Handle the response data from the server, and update the corresponding like count on the webpage
+                    success: function (data) {
+                        // Update the like count using the returned value (from the backend)
+                        likedDataElement.data('liked', 'true'); //log that the like button has already been pressed this session
+                        console.log('made it 2')
+                        $('#result-' + post.uuid).text(data.new_post_count); //Update the like count with whatever the backend returns
+                    }
+                });
+            }
         });
 
         $(".comment-button").click(function () {
