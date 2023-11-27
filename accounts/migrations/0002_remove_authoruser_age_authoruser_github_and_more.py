@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='authoruser',
             name='host',
-            field=models.GenericIPAddressField(default='http://127.0.0.1:8000/'),
+            field=models.GenericIPAddressField(default='127.0.0.1:8000/'),
         ),
         migrations.AddField(
             model_name='authoruser',
