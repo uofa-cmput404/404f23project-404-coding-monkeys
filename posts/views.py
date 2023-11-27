@@ -285,7 +285,13 @@ def update_post_with_like_count_from_API(post):
     full_url = f"{linkToPost}/likes"
     headers = {"accept": "application/json"}
     auth = nodes.get_auth_for_host(endpoint_tmp)
-    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    try:
+        response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    except:
+        print(f"Error: Could not get likes for post with UUID: {post.uuid}")
+        post.likeCount = 0
+        return post
+    
     if not response.ok: print(f"API error when gathering list of likes for post with UUID: {post.uuid}")
     returned_likes = response.json()
 
