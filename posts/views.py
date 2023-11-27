@@ -9,7 +9,7 @@ import pytz
 import requests
 from connections.caches import AuthorCache, PostCache
 from pages.seralizers import AuthorUserSerializer, CommentListSerializer, CommentSerializer
-from pages.util import AuthorDetail
+from util import AuthorDetail
 from util import get_id_from_url, get_part_from_url
 from rest_framework.response import Response
 from posts.serializers import LikeListSerializer, LocalCommentSerializer, LocalPostsSerializer, PostsSerializer, ResponsePosts
@@ -36,6 +36,7 @@ from drf_yasg import openapi
 import copy
 from requests.auth import HTTPBasicAuth
 from connections.caches import Nodes
+from util import time_since_posted, format_local_post_from_db, format_local_post
 
 
 class PostCreate(CreateView):
@@ -266,31 +267,22 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-def time_since_posted(created_at):
-    import humanize
-    # Parse the created_at timestamp string into a datetime object
-    timezone = pytz.timezone("America/Edmonton")
-    created_at_datetime = datetime.datetime.fromisoformat(created_at)
-
-    # Get the current time
-    current_time = datetime.datetime.now(tz=timezone)
-
-    # Calculate the time difference
-    time_difference = current_time - created_at_datetime
-
-    # Use humanize to get a human-readable representation
-    return humanize.naturaltime(time_difference)
 
 def post_stream(request):
     toReturn = []
 
     post_cache = PostCache()
-    posts = PostCache.values()
+    posts = post_cache.values()
 
     for post in posts:
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"])
+
+        if post["contentType"] == "text/markdown":
+            post["content"] = commonmark.commonmark(post["content"])
+        elif post["origin"].startswith(HOSTS[1]) and post["contentType"] not in ("text/plain", "text/markdown"):
+            post["content"] = post["content"].split(",")[1]
         toReturn.append(post)
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
 
@@ -512,41 +504,6 @@ def like_post_handler(request):
 
         return JsonResponse({'new_post_count': post['likeCount'] +1 }) #return new post count
 
-def format_local_post_from_db(post: Posts):
-    post_data = model_to_dict(post)
-
-    ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
-    author = ad.formatAuthorInfo()
-
-    post_data.update({
-        "author": author,
-        "type": "post",
-        "id": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}",
-        "published": str(post.published),
-        "author_uuid": post.author_uuid,
-        "uuid": post.uuid,
-        "delta": time_since_posted(str(post.published))
-    })
-
-    for k in ("author_url", "author_local", "author_host", "sharedWith"):
-        post_data.pop(k)
-
-    return post_data
-
-def format_local_post(post):
-    post_data = model_to_dict(post)
-    post_data["type"] = "post"
-    post_data["id"] = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
-    post_data["published"] = str(post.published)
-
-    ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
-    post_data["author"] = ad.formatAuthorInfo()
-
-    for key in ("author_uuid", "author_local", "author_url", "author_host"):
-        post_data.pop(key)
-    
-    return post_data
-
 
 def test(request):
     return render(request, 'posts/test.html')
@@ -581,6 +538,39 @@ def serve_image(request, uuid, post_id):
 
 # API CALLS
 # ===============================================================================================================
+
+# CUSTOM - PUBLIC POSTS
+# =====================
+@swagger_auto_schema(
+    tags=['posts', 'remote'],
+    method='get',
+    operation_description="Retrieves all public posts (paginated).",
+    manual_parameters=[
+            openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Page number"),
+            openapi.Parameter('size', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Number of posts per page"),
+        ],
+    responses={
+        200: ResponsePosts,
+        404: openapi.Response("No post found for the provided author and post ID."),
+    }
+)
+@api_view(['GET'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
+def public_posts(request):
+    page = request.GET.get('page')
+    size = request.GET.get('size')
+    posts = Posts.objects.filter(visibility="PUBLIC").order_by('-published')
+
+    if page and size:
+        posts = posts[(int(page)-1)*int(size):int(page)*int(size)]
+
+    formatted = []
+    for post in posts:
+        post_data = format_local_post_from_db(post)
+        formatted.append(post_data)
+
+    return Response({"type":"posts", "items":formatted})
 
 # POSTS
 # =====================

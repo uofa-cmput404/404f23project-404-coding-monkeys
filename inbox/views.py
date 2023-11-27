@@ -3,7 +3,7 @@ import requests
 from accounts.views import decode_cookie
 from connections.caches import AuthorCache, Nodes
 from pages.seralizers import AuthorUserSerializerDB, CommentSerializer, FollowRequestsSerializer, LikeSerializer
-from pages.util import AuthorDetail
+from util import AuthorDetail
 from posts.models import Comments, Likes, Posts
 from posts.serializers import PostsSerializer
 from posts.views import format_local_post, format_local_post_from_db, get_object_type

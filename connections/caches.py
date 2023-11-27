@@ -3,9 +3,10 @@ from cryptography.fernet import Fernet
 from django_project import settings
 from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
+from posts.models import Posts
 from static.vars import ENDPOINT, HOSTS
 
-from util import get_id_from_url
+from util import format_local_post, get_id_from_url, strip_slash, format_local_post_from_db
 from .models import Node
 
 # CACHE CLASSES
@@ -64,12 +65,20 @@ class AuthorCache(Cache):
     def update(self):
         node_singleton = Nodes()
 
-        for host in HOSTS:
+        for i in range(len(HOSTS)):
+            host = HOSTS[i]
+
             auth = node_singleton.get_auth_for_host(host)
-        
+            url = node_singleton.get_host_for_index(i)
+
             try:
-                authors_url = f"{host}/authors/"
-                response = requests.get(authors_url, auth=HTTPBasicAuth(auth[0], auth[1]))
+                authors_url = f"{url}/authors/"
+
+                headers={"Accept": "application/json"}
+                if i == 1:
+                    headers["Referer"] = node_singleton.get_host_for_index(0)
+                    
+                response = requests.get(authors_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
 
                 if response.ok:
                     authors = response.json()
@@ -90,26 +99,49 @@ class PostCache(Cache):
     # TODO grab all local then mess with remotes
     def update(self):
         author_cache = AuthorCache()
+        node_singleton = Nodes()
 
         for author, details in author_cache.items():
             try:
                 if details['host'] == ENDPOINT:
+                    for post in Posts.objects.all():
+                        self.cache[post.uuid] = format_local_post(post)
                     
-                    posts_url = f"{details['host']}authors/{author}/posts?page=1&size=100"
-                    host = details['host'] if details['host'][-1] != "/" else details['host'][:-1]
+                elif strip_slash(details['host']) == HOSTS[1]:
+                    index = HOSTS.index(strip_slash(details['host']))
 
-                # auth = get_auth_for_host(host)
-                
-                response = requests.get(posts_url)
-                if response.ok:
-                    posts = response.json()
-                    
-                    for post in posts["items"]:
-                        uuid = get_id_from_url(post["id"])
-                        self.cache[uuid] = post
+                    endpoint = node_singleton.get_host_for_index(index)
+                    auth = node_singleton.get_auth_for_host(details["host"])
+                    print(endpoint)
+                    headers = {"Accept": "application/json", "Referer": node_singleton.get_host_for_index(0)}
+                    posts_url = f"{endpoint}/authors/{author}/posts/"
+                    print(posts_url)
+
+                    try:
+                        response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                        if response.ok:
+                            posts = response.json()
+                            
+                            for post in posts:
+                                uuid = get_id_from_url(post["id"])
+                                try:
+                                    url = f"{post['id']}/likes/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        likes = response.json()
+                                        post["likeCount"] = len(likes)
+                                except:
+                                    post["likeCount"] = 0
+                                self.cache[uuid] = post
+
+                    except Exception as e:
+                        print(e)
+                        continue
             except Exception as e:
                 print(e)
-                continue
+        
+        # print(self.cache)
 
 # NODE DATA SINGLETON - for peer-to-peer requests and connection
 # ====================================================================================================
@@ -123,6 +155,10 @@ class Nodes():
             cls._instance.init = False
             cls._instance.data = []
         return cls._instance
+
+    def get_host_for_index(self, index):
+        try: return Node.objects.get(index=index).host
+        except: return None
 
     def get_values(self):
         self.initialize_values()
@@ -143,9 +179,9 @@ class Nodes():
     
     def get_auth_for_host(self, host):
         self.initialize_values()
-
+        
         for node in self.data:
-            if node["host"] == host:
+            if node["host"].startswith(host):
                 return (node["username"], node["password"])
         return None
 
