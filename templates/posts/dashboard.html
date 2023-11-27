@@ -193,7 +193,7 @@
                 </section>
                 <section id="post_body">
                     <h1>{{ post.title }}</h1>
-                    <p class="body_style">{{ post.content }}</p>
+                    <p class="body_style">{{ post.content|safe}}</p>
                 </section>
                 {% for image in all_posts %}
                     {% if image.uuid == post.uuid|add:"_pic" %}

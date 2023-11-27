@@ -19,6 +19,7 @@ from django.http import HttpResponse
 from django.core.serializers import serialize
 import markdown2 as md
 
+
 class PostCreate(CreateView):
     model = Posts
     template_name = "posts/create.html"
@@ -72,7 +73,7 @@ def update_or_create_post(request, post_uuid):
 
     post.title =md.markdown(request.POST.get('title'))
     post.description = md.markdown(request.POST.get('description'))
-    post.content = md.markdown(request.POST.get('content'))
+    post.content = request.POST.get('content')
     post.categories = request.POST.get('categories')
     post.comments = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}/comments"
     post.visibility = request.POST.get('visibility')
@@ -351,6 +352,7 @@ def api_posts(request, uuid, post_id):
             return Response(serializer.data)
         
         return Response(status=400, data=serializer.errors)
+
 
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
 def get_image_post(request, uuid, post_id):
