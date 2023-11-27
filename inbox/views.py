@@ -6,7 +6,7 @@ from pages.seralizers import AuthorUserSerializerDB, CommentSerializer, FollowRe
 from pages.util import AuthorDetail
 from posts.models import Comments, Likes, Posts
 from posts.serializers import PostsSerializer
-from posts.views import format_local_post, get_object_type
+from posts.views import format_local_post, format_local_post_from_db, get_object_type
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -19,7 +19,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from util import get_id_from_url, get_part_from_url, strip_slash
 from requests.auth import HTTPBasicAuth
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 
 # VIEW LOGIC FUNCTIONS
 # ============================================================================================================================================================
@@ -53,6 +53,27 @@ def follow_request_handler(request):
         print(e)
         return JsonResponse({"status": "error"}, status=400)
 
+def inbox_post(request, author_id, inbox_index):
+    try: author = AuthorUser.objects.get(uuid=author_id)
+    except: return Response(status=404)
+    
+    try: inbox = Inbox.items.get(author=author)
+    except: return Response(status=404)
+    
+    if inbox_index > (len(inbox.items) - 1):
+        return Response(status=404)
+
+    inbox_item = inbox.items[inbox_index]
+
+    item_type = inbox_item["type"]
+    if item_type == "post":
+        
+        format_local_post_from_db()
+    elif item_type == "comment":
+        pass
+    elif item_type == "like":
+        pass
+        
 
 def inbox_view(request):
     return render(request, 'inbox.html', {})
