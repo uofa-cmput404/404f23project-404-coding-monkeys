@@ -487,7 +487,7 @@ def api_follow_list(request, uuid):
         for follower in follow_list.followers:
             formatted.append(author_cache.get(follower["uuid"]))
 
-        return {"type": "followers", "items": formatted}
+        response = {"type": "followers", "items": formatted}
     # case if author has no followers yet
     except Followers.DoesNotExist:
         response = {"type": "followers", "items": []}
