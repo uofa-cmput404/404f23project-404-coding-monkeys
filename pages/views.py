@@ -1,16 +1,11 @@
 import json
-import enum
-from turtle import pen
-from venv import create
 from django.http import HttpResponse
 
-from django.middleware.csrf import get_token
 from django.forms.models import model_to_dict
 from django.views.generic import TemplateView, ListView, DetailView
 from accounts.models import AuthorUser, FollowRequests, Followers
 
 # wip
-from django.core import serializers
 from django.shortcuts import get_object_or_404, redirect, render 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
@@ -25,7 +20,7 @@ from connections.caches import AuthorCache, Nodes
 from inbox.views import api_inbox
 
 
-from .util import AuthorDetail
+from util import AuthorDetail
 from .seralizers import AuthorDetailSerializer, AuthorUserSerializer, FollowRequestsSerializer, FollowerListSerializer, AuthorUserReferenceSerializer, ResponseAuthorsSerializer, ResponseFollowersSerializer
 from static.vars import ENDPOINT, HOSTS
 from util import get_id_from_url
@@ -66,47 +61,21 @@ def list_profiles(request):
     searchbar_is_used=False
 
     if request.method == "POST":#if the search bar is used
-        all_authors = []
         search_text=request.POST['search_bar']#get the string from the search bar
-        usernames_found=AuthorUser.objects.filter(username__startswith=search_text)#go through our usernames in AuthorUser to find matches! Note: can be "__contains" instead
         searchbar_is_used=True
 
+    author_cache = AuthorCache()
+    toReturn = []
 
-
-
-    # for all connected hosts
-    for host in HOSTS:
-        full_url = host + url
-        headers = {"Accept": "application/json"}
-
-        auth = nodes.get_auth_for_host(host)
-        # send request to get list of profiles
-        response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
-
-        # if 2XX response code
-        if response.ok:
-            authors = response.json().get("items")
-            # iterate through authors and check that they are valid using serializer, exclude authors that are deemed invalid (missing or misformed data)
-            for author in authors:
-                serializer = AuthorUserReferenceSerializer(data=author)
-                if not serializer.is_valid():
-                    continue
-                valid_author = serializer.validated_data
-                valid_author["uuid"] = get_id_from_url(valid_author["url"])
-                
-                if(searchbar_is_used==True):
-                    for username in usernames_found:
-                        if(str(username) == valid_author["displayName"]):
-                            #print("match!",str(username),valid_author["displayName"])
-                    
-                            all_authors.append(valid_author)
-                else:
-                
-                    all_authors.append(valid_author)
-        
+    if searchbar_is_used == True:
+        for author in author_cache.values():
+            if author["displayName"].find(search_text) > -1:
+                toReturn.append(author)
+    else:
+        toReturn = author_cache.values()
     
-        #return the output in render as 'usernames_found'
-    return render(request, 'listprofiles.html', {'authors_list': all_authors, 'search_text':search_text})
+    return render(request, 'listprofiles.html', {'authors_list': toReturn, 'search_text':search_text})
+
 
 @DeprecationWarning
 class AuthorDetailView(DetailView): # basic generic view that just displays template
@@ -167,59 +136,88 @@ def get_author_detail(request):
 
 def render_author_detail(request, host_id, uuid):
     # grab the author information
-    path = HOSTS[host_id] + "/authors/" + uuid + "/"
+
+    gathered_all_info = True
+
     nodes = Nodes()
     auth = nodes.get_auth_for_host(HOSTS[host_id])
-    response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
+    headers = {"Accept": "application/json"}
 
-    if response.ok:
-        author = response.json()
-        # already validated from the originating view, so do not have to check for serialization
-        author["uuid"] = get_id_from_url(author["url"])
-    else:
+    try:
+        if host_id == 1:
+            headers["Referer"] = nodes.get_host_for_index(0)
+
+        url = nodes.get_host_for_index(host_id)
+        path = url + "/authors/" + uuid + "/"
+        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+        if response.ok:
+            author = response.json()
+            # already validated from the originating view, so do not have to check for serialization
+            author["uuid"] = uuid
+        else:
+            # TODO render and error page
+            return HttpResponse(content="Author not found", status=response.status_code)
+    except:
         # TODO render and error page
-        return HttpResponse(content="Author not found", status=response.status_code)
+        return HttpResponse(content="Author not found", status=404)
 
     # grab the followers information
     all_followers = []
 
-    path = HOSTS[host_id] + "/authors/" + uuid + "/followers/"
-    response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
-    if response.ok:
-        followers = response.json()
-        for follower in followers["items"]:
-            # serialize to check if everything is in expected format
-            serializer = AuthorUserReferenceSerializer(data=follower)
-            # exclude if invalid
-            if not serializer.is_valid():
-                continue
-            # assign uuid from full url
-            valid_follower = serializer.validated_data
-            valid_follower["uuid"] = get_id_from_url(valid_follower["url"])
-            # append valid follower to list to pass into view
+    try:
+        path = url + "/authors/" + uuid + "/followers/"     
+        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+        if response.ok:
+            followers = response.json()
+            for follower in followers["items"]:
+                try:
+                    # serialize to check if everything is in expected format
+                    serializer = AuthorUserReferenceSerializer(data=follower)
+                    # exclude if invalid
+                    if not serializer.is_valid():
+                        continue
+                    # assign uuid from full url
+                    valid_follower = serializer.validated_data
+                    valid_follower["uuid"] = get_id_from_url(valid_follower["url"])
+                    # append valid follower to list to pass into view
 
-            # grab the latest profile image
-            path = HOSTS[host_id] + "/authors/" + valid_follower["uuid"] + "/"
-            response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
-            # if response was good, get pfp from response data
-            if response.ok:
-                data = response.json()
-                valid_follower["profileImage"] = data.get("profileImage")
+                    # grab the latest profile image
+                    path = url + "/authors/" + valid_follower["uuid"] + "/"
+                    response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                    # if response was good, get pfp from response data
+                    if response.ok:
+                        data = response.json()
+                        valid_follower["profileImage"] = data.get("profileImage")
 
-            all_followers.append(valid_follower)
+                    all_followers.append(valid_follower)
+                except Exception as e:
+                    gathered_all_info = False
+                    print(e)
+
+    except Exception as e:
+        gathered_all_info = False
+        print(e)
 
     # check if we are following the user in view
     following = False
-    path = HOSTS[host_id] + "/authors/" + uuid + "/followers/" + request.user.uuid + "/"
-    response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]))
-    if response.ok:
-        following = True                            
+    try:
+        path = url + "/authors/" + uuid + "/followers/" + request.user.uuid + "/"
+        
+        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+        if host_id == 0 and response.ok:
+            following = True
+        elif host_id == 1 and response.ok:
+            following = response.json()["is_follower"]
+    except:
+        following = False
+        gathered_all_info = False                   
 
     # check if we have a request for the user in view
     follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)
     requested = len(follow_rq) > 0
 
-    return render(request, 'authorprofile.html', {'author': author, 'followers': all_followers, 'already_following': following, 'pending_request': requested})
+    return render(request, 'authorprofile.html', {'author': author, 'followers': all_followers, 'already_following': following, 'pending_request': requested, 'missing_info': not gathered_all_info})
 
 
 # We've switched to inbox view for this
@@ -486,23 +484,19 @@ def api_all_authors(request):
 @permission_classes([IsAuthenticated])
 def api_follow_list(request, uuid):
     author = get_object_or_404(AuthorUser, uuid=uuid)
+    author_cache = AuthorCache()
     try: 
-        followers = Followers.objects.get(author=author)
+        follow_list = Followers.objects.get(author=author)
         formatted = []
-        for follower in followers:
-            ad = AuthorDetail()
-            ad.setMapping(follower)
-            formatted.append(ad.formatAuthorInfo())
+        for follower in follow_list.followers:
+            formatted.append(author_cache.get(follower["uuid"]))
 
-        serializer = AuthorDetailSerializer(data=formatted, many=True)
-        if not serializer.is_valid():
-            return Response(status=500, data="Server Error")
-        
-        return {"type": "followers", "items": serializer.data}
+        response = {"type": "followers", "items": formatted}
     # case if author has no followers yet
     except Followers.DoesNotExist:
         response = {"type": "followers", "items": []}
-    except:
+    except Exception as e:
+        print(e)
         return Response(status=500, data="Something went wrong")
     
     return Response(response)
@@ -563,34 +557,35 @@ def api_foreign_follower(request, uuid, foreign_author_id):
     elif request.method == "PUT":
         # this is expecting the request body to be the json of the follower, as per the spec
 
-        if not request.user.is_authenticated:
-            return Response(status=401, data="You must be logged in to follow someone")
+        if request.user.uuid != uuid:
+            return Response(status=401, data="Unauthorized")
         
         if found:
-            return Response(status=400, data="You are already following this user")
+            return Response(status=400, data="This user is already following you")
         
-        new_follower = get_follower_info(request)
-        serializer = FollowerSerializer(data=new_follower, partial=True)
+        author_cache = AuthorCache()
+        follower = author_cache.get(foreign_author_id)
 
-        if not serializer.is_valid():
-            return Response(status=400, data=serializer.errors)
-        
-        new_follower = serializer.validated_data
+        ad = AuthorDetail()
+        ad.setMappingFromAPI(follower)
+        follower_db_data = ad.formMapping()
+
         if noFollowers:
-            followers = Followers.objects.create(author=author, followers=[new_follower])
+            followers = Followers.objects.create(author=author, followers=[follower_db_data])
         else:
-            followers.followers.append(new_follower)
+            followers.followers.append(follower_db_data)
 
         followers.save()
         # respond with 200 and the follower json
-        return Response(status=200, data=new_follower)
+        return Response(status=200, data=follower)
         
     elif request.method == "DELETE":
-        if not request.user.is_authenticated:
-            return Response(status=401, data="You must be logged in to unfollow someone")
+        
+        if request.user.uuid != uuid and request.user.uuid != foreign_author_id:
+            return Response(status=401, data="Unauthorized")
         
         if not found:
-            return Response(status=400, data="You are not following this user")
+            return Response(status=404, data="You are not following this user")
         
         follower = followers.followers[index]
         followers.followers.pop(index)
