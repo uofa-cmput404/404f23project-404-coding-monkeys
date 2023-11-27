@@ -888,7 +888,7 @@ def api_post_likes(request, uuid, post_id):
     if post.visibility != "PUBLIC":
         return Response(status=404)
 
-    likes = Likes.objects.filter(liked_object_type="post", liked_id=post_id)
+    likes = Likes.objects.filter(liked_object_type="post", liked_id=post_id).exclude(author_uuid=uuid)
     formatted = []
     for like in likes:
         formatted.append({
@@ -928,7 +928,7 @@ def api_comment_likes(request, uuid, post_id, comment_id):
     post = get_object_or_404(Posts, uuid=post_id)
     comment = get_object_or_404(Comments, uuid=comment_id)
 
-    likes = Likes.objects.filter(liked_object_type="comment", author_uuid=uuid, liked_id=comment_id)
+    likes = Likes.objects.filter(liked_object_type="comment", liked_id=comment_id).exclude(author_uuid=uuid)
     formatted = []
     for like in likes:
         formatted.append({
