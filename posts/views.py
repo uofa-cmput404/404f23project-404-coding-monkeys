@@ -271,6 +271,43 @@ def post_stream(request):
 
     return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts})
 
+def update_post_with_like_count_from_API(post):
+    #Takes a post object and updates the like count property based on the number of likes returned by the API
+    #This will allow us to remove the likeCount field from our database (eventually)
+
+    #For now this only works for public posts
+    if post.visibility != 'PUBLIC': return post
+
+    nodes = Nodes() 
+
+    print(f"Type of post: {type(post)}")
+    print(f"Initial post Likecount: {post.likeCount}")
+
+    endpoint_tmp = ENDPOINT
+    if endpoint_tmp.endswith('/'): endpoint_tmp = endpoint_tmp[:-1] #Safety for trailing /
+    linkToPost = f"{endpoint_tmp}/authors/{post.author_uuid}/posts/{post.uuid}"
+
+    print(f"Link to post: {linkToPost}")
+
+    #Get list of likes from the current user
+    full_url = f"{linkToPost}/likes"
+    headers = {"accept": "application/json"}
+    auth = nodes.get_auth_for_host(endpoint_tmp)
+    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    if not response.ok: print(f"API error when gathering list of likes for post with UUID: {post.uuid}")
+    returned_likes = response.json()
+
+    print(json.dumps(returned_likes, indent=2))
+    print(len(returned_likes["items"]))
+
+    post.likeCount = len(returned_likes["items"])
+
+
+    print()
+    return post
+
+
+
 def view_posts(request):
     author_id = request.user.uuid
     viewable = []
@@ -304,8 +341,10 @@ def view_posts(request):
 
     formatted = []
     for post in viewable:
+        post = update_post_with_like_count_from_API(post)
         post_data = format_local_post_from_db(post)
         formatted.append(post_data)
+        #TODO: Get like count from API here
 
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
@@ -853,7 +892,7 @@ def api_post_likes(request, uuid, post_id):
     if post.visibility != "PUBLIC":
         return Response(status=404)
 
-    likes = Likes.objects.filter(liked_object_type="post", author_uuid=uuid, liked_id=post_id)
+    likes = Likes.objects.filter(liked_object_type="post", liked_id=post_id)
     formatted = []
     for like in likes:
         formatted.append({
