@@ -40,8 +40,6 @@ Helpful info for testing:
 User Logins:
 * Username: TestUser1, Password: helloPassword7&
 * Username: TestUser2, Password: helloPassword7&
-* Username: LocalUser1, Password: helloPassword7&
-* Username: LocalUser2, Password: helloPassword7&
 
 Helpful info for Database Development:
 * Content types:
