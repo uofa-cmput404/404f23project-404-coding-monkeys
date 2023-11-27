@@ -332,7 +332,7 @@ def view_posts(request):
 
     formatted = []
     for post in viewable:
-        post = update_post_with_like_count_from_API(post) #This replaces the likeCount value from the database with a value from the api. Note, this is SLOW (One api call per post)
+        # post = update_post_with_like_count_from_API(post) #This replaces the likeCount value from the database with a value from the api. Note, this is SLOW (One api call per post)
         post_data = format_local_post_from_db(post)
         formatted.append(post_data)
 
