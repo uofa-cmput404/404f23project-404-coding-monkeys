@@ -1,5 +1,4 @@
 import datetime
-import re
 import json
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
@@ -34,8 +33,6 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import copy
 from requests.auth import HTTPBasicAuth
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from connections.caches import Nodes
 
 
