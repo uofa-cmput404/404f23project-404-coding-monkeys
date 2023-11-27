@@ -135,11 +135,10 @@ class Nodes():
 
         cipher_suite = Fernet(settings.FERNET_KEY)
         for node in Node.objects.all():
-            print(type(node.password))
             self.data.append({
                 "host": node.host,
                 "username": node.username,
-                "password": cipher_suite.decrypt(node.password).decode()
+                "password": cipher_suite.decrypt(node.password.tobytes()).decode()
             })
     
     def get_auth_for_host(self, host):
