@@ -8,26 +8,81 @@
 {% block css %}
 <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock css %}
 
 
 
 {% block content %}
-<ul style="list-style-type: none; padding:8px; padding-left:20px">
-<h2 style="padding-left:20px; padding-bottom:10px;"><u>List of Users</u></h2>
-{% for author in authors_list %}
-    
-    <div class="list_profiles_gradience"></div>
 
-    <div class="userProfile_List_of_Users" style="display: flex; flex-direction: column; padding:15px; padding-left:45px; ">
-        <a href="{% url 'author_profile' uuid=author.uuid %}" style="max-width:95px; max-height: 95px; border-radius:35px;"> <!--This is so that you can click on profile icon as a link!-->
-            <li> <img src="{{ author.profile_image }}" class="user_icon" style="width: 90px; height: 90px; border-color:#FFD553;"> </li>
-        </a>
-        <li><a href="{% url 'author_profile' uuid=author.uuid %}" style=" word-break:break-all; font-size:20px;">{{ author.username }}</a></li>
-    </div>
-{% empty %}
-    <li>No users yet. Database must be empty.</li>
-{% endfor %}
+<script>
+    $(document).ready(function () {
+        var csrfToken = $('meta[name=csrf-token]').attr('content');
+
+        $(".userProfile_List_of_Users").click(function () {
+
+            var get_url = $(this).data("get-url");
+            var host = $(this).data("host");
+
+            $.ajax({
+                url: "/authors/profile/determine-args/",
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                data: {
+                    get_url: get_url,
+                    host : host,
+                },
+                success: function(data) {
+                    json_data = JSON.parse(data);
+                    // console.log(json_data.host_index);
+                    var index = json_data.host_index;
+                    var uuid = json_data.uuid;
+                    window.location.href = "/authors/" + index + "/" + uuid + "/";
+                },
+                error: function(data) {
+                    console.log("error");
+                }
+            });
+
+        });
+    });
+</script>
+
+
+<ul style="list-style-type: none; padding:8px; padding-left:20px">
+
+        <h2 style="padding-left:15x; padding-bottom:15px;"><u>List of Users</u></h2>
+        <form method=POST action="{%url 'authors_list' %}">
+            {%csrf_token%}
+            <div class="row-flex" style=" justify-self:left; margin-bottom:20px;">
+                <input type="search" placeholder="Search Usernames..." style="max-width:400px; height:40px;" name="search_bar">
+            
+                <button style="margin-left: 20px;" 
+                class="search_ListProfiles_button" type="submit">Search</button>
+            </div>
+        </form>
+  
+
+
+
+    {% for author in authors_list %}
+            
+        <div class="list_profiles_gradience"></div>
+
+        <div class="userProfile_List_of_Users" data-host="{{ author.host }}" data-get-url="{{ author.id }}" style="display: flex; flex-direction: column; padding:15px; padding-left:45px; ">
+            <li> <img src="{{ author.profileImage }}" class="user_icon" style="width: 90px; height: 90px; border-color:#FFD553;"> </li>
+            <li>{{ author.displayName }}</li>
+        </div>
+        {% empty %}
+            <li style="padding-left:20px;">No Users Found</li>
+    {% endfor %}
+
+
+
+
 </ul>
 {% endblock content %}
 

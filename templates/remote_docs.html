@@ -1,0 +1,498 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Api</title>
+        <meta charset='utf-8'/>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap" rel="stylesheet">
+        <style>
+pre {
+    background-color: #333;
+    border-radius: 5px;
+    padding: 2px;
+    margin: 2px;
+}
+
+h1, h2, h3, h4 {
+    font-weight: normal;
+    color: #ff6259;
+}
+h4 {
+    color: #ffa39e;
+}
+h3 {
+    color: #8cffbc
+}
+
+body {
+    line-height: 1.6;
+    font-family: 'Lalezar', sans-serif;
+    font-size: 16px;
+    background-color: #1C1A19;
+    color:white
+}
+
+p, ul {
+    font-family: 'Lalezar', sans-serif;
+    color: white;
+}
+
+th, td {
+    border: 1px solid white;
+    padding: 8px;
+    text-align: left;
+    font-weight: light;
+}
+
+th {
+    font-weight: normal;
+    color: #ff6259;
+}
+
+p strong {
+    color: #ffa39e;
+    font-weight: normal;
+}
+a {
+    color: #8cffbc;
+    font-weight: normal;
+}
+
+code {
+    background-color: #333;
+    color: #8cffbc;
+    border-radius: 5px;
+    font-size: 14px;
+    padding: 2px;
+    margin: 2px;
+}
+
+</style>
+    </head>
+    <body>
+<h1 data-heading="Remote API Extra Documentation">Remote API Documentation</h1>
+
+<br></br>
+<h2 data-heading="Notes">Response Codes</h2>
+<hr>
+<ul>
+<li><code>2XX</code> for success</li>
+<li><code>401</code> if authentication/cookie is required</li>
+<li><code>404</code> if the resource you are trying to access does not exist</li>
+<li><code>500</code> if a server error occurred</li>
+</ul>
+
+<br></br>
+<h2 id="AuthCookie" data-heading="Authentication Cookie">Authentication Cookie</h2>
+<hr>
+<p>Our webservice utilizes cookies to gather user information from remote servers. Typically, cookies should be re-assigned per request and only be active for a short period of time. To make your life easier, though, a cookie will only need to be established after a user successfully logs in to your server. This cookie is used to identify users for remote requests and will not need to be explicitly included in any of the API calls.</p>
+<br>
+<h3 data-heading="Request Items">Request Items</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>ID of the Author</td>
+</tr>
+<tr>
+<td>username</td>
+<td>the display name of the author</td>
+</tr>
+<tr>
+<td>host</td>
+<td>the home host of the author</td>
+</tr>
+<tr>
+<td>url</td>
+<td>url to the author's profile</td>
+</tr>
+</tbody>
+</table>
+<br>
+<p><strong>Request URL</strong>: <code>http://chimp-chat.win/api/token/</code><br>
+<strong>Method</strong>: POST<br>
+<strong>Description</strong>: POST to this URL after every successful authentication in your server. The request body contains information about the user who logged in.<br>
+<strong>Example Request Body:</strong></p>
+<pre><code>{
+	"user_id" : "1c946b62-e7ca-4d05-8f1d-8e25b6f214c5",
+	"username" : "user1",
+	"host" : "http://server",
+	"url" : "http://server/authors/1c946b62-e7ca-4d05-8f1d-8e25b6f214c5"
+}
+</code></pre>
+<br>
+<p><strong>Example Response Body</strong>:</p>
+<pre><code>{
+  "message": "Succesfully set cookie."
+}
+</code></pre>
+
+<br></br>
+<h2 id="Inbox" data-heading="Inbox">Inbox</h2>
+<hr>
+<p><strong>Request URL</strong>: <code>http://chimp-chat.win/authors/{author_id}/inbox</code><br>
+<strong>Method</strong>: POST<br>
+<strong>Description</strong>: Send an object to author with `author_id`<br>
+<br></br>
+<h3 id="FollowRequests" data-heading="Sending a Follow Request">Sending a Follow Request</h3>
+<h4 data-heading="Request Items">Request Items</h4>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>"Follow"</td>
+</tr>
+<tr>
+<td>summary</td>
+<td>summary of friend request</td>
+</tr>
+<tr>
+<td>actor</td>
+<td>friend request sender</td>
+</tr>
+<tr>
+<td>object</td>
+<td>friend request recipient</td>
+</tr>
+</tbody>
+</table>
+<br>
+<h4>Example Request Body</h4>
+<pre><code>{
+    "type": "Follow",      
+    "summary":"Lara wants to follow Greg",
+    "actor":{
+        "type":"author",
+        "id":"http://socialdistribution/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+        "host":"http://socialdistribution/",
+        "displayName":"Lara Croft",
+        "url":"http://socialdistribution/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+        "github": "http://github.com/laracroft",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "object":{
+        "type":"author",
+        "id":"http://www.chimp-chat.win/authors/d5a40a82-d7cb-48f6-9436-14c2937a76f2",
+        "url":"http://www.chimp-chat.win/authors/d5a40a82-d7cb-48f6-9436-14c2937a76f2",
+        "host":"http://www.chimp-chat.win/",
+        "displayName":"Greg Johnson",
+        "github": "http://github.com/gjohnson",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    }
+}
+    
+</code></pre>
+<p><strong>Example Response Body</strong>: if the POST was successful, you should receive a <code>2XX</code> status and a response body that displays the newly created object (it should match the request body).</p>
+<br></br>
+<h3 id="Posts" data-heading="Sending a Post">Sending a Post Object</h3>
+<h4 data-heading="Response Items">Response Items</h4>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>"post"</td>
+</tr>
+<tr>
+<td>title</td>
+<td>title of the post</td>
+</tr>
+<tr>
+<td>id</td>
+<td>ID of the post (URL)</td>
+</tr>
+<tr>
+<td>source</td>
+<td>most recent source</td>
+</tr>
+<tr>
+<td>origin</td>
+<td>original source</td>
+</tr>
+<tr>
+<td>description</td>
+<td>a brief description of the post</td>
+</tr>
+<tr>
+<td>contentType</td>
+<td>the content type of the post</td>
+</tr>
+<tr>
+<td>content</td>
+<td>the content of the post</td>
+</tr>
+<tr>
+<td>author</td>
+<td>information about the author</td>
+</tr>
+<tr>
+<td>author.type</td>
+<td>type of object, in our case "author"</td>
+</tr>
+<tr>
+<td>author.id</td>
+<td>ID of the Author</td>
+</tr>
+<tr>
+<td>author.host</td>
+<td>the home host of the author</td>
+</tr>
+<tr>
+<td>author.displayName</td>
+<td>the display name of the author</td>
+</tr>
+<tr>
+<td>author.url</td>
+<td>url to the author's profile</td>
+</tr>
+<tr>
+<td>author.github</td>
+<td>HATEOS URL for Github API</td>
+</tr>
+<tr>
+<td>author.profileImage</td>
+<td>Image from a public domain</td>
+</tr>
+<tr>
+<td>categories</td>
+<td>categories this post fits into (a list of strings)</td>
+</tr>
+<tr>
+<td>count</td>
+<td>total number of comments for this post</td>
+</tr>
+<tr>
+<td>comments</td>
+<td>URL for the comments</td>
+</tr>
+<tr>
+<td>commentsSrc</td>
+<td>we included this key, but we do not utilize it; it will always be <code>{}</code></td>
+</tr>
+<tr>
+<td>published</td>
+<td>ISO 8601 TIMESTAMP for when the post was published</td>
+</tr>
+<tr>
+<td>visibility</td>
+<td>visibility of the post ("PUBLIC", "FRIENDS", "PRIVATE")</td>
+</tr>
+<tr>
+<td>unlisted</td>
+<td>whether the post is unlisted (true/false)</td>
+</tr>
+</tbody>
+</table>
+<br>
+<h4>Example Request Body</h4>
+<pre><code>{
+&nbsp; &nbsp; "type":"post",
+&nbsp; &nbsp; "title":"First Post",
+&nbsp; &nbsp; "id":"http://www.chimp-chat.win/authors/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9/posts/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9",
+&nbsp; &nbsp; "source":"http://lastplaceigotthisfrom.com/posts/yyyyy",
+&nbsp; &nbsp; "origin":"http://whereitcamefrom.com/posts/zzzzz",
+&nbsp; &nbsp; "description":"This post discusses stuff -- brief",
+&nbsp; &nbsp; "contentType":"text/plain",
+&nbsp; &nbsp; "content":"My first post!",
+&nbsp; &nbsp; "author": {
+    &nbsp; &nbsp; &nbsp; "type": "author",
+    &nbsp; &nbsp; &nbsp; "id": "http://www.chimp-chat.win/authors/30d89519-b7e0-4b8f-9b09-5c0b8a90d1f3",
+    &nbsp; &nbsp; &nbsp; "host": "http://www.chimp-chat.win/",
+    &nbsp; &nbsp; &nbsp; "displayName": "biguser222",
+    &nbsp; &nbsp; &nbsp; "url": "http://www.chimp-chat.win/authors/30d89519-b7e0-4b8f-9b09-5c0b8a90d1f3",
+    &nbsp; &nbsp; &nbsp; "github": "https://github.com/uofa-cmput404/project-socialdistribution/",
+    &nbsp; &nbsp; &nbsp; "profileImage": "https://www.pcgamesn.com/wp-content/sites/pcgamesn/2023/07/team-fortress-2-battle-royale-fps-game-valve-tf2-update-steam.jpg"
+  },
+&nbsp; &nbsp; "categories":["web","tutorial"],
+&nbsp; &nbsp; "count": 1023,
+&nbsp; &nbsp; "comments":"http://www.chimp-chat.win/authors/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9/posts/4e1b44c9-2df6-4e2c-8a19-04a9d1b429c9/comments",
+&nbsp; &nbsp; "commentsSrc": {},
+&nbsp; &nbsp; "published": "2015-03-09T13:07:04+00:00",
+&nbsp; &nbsp; "visibility": "PUBLIC",
+&nbsp; &nbsp; "unlisted": "false"
+&nbsp; &nbsp;}
+</code></pre>
+<p><strong>Example Response Body</strong>: if the POST was successful, you should receive a <code>2XX</code> status and a response body that displays the newly created object (it should match the request body).</p>
+<br></br>
+
+<h3 id="Comments" data-heading="Comments">Sending a Comment Object</h3>
+<h4 data-heading="Request/Response Items">Request/Response Items</h4>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>type of object, in our case "comments"</td>
+</tr>
+<tr>
+<td>page</td>
+<td>page number of the comments</td>
+</tr>
+<tr>
+<td>size</td>
+<td>number of comments per page</td>
+</tr>
+<tr>
+<td>post</td>
+<td>URL of the post associated with the comments</td>
+</tr>
+<tr>
+<td>id</td>
+<td>URL of the comments</td>
+</tr>
+<tr>
+<td>comments</td>
+<td>list of comments</td>
+</tr>
+<tr>
+<td>comments.type</td>
+<td>type of object, in our case "comment"</td>
+</tr>
+<tr>
+<td>comments.author</td>
+<td>information about the comment's author</td>
+</tr>
+<tr>
+<td>comments.author.type</td>
+<td>type of object, in our case "author"</td>
+</tr>
+<tr>
+<td>comments.author.id</td>
+<td>ID of the Comment Author</td>
+</tr>
+<tr>
+<td>comments.author.url</td>
+<td>URL to the author's information</td>
+</tr>
+<tr>
+<td>comments.author.host</td>
+<td>Home host of the author</td>
+</tr>
+<tr>
+<td>comments.author.displayName</td>
+<td>Display name of the author</td>
+</tr>
+<tr>
+<td>comments.author.github</td>
+<td>HATEOS URL for Github API</td>
+</tr>
+<tr>
+<td>comments.author.profileImage</td>
+<td>Image from a public domain</td>
+</tr>
+<tr>
+<td>comments.comment</td>
+<td>the content of the comment</td>
+</tr>
+<tr>
+<td>comments.contentType</td>
+<td>the content type of the comment</td>
+</tr>
+<tr>
+<td>comments.published</td>
+<td>ISO 8601 TIMESTAMP for when the comment was published</td>
+</tr>
+<tr>
+<td>comments.id</td>
+<td>ID of the comment</td>
+</tr>
+</tbody>
+</table>
+<br>
+<h4>Example Request Body</h4>
+<pre><code>{
+      "type": "comment",
+      "author": {
+        "type": "author",
+        "id": "http://www.chimp-chat.win/authors/7bdcfebf-6870-461b-b9ff-4f75f938f4e1",
+        "url": "http://www.chimp-chat.win/authors/7bdcfebf-6870-461b-b9ff-4f75f938f4e1",
+        "host": "http://www.chimp-chat.win/",
+        "github": "https://github.com/sudo",
+        "displayName": "sudo",
+        "profileImage": "https://wiki.teamfortress.com/w/images/thumb/0/0f/Meet_the_Heavy_SFM.png/550px-Meet_the_Heavy_SFM.png"
+      },
+      "comment": "hmmmmm",
+      "contentType": "text/plain",
+      "published": "2023-11-21 04:34:24.883929+00:00",
+      "id": "http://www.chimp-chat.win/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/adsigjdoasig/comments/35f9bb9c-9b3f-4029-8592-05f6db3b4018"
+}
+</code></pre>
+<p><strong>Example Response Body</strong>: if the POST was successful, you should receive a <code>2XX</code> status and a response body that displays the newly created object (it should match the request body).</p>
+<br>
+
+<h3 id="Likes" data-heading="Sending a Like Object">Sending a Like Object</h3>
+<h4 data-heading="Request/Response Items">Request/Response Items</h4>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>"Like"</td>
+</tr>
+<tr>
+<td>summary</td>
+<td>summary of like</td>
+</tr>
+<tr>
+<td>context</td>
+<td>context of like (URL)</td>
+</tr>
+<tr>
+<td>author</td>
+<td>author sending like</td>
+</tr>
+<tr>
+<td>object</td>
+<td>the liked object (URL to a post or comment)</td>
+</tr>
+</tbody>
+</table>
+<br>
+<h4>Example Request Body</h4>
+<pre><code> {
+     "context": "https://www.w3.org/ns/activitystreams",
+     "summary": "Lara Croft Likes your post",         
+     "type": "Like",
+     "author":{
+         "type":"author",
+         "id":"http://remote/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+         "host":"http://remote/",
+         "displayName":"Lara Croft",
+         "url":"http://remote/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+         "github":"http://github.com/laracroft",
+         "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+     },
+     "object":"http://chimp-chat.win/authors/6d44a8df-dc0b-44a1-b3a0-1f6939a949ca/posts/c3b38515-d6da-4c23-9df1-15ac4be5d929"
+}
+</code></pre>
+<p><strong>Example Response Body</strong>: if the POST was successful, you should receive a <code>2XX</code> status and a response body that displays the newly created object (it should match the request body).</p>
+    </body>
+</html>

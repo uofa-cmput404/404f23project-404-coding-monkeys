@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse, resolve
-from .models import AuthorUser
+from .models import AuthorUser, WhitelistController
+from rest_framework import status
 from accounts.views import SignUpView
 
 
@@ -15,71 +16,54 @@ class Author_Tests(TestCase):
     def setUp(self):# THIS MUST BE CALLED "setUp". It is case specific and will not be called it its named something other than "setUp"
         print("accounts/tests.py -> setUp commencing")#setUp will be run again for each test function below.
 
+        
+        #self.signup_url = reverse('signup')#Settup
         self.client = Client()#Settup
-        self.signup_url = reverse('signup')#Settup
+     
+        WhitelistController.objects.create()
+        
+        #AuthorUser.objects.create(username='TestAuthor4', url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg'
+                                  #, github = 'https://github.com/NimaShariatz', password='ffafy1605', email='shariatz@ualberta.ca')
+        
+        self.user1 = AuthorUser.objects.create(
+             username='BananaLover69',
+             password='caffy1605',
+             email='vroom@gmail.com',
+             profile_image='https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg',
+             github='https://github.com/NimaShariatz'
+            
+        )
+        
+        
+        
 
-        #Do this to create the users or objects
-        AuthorUser.objects.create(username='TestAuthor1')
         
-        AuthorUser.objects.create(username='TestAuthor2', url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg')
-                
-        AuthorUser.objects.create(username='TestAuthor3', github = 'https://github.com/NimaShariatz')        
-        
-        AuthorUser.objects.create(username='TestAuthor4', url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg'
-                                  , github = 'https://github.com/NimaShariatz', password='ffafy1605' )
 # Create your tests here.
     def test_author(self):
         print("accounts/tests.py -> test_author commencing")
-    
         
-        user_one= AuthorUser.objects.get(username="TestAuthor1")
-        user_two = AuthorUser.objects.get(username="TestAuthor2")
-        user_three = AuthorUser.objects.get(username="TestAuthor3")
-        user_four = AuthorUser.objects.get(username="TestAuthor4")
+        user_one= AuthorUser.objects.get(username="BananaLover69")
+        
+        
+        self.assertEqual(user_one.username, "BananaLover69")
+        self.assertEqual(user_one.password, "caffy1605")
+        self.assertEqual(user_one.email, "vroom@gmail.com")
+        self.assertEqual(user_one.profile_image, "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg")
+        self.assertEqual(user_one.github, "https://github.com/NimaShariatz")
+        
+        
+
+    def test_login(self):
+        print("accounts/tests.py -> test_login commencing")
 
         
-        self.assertEqual(user_one.username, "TestAuthor1")
-        self.assertEqual(user_one.password, "")
-        self.assertEqual(user_one.url, "")
-        self.assertEqual(user_one.github, None)
+        url = reverse('login')
+        data_from_author= {'username': self.user1.username, 'password':self.user1.password}
         
-        self.assertEqual(user_two.username, "TestAuthor2")
-        self.assertEqual(user_two.password, "")
-        self.assertEqual(user_two.url, "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg")
-        self.assertEqual(user_two.github, None)
-
-
-        self.assertEqual(user_three.username, "TestAuthor3")
-        self.assertEqual(user_three.password, "")
-        self.assertEqual(user_three.url, "")
-        self.assertEqual(user_three.github, "https://github.com/NimaShariatz")
+        response = self.client.post(url, data_from_author)
         
-        self.assertEqual(user_four.username, "TestAuthor4")
-        self.assertEqual(user_four.password, "ffafy1605")
-        self.assertEqual(user_four.url, "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/800px-Banana-Single.jpg")
-        self.assertEqual(user_four.github, "https://github.com/NimaShariatz")
+        print(url)
+        print(data_from_author)
+        print(response)
         
-      
-      
-      
-        
-    def test_link(self):#http://127.0.0.1:8000/accounts/signup/
-        
-        print("accounts/tests.py -> test_link commencing")
-        
-        response1 = self.client.get("/accounts/signup/")
-        self.assertEqual(response1.status_code, 200)
-        
-        response2 = self.client.get(reverse("signup"))#"signup" comes from the name given to the URL at accounts/urls.py
-        self.assertEqual(response2.status_code, 200)
-        self.assertTemplateUsed(response2, "registration/signup.html")#checks if the HTML page used is this one.
-        
-        
-        
-        
-    def test_signup_view(self):
-        print("accounts/tests.py -> test_signup_view commencing")
-        
-        response = self.client.get(self.signup_url)
-        self.assertEquals(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/signup.html")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

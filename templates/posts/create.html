@@ -61,7 +61,7 @@
                 <p class="form_input" style="margin-top:10px;">Share with:</p>
                 <select id="author_dropdown" name="author_list" style="margin-left: 10px; margin-top:5px;">
                     {% for author in author_list %}
-                        <option value="{{ author.id }}">{{ author.username }}</option>
+                        <option value="{{ author.uuid }}">{{ author.displayName }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -85,7 +85,7 @@
                 {{ form.categories }}
             </div>
         </div>
-        <div class=row-flex style="margin-top:15px; height: 100%;">{{ form.content }}</div>
+        <div class="row-flex" style="margin-top:15px; height: 100%;">{{ form.content }}</div>
         <div class="row-flex" style="margin-top:15px;">
             {{ form.picture }}
             <div class="grow-flex"></div>
