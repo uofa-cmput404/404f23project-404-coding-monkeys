@@ -65,8 +65,20 @@ def list_profiles(request):
         usernames_found=AuthorUser.objects.filter(username__startswith=search_text)#go through our usernames in AuthorUser to find matches! Note: can be "__contains" instead
         searchbar_is_used=True
 
+    author_cache = AuthorCache()
+    toReturn = []
 
+    if searchbar_is_used:
+        for author in author_cache.values():
+            if author["displayName"] in usernames_found:
+                toReturn.append(author)
+    else:
+        return author_cache.values()
+    
+    return toReturn
 
+    # we should just be able to rely on author cache; keeping rest of code
+    # for logic in the cache update.
 
     # for all connected hosts
     for host in HOSTS:
