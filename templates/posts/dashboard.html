@@ -19,12 +19,12 @@
 
         $(".like-button").click(function () {
             var post_json = $(this).siblings(".post-data").text(); // get the corresponding post as json from the html
-            var likedDataElement = $(this).siblings(".already-liked");
-            var alreadyLiked = likedDataElement.data('liked');
+            var likeButtonData = $(this).siblings(".like-button-data");
+            var likeButtonAlreadyPressed = likeButtonData.data('already-pressed-this-session');
             var post = JSON.parse(post_json); //parse the json into an object
-            console.log(alreadyLiked);
+            console.log(likeButtonAlreadyPressed);
 
-            if (!alreadyLiked){
+            if (!likeButtonAlreadyPressed){
                 console.log('made it 1')
                 $.ajax({
                     //Send the post data to the backend using a POST command, and specify content is json
@@ -37,7 +37,7 @@
                     //Handle the response data from the server, and update the corresponding like count on the webpage
                     success: function (data) {
                         // Update the like count using the returned value (from the backend)
-                        likedDataElement.data('liked', 'true'); //log that the like button has already been pressed this session
+                        likeButtonData.data('already-pressed-this-session', 'true'); //log that the like button has already been pressed this session
                         console.log('made it 2')
                         $('#result-' + post.uuid).text(data.new_post_count); //Update the like count with whatever the backend returns
                     }
@@ -226,7 +226,7 @@
                     <!-- Post like button -->
                     <button style="padding-top: 10px;" type="button"class="like-button"><i class="material-symbols-outlined">favorite</i></button>
                     <div class="post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the like button -->
-                    <div class="already-liked" style="display: none;" data-liked="false"></div>
+                    <div class="like-button-data" style="display: none;" data-already-pressed-this-session="false"></div>
                     <!-- comment button-->
                     <button style="padding-top: 10px;" type="button"class="comment-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">tooltip</i></button>
                     {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->
