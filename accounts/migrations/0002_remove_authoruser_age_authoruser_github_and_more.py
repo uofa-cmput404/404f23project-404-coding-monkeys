@@ -23,18 +23,18 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='authoruser',
             name='host',
-            field=models.GenericIPAddressField(default='127.0.0.1:8000/'),
+            field=models.GenericIPAddressField(default='127.0.0.1'),
         ),
         migrations.AddField(
             model_name='authoruser',
             name='profile_image',
-            field=models.URLField(default='test'),
+            field=models.URLField(default='http://test'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='authoruser',
             name='url',
-            field=models.URLField(default='test'),
+            field=models.URLField(default='http://test'),
             preserve_default=False,
         ),
         migrations.AlterField(
