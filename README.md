@@ -17,7 +17,7 @@ Authors:
 * Davicheanin Meas(meas@ualberta.ca)
 
 Running Instructions (on the lab machines):
-* Create venv: 
+* Create venv:
     * `python3 -m venv codingMonkeysEnv`
     * `source codingMonkeysEnv/bin/activate`
 * Install Requirements:
