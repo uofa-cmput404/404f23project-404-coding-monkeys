@@ -73,9 +73,9 @@ def list_profiles(request):
             if author["displayName"] in usernames_found:
                 toReturn.append(author)
     else:
-        return author_cache.values()
+        toReturn = author_cache.values()
     
-    return toReturn
+    return render(request, 'listprofiles.html', {'authors_list': toReturn, 'search_text':search_text})
 
     # we should just be able to rely on author cache; keeping rest of code
     # for logic in the cache update.
