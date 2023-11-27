@@ -480,19 +480,14 @@ def api_all_authors(request):
 @permission_classes([IsAuthenticated])
 def api_follow_list(request, uuid):
     author = get_object_or_404(AuthorUser, uuid=uuid)
+    author_cache = AuthorCache()
     try: 
         followers = Followers.objects.get(author=author)
         formatted = []
         for follower in followers:
-            ad = AuthorDetail()
-            ad.setMapping(follower)
-            formatted.append(ad.formatAuthorInfo())
+            formatted.append(author_cache.get(follower["uuid"]))
 
-        serializer = AuthorDetailSerializer(data=formatted, many=True)
-        if not serializer.is_valid():
-            return Response(status=500, data="Server Error")
-        
-        return {"type": "followers", "items": serializer.data}
+        return {"type": "followers", "items": formatted}
     # case if author has no followers yet
     except Followers.DoesNotExist:
         response = {"type": "followers", "items": []}
