@@ -22,10 +22,8 @@
             var likeButtonData = $(this).siblings(".like-button-data");
             var likeButtonAlreadyPressed = likeButtonData.data('already-pressed-this-session');
             var post = JSON.parse(post_json); //parse the json into an object
-            console.log(likeButtonAlreadyPressed);
 
             if (!likeButtonAlreadyPressed){
-                console.log('made it 1')
                 $.ajax({
                     //Send the post data to the backend using a POST command, and specify content is json
                     url: '{% url "like_post" %}',
@@ -38,7 +36,6 @@
                     success: function (data) {
                         // Update the like count using the returned value (from the backend)
                         likeButtonData.data('already-pressed-this-session', 'true'); //log that the like button has already been pressed this session
-                        console.log('made it 2')
                         $('#result-' + post.uuid).text(data.new_post_count); //Update the like count with whatever the backend returns
                     }
                 });
