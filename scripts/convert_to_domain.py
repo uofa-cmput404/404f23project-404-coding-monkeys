@@ -30,7 +30,7 @@ def get_single_column(c: sqlite3.Cursor, table: str, column: str) -> list[tuple[
     """
     Returns a list of all of the values in a single column.
     """
-    rows = c.execute(f"SELECT id,{column} FROM {table} where {column} like ? or {column} like ?", ('%' + 'localhost' + '%', '%' + '127.0.0.1' + '%')).fetchall()
+    rows = c.execute(f"SELECT uuid,{column} FROM {table} where {column} like ?", ('%' + 'chimp-chat.win' + '%',)).fetchall()
     return [(row[0], row[1]) for row in rows]
 
 
@@ -40,13 +40,11 @@ def update_single_column(c: sqlite3.Cursor, table: str, column: str, rows: list[
     Updates the values in a single column.
     """
     try:
-        reg1 = re.compile(r'localhost:\d+')
-        reg2 = re.compile(r'127.0.0.1:\d+')
+        reg1 = re.compile(r'http://www.chimp-chat.win')
         for row_id, row_value in rows:
-            new_value = reg1.sub('www.chimp-chat.win', row_value)
-            new_value = reg2.sub('www.chimp-chat.win', new_value)
-            print(f"UPDATE {table} SET {column} = '{new_value}' WHERE id = {row_id};")
-            c.execute(f"UPDATE {table} SET {column} = ? WHERE id = ?", (new_value, row_id))
+            new_value = reg1.sub('https://chimp-chat-1e0cca1cc8ce.herokuapp.com', row_value)
+            print(f"UPDATE {table} SET {column} = '{new_value}' WHERE uuid = {row_id};")
+            c.execute(f"UPDATE {table} SET {column} = ? WHERE uuid = ?", (new_value, row_id))
         return True
     except sqlite3.Error as e:
         print(f"Error updating database: {e}")
@@ -68,7 +66,10 @@ def convert_single_column(c: sqlite3.Cursor, table: str, column: str) -> bool:
 def main():
 
     columns = {
-        "accounts_authoruser" : ["host", "profile_image", "url"]
+        # "accounts_authoruser" : ["host", "profile_image", "url"]
+        "posts_posts": ["source", "origin"]
+        # "posts_posts": ["source", "origin", "author_host", "author_url", "comments"],
+        # "posts_comments": ["author_host", "author_url"]
     }
 
     con_t = connect_to_db("../db.sqlite3")
