@@ -6,7 +6,7 @@ from accounts.models import AuthorUser
 class Posts(models.Model):
     title = models.CharField(max_length=100)
     # do we want ID as entire URL or just post id?
-    uuid = models.CharField(primary_key=True, unique=True, max_length=36)
+    uuid = models.CharField(primary_key=True, unique=True, max_length=50)
     source = models.URLField()
     origin = models.URLField()
     description = models.CharField(max_length=200)
@@ -18,7 +18,7 @@ class Posts(models.Model):
     # image/jpeg;base64 # this is an embedded jpeg
     contentType = models.CharField(max_length=100)
     content = models.TextField()
-    author_uuid = models.CharField(max_length=36)
+    author_uuid = models.CharField(max_length=50)
     author_local = models.BooleanField(default=False)
     author_url = models.CharField(max_length=100, null=True)
     author_host = models.CharField(max_length=100, null=True)

@@ -73,8 +73,8 @@ def inbox_post(request, author_id, inbox_index):
         pass
     elif item_type == "like":
         pass
-        
 
+    
 def inbox_view(request):
     return render(request, 'inbox.html', {})
 

@@ -551,6 +551,11 @@ def format_local_post(post):
 def test(request):
     return render(request, 'posts/test.html')
 
+def unlisted_post(request, author_uuid, post_uuid):
+    post = Posts.objects.get(uuid=post_uuid)
+    post_data = format_local_post_from_db(post)
+
+    return render(request, 'single_unlisted_post.html', {"post": post_data})
 
 @api_view(['GET'])
 def serve_image(request, uuid, post_id):
