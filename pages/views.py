@@ -482,9 +482,9 @@ def api_follow_list(request, uuid):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     author_cache = AuthorCache()
     try: 
-        followers = Followers.objects.get(author=author)
+        follow_list = Followers.objects.get(author=author)
         formatted = []
-        for follower in followers:
+        for follower in follow_list.followers:
             formatted.append(author_cache.get(follower["uuid"]))
 
         return {"type": "followers", "items": formatted}
