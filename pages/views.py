@@ -1,16 +1,11 @@
 import json
-import enum
-from turtle import pen
-from venv import create
 from django.http import HttpResponse
 
-from django.middleware.csrf import get_token
 from django.forms.models import model_to_dict
 from django.views.generic import TemplateView, ListView, DetailView
 from accounts.models import AuthorUser, FollowRequests, Followers
 
 # wip
-from django.core import serializers
 from django.shortcuts import get_object_or_404, redirect, render 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
