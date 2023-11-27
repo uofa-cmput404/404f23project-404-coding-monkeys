@@ -162,8 +162,8 @@
             var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
             var author_uuid = $(this).data("author-uuid");
             $.ajax({
-                url: "/authors/" + author_uuid + "/posts/" + post_uuid,
-                method: 'DELETE',
+                url: "/posts/" + post_uuid + "/delete",
+                method: 'GET',
                 headers: {
                     'X-CSRFToken': csrfToken
                 },

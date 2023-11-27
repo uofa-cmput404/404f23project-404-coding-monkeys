@@ -52,7 +52,7 @@ class Cache():
     def initialize(self):
         if not self.init:
             self.init = True
-        self.update()
+            self.update()
 
     def update(self):
         pass

@@ -3,6 +3,6 @@
 db.sqlite3
 codingMonkeysEnv/
 static/vars.py
-django_project/settings.py
 scripts/migrate.py
 scripts/load.load
+detect_changes.txt
