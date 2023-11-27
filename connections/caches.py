@@ -135,6 +135,7 @@ class Nodes():
 
         cipher_suite = Fernet(settings.FERNET_KEY)
         for node in Node.objects.all():
+            print(type(node.password))
             self.data.append({
                 "host": node.host,
                 "username": node.username,
