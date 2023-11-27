@@ -1,7 +1,6 @@
 # DFB pg. 177
 from django.urls import path
 from inbox import views
-from pages.views import ListProfilesView, AuthorDetailView, FollowRequestsListView
 
 
 urlpatterns = [

@@ -18,6 +18,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='posts',
             name='uuid',
-            field=models.CharField(max_length=36, serialize=False, null=True),
+            field=models.CharField(max_length=36, serialize=False),
         ),
     ]

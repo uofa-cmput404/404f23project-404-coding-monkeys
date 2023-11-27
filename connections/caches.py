@@ -138,7 +138,7 @@ class Nodes():
             self.data.append({
                 "host": node.host,
                 "username": node.username,
-                "password": cipher_suite.decrypt(node.password).decode()
+                "password": cipher_suite.decrypt(node.password.tobytes()).decode()
             })
     
     def get_auth_for_host(self, host):

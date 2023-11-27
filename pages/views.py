@@ -1,16 +1,11 @@
 import json
-import enum
-from turtle import pen
-from venv import create
 from django.http import HttpResponse
 
-from django.middleware.csrf import get_token
 from django.forms.models import model_to_dict
 from django.views.generic import TemplateView, ListView, DetailView
 from accounts.models import AuthorUser, FollowRequests, Followers
 
 # wip
-from django.core import serializers
 from django.shortcuts import get_object_or_404, redirect, render 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
@@ -70,8 +65,20 @@ def list_profiles(request):
         usernames_found=AuthorUser.objects.filter(username__startswith=search_text)#go through our usernames in AuthorUser to find matches! Note: can be "__contains" instead
         searchbar_is_used=True
 
+    author_cache = AuthorCache()
+    toReturn = []
 
+    if searchbar_is_used:
+        for author in author_cache.values():
+            if author["displayName"] in usernames_found:
+                toReturn.append(author)
+    else:
+        toReturn = author_cache.values()
+    
+    return render(request, 'listprofiles.html', {'authors_list': toReturn, 'search_text':search_text})
 
+    # we should just be able to rely on author cache; keeping rest of code
+    # for logic in the cache update.
 
     # for all connected hosts
     for host in HOSTS:
@@ -487,13 +494,12 @@ def api_follow_list(request, uuid):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     author_cache = AuthorCache()
     try: 
-        followers = Followers.objects.get(author=author)
+        follow_list = Followers.objects.get(author=author)
         formatted = []
-        for row in followers.followers:
-            follower_uuid = row["uuid"]
-            formatted.append(author_cache.get(follower_uuid))
+        for follower in follow_list.followers:
+            formatted.append(author_cache.get(follower["uuid"]))
 
-        return Response({"type": "followers", "items": formatted})
+        response = {"type": "followers", "items": formatted}
     # case if author has no followers yet
     except Followers.DoesNotExist:
         response = {"type": "followers", "items": []}

@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import django_on_heroku
 import datetime
 import os
 from pathlib import Path
@@ -94,8 +94,12 @@ WSGI_APPLICATION = 'django_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'db3rk6t9kn738p',
+        'USER': 'szriwjedgucevi',
+        'PASSWORD': '705e3b2b2bb633f6f0e5897a54144ecf6dea19bdc9030b3bf16f7284e7c7a75f',
+        'HOST': 'ec2-44-206-204-65.compute-1.amazonaws.com',    # Set to your PostgreSQL server's host
+        'PORT': '5432',         # Default PostgreSQL port
     }
 }
 
@@ -159,3 +163,5 @@ REST_FRAMEWORK = {
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+django_on_heroku.settings(locals())
