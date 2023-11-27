@@ -274,20 +274,15 @@ def post_stream(request):
 def update_post_with_like_count_from_API(post):
     #Takes a post object and updates the like count property based on the number of likes returned by the API
     #This will allow us to remove the likeCount field from our database (eventually)
+    #Note this process is SLOW as it makes one API call per post
 
     #For now this only works for public posts
     if post.visibility != 'PUBLIC': return post
 
     nodes = Nodes() 
-
-    print(f"Type of post: {type(post)}")
-    print(f"Initial post Likecount: {post.likeCount}")
-
     endpoint_tmp = ENDPOINT
     if endpoint_tmp.endswith('/'): endpoint_tmp = endpoint_tmp[:-1] #Safety for trailing /
     linkToPost = f"{endpoint_tmp}/authors/{post.author_uuid}/posts/{post.uuid}"
-
-    print(f"Link to post: {linkToPost}")
 
     #Get list of likes from the current user
     full_url = f"{linkToPost}/likes"
@@ -297,16 +292,9 @@ def update_post_with_like_count_from_API(post):
     if not response.ok: print(f"API error when gathering list of likes for post with UUID: {post.uuid}")
     returned_likes = response.json()
 
-    print(json.dumps(returned_likes, indent=2))
-    print(len(returned_likes["items"]))
-
     post.likeCount = len(returned_likes["items"])
 
-
-    print()
     return post
-
-
 
 def view_posts(request):
     author_id = request.user.uuid
@@ -341,10 +329,9 @@ def view_posts(request):
 
     formatted = []
     for post in viewable:
-        post = update_post_with_like_count_from_API(post)
+        post = update_post_with_like_count_from_API(post) #This replaces the likeCount value from the database with a value from the api. Note, this is SLOW (One api call per post)
         post_data = format_local_post_from_db(post)
         formatted.append(post_data)
-        #TODO: Get like count from API here
 
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
@@ -434,7 +421,6 @@ def get_API_formatted_author_dict_from_author_obj(authorObj):
     return formatted_dict
 
 def like_post_handler(request):
-    print (f"Entered Like Handler!")
     nodes = Nodes()
 
     #Get the post object from the front end
