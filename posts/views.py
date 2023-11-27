@@ -417,6 +417,13 @@ def get_API_formatted_author_dict_from_author_obj(authorObj):
 
     return formatted_dict
 
+def single_posts(request):
+  post = Posts.objects.order_by('-published').first()
+  post_data = format_local_post_from_db(post)
+
+  
+  return render(request, "single_unlisted_post.html", {"post": post_data})
+
 def like_post_handler(request):
     nodes = Nodes()
 
