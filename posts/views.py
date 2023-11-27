@@ -33,6 +33,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import copy
 from requests.auth import HTTPBasicAuth
+from connections.caches import Nodes
 
 
 class PostCreate(CreateView):
@@ -60,7 +61,6 @@ def make_new_post(request, form=None):
     elif request.method == 'POST':
         return update_or_create_post(request, None)
         
-
 def get_picture_info(picture):
     image_base64 = base64.b64encode(picture.read()).decode('utf-8')
 
@@ -95,7 +95,7 @@ def update_or_create_post(request, post_uuid):
     post.description = request.POST.get('description')
     post.content = request.POST.get('content')
     post.categories = request.POST.get('categories') if request.POST.get('categories') != "" else []
-    post.comments = f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}/comments"
+    post.comments = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/comments"
     post.visibility = request.POST.get('visibility')
 
     post.save()
@@ -120,7 +120,7 @@ def update_or_create_post(request, post_uuid):
     elif post.visibility == "FRIENDS":
         friends = get_friends(request.user.id)
         try:
-            post_url = f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}"
+            post_url = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
             response = requests.get(post_url)
             if response.ok:
                 payload = response.json()
@@ -147,7 +147,6 @@ def update_or_create_post(request, post_uuid):
         post.save()
 
     return redirect('stream')
-
 
 def edit_post(request, author_id, post_uuid):
     if request.method == 'GET':
@@ -239,7 +238,6 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-
 def time_since_posted(created_at):
     import humanize
     # Parse the created_at timestamp string into a datetime object
@@ -269,6 +267,31 @@ def post_stream(request):
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
 
     return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts})
+
+def update_post_with_like_count_from_API(post):
+    #Takes a post object and updates the like count property based on the number of likes returned by the API
+    #This will allow us to remove the likeCount field from our database (eventually)
+    #Note this process is SLOW as it makes one API call per post
+
+    #For now this only works for public posts
+    if post.visibility != 'PUBLIC': return post
+
+    nodes = Nodes() 
+    endpoint_tmp = ENDPOINT
+    if endpoint_tmp.endswith('/'): endpoint_tmp = endpoint_tmp[:-1] #Safety for trailing /
+    linkToPost = f"{endpoint_tmp}/authors/{post.author_uuid}/posts/{post.uuid}"
+
+    #Get list of likes from the current user
+    full_url = f"{linkToPost}/likes"
+    headers = {"accept": "application/json"}
+    auth = nodes.get_auth_for_host(endpoint_tmp)
+    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    if not response.ok: print(f"API error when gathering list of likes for post with UUID: {post.uuid}")
+    returned_likes = response.json()
+
+    post.likeCount = len(returned_likes["items"])
+
+    return post
 
 def view_posts(request):
     author_id = request.user.uuid
@@ -303,6 +326,7 @@ def view_posts(request):
 
     formatted = []
     for post in viewable:
+        post = update_post_with_like_count_from_API(post) #This replaces the likeCount value from the database with a value from the api. Note, this is SLOW (One api call per post)
         post_data = format_local_post_from_db(post)
         formatted.append(post_data)
 
@@ -337,7 +361,6 @@ def open_comments_handler(request):
         return JsonResponse({'comments': '{}'})
     #TODO: sort newest to oldest?
     return JsonResponse({'comments': json.dumps(serialized.validated_data)})
-
 
 def submit_comment_handler(request):
     post_uuid = request.GET.get('post_uuid', None) #get the post in question
@@ -381,69 +404,78 @@ def get_object_type(url):
     sections = url.split("/")
     return "post" if sections[-2] == "posts" else "comment"
 
+def get_API_formatted_author_dict_from_author_obj(authorObj):
+    formatted_dict = {
+        "type": "author",
+        "id": authorObj.url,
+        "host": authorObj.host,
+        "displayName": authorObj.username,
+        "url": authorObj.url,
+        "github": authorObj.github,
+        "profileImage": authorObj.profile_image
+    }
+
+    return formatted_dict
 
 def single_posts(request):
   post = Posts.objects.order_by('-published').first()
+  post = update_post_with_like_count_from_API(post) #This replaces the likeCount value from the database with a value from the api. Note, this is SLOW (One api call per post)
   post_data = format_local_post_from_db(post)
 
-  
   return render(request, "single_unlisted_post.html", {"post": post_data})
 
-
-
-
 def like_post_handler(request):
-    #The user has clicked the like button for a post.
+    nodes = Nodes()
 
-    post_uuid = request.GET.get('post_uuid', None) #get the post in question
-    author = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
+    #Get the post object from the front end
+    post = json.loads(request.body).get('post', {})
 
-    #read the post (whose like button the user clicked) object from db
-    try: post = Posts.objects.get(uuid=post_uuid)
-    except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
+    #gather the host of the post
+    post_host = post['author']['host']
+    if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
-    #get list of all of the current user's likes
-    likes = Likes.objects.filter(author_uuid=request.user.uuid)
+    #Get current user info
+    currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
+    currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
 
-    #find out if user has already liked this post
-    alreadyLikedPost = False
-    existingLikeObj = None
-    for like in likes:
-        if like.liked_object.endswith(post.uuid):
-            alreadyLikedPost = True
-            existingLikeObj = like
+    #Get list of likes from the current user
+    full_url = f"{post_host}/authors/{currUser.uuid}/liked/"
+    headers = {"accept": "application/json"}
+    auth = nodes.get_auth_for_host(post_host)
+    # print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
+    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
+    returned_likes = response.json()
+    
+    #Determine if the current user has already liked the post
+    post_already_liked = False
+    for like in returned_likes["items"]:
+        if like['object'] == post['id']:
+            post_already_liked = True
             break
 
-    if alreadyLikedPost:
-        existingLikeObj.delete()#remove like from db
-
-        #decrement like counter
-        post.likeCount = post.likeCount - 1
-        post.save()
-    
+    if post_already_liked:
+        #dont do anything
+        # return JsonResponse({'new_post_count': post['likeCount']}) #return existing post count
+        return JsonResponse({'new_post_count': post['likeCount']}) #return new post count
     else:
-        #create and save new like object
-        likeContext = "TODO: IDK what to put here"
-        likeSummary = f"{author.username} likes your post"
+        #send like
+        full_url = f"{post_host}/authors/{currUser.uuid}/inbox/"
+        headers = {"Content-Type": "application/json"}
+        auth = nodes.get_auth_for_host(post_host)
+        body_dict = {
+            "context": "https://www.w3.org/ns/activitystreams",
+            "summary": f"{currUser.username} Likes your post",
+            "type": "Like",
+            "author": currUser_API,
+            "object": post['id']
+        }
+        body_json = json.dumps(body_dict)
+        # print(f"\nAPI Call for Sending Like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json) #Send the like object to the posting author's inbox
+        if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
 
-        likeAuthorID = author.uuid
-        likeAuthorHost = author.host
-        likeAuthorURL = author.url
-
-        postObjLnk = f"http://127.0.0.1:8000/authors/{post.author_uuid}/posts/{post.uuid}"
-        likedID = post_uuid
-        likedObjType = "post"
-        likeObj = Likes(context= likeContext, summary= likeSummary, liked_id=likedID, author_uuid=author.uuid, author_host=author.host, author_url=author.url, liked_object_type=likedObjType, liked_object= postObjLnk)
-        likeObj.save(force_insert=True)
-
-        #increment the like count
-        post.likeCount = post.likeCount + 1
-        post.save()
-        print(f"User: {author.username} has liked post:{post_uuid}")
-    
-
-
-    return JsonResponse({'new_post_count': post.likeCount}) #return new post count
+        return JsonResponse({'new_post_count': post['likeCount'] +1 }) #return new post count
 
 def format_local_post_from_db(post: Posts):
     post_data = model_to_dict(post)
@@ -454,7 +486,7 @@ def format_local_post_from_db(post: Posts):
     post_data.update({
         "author": author,
         "type": "post",
-        "id": f"{ENDPOINT}/authors/{post.author_uuid}/posts/{post.uuid}",
+        "id": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}",
         "published": str(post.published),
         "author_uuid": post.author_uuid,
         "uuid": post.uuid,
@@ -481,9 +513,10 @@ def format_local_post(post):
     return post_data
 
 
+
+
 # API CALLS
 # ===============================================================================================================
-
 
 # POSTS
 # =====================
@@ -663,7 +696,6 @@ def get_image_post(request, author_id, post_id):
             return JsonResponse({'error': 'Image not found'}, status=404)
 
 
-
 # POST CREATION
 # =====================
 @swagger_auto_schema(
@@ -715,7 +747,6 @@ def api_post_creation(request, uuid):
         return Response(response)
     elif request.method == 'POST':
         pass
-
 
 
 # COMMENTS
@@ -822,7 +853,6 @@ def api_comments(request, uuid, post_id):
         return Response(status=200, data=serializer.validated_data)
 
 
-
 # POST LIKES
 # =====================
 @swagger_auto_schema(
@@ -852,7 +882,7 @@ def api_post_likes(request, uuid, post_id):
     if post.visibility != "PUBLIC":
         return Response(status=404)
 
-    likes = Likes.objects.filter(liked_object_type="post", author_uuid=uuid, liked_id=post_id)
+    likes = Likes.objects.filter(liked_object_type="post", liked_id=post_id)
     formatted = []
     for like in likes:
         formatted.append({
@@ -904,7 +934,6 @@ def api_comment_likes(request, uuid, post_id, comment_id):
         })
     
     return Response(status=200, data={"type": "likes", "items": formatted})
-
 
 
 # LIKED
