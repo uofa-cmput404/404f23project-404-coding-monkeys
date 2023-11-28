@@ -5,14 +5,13 @@ import commonmark
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
 from django.forms.models import model_to_dict
-import pytz
 import requests
 from connections.caches import AuthorCache, PostCache
 from pages.seralizers import AuthorUserSerializer, CommentListSerializer, CommentSerializer
 from util import AuthorDetail
 from util import get_id_from_url, get_part_from_url
 from rest_framework.response import Response
-from posts.serializers import LikeListSerializer, LocalCommentSerializer, LocalPostsSerializer, PostsSerializer, ResponsePosts
+from posts.serializers import LikeListSerializer, LocalPostsSerializer, PostsSerializer, ResponsePosts
 from .models import Posts, Likes, Comments
 from .forms import PostForm
 from django.urls import reverse
@@ -367,22 +366,6 @@ def view_posts(request):
 
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
-def format_comment(comment):
-    #TODO: Do we even use this anymore?
-    comment_obj = comment
-    #TODO: Most of this function is redundant. Fix?
-    ad = AuthorDetail(comment['author_uuid'], comment['author_url'], comment['author_host'])
-
-    for k in ("author_uuid", "author_url", "author_host"):
-        comment_obj.pop(k)
-
-    comment_obj["author"] = ad.formatAuthorInfo()
-    # idk why these were excluded
-    comment_obj["published"] = str(comment['published'])
-    comment_obj["post_id"] = str(comment['post_id'])
-
-    return comment_obj
-
 def open_comments_handler(request):
     nodes = Nodes()
 
@@ -418,8 +401,6 @@ def open_comments_handler(request):
 
     if not response.ok: print(f"API error when gathering comments for post with UUID: {post['uuid']}")
     returned_comments = response.json()
-
-    print(json.dumps(returned_comments, indent=2))
 
     formatted = []
     for comment in returned_comments['comments']:
