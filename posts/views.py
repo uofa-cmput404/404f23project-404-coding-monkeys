@@ -129,6 +129,9 @@ def update_or_create_post(request, post_uuid):
 
     post.save()
 
+    post_cache = PostCache()
+    post_cache.add(str(post.uuid), format_local_post(post))
+
     if request.POST.get('author_list') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('author_list')
         details = author_cache.get(selected_author_id)
@@ -211,15 +214,21 @@ def edit_post(request, author_id, post_uuid):
     elif request.method == 'POST':
         return update_or_create_post(request, post_uuid)
 
-def delete_post(request, author_id, post_uuid):
+def delete_post(request, post_uuid):
     if request.method == 'GET':
+        post_cache = PostCache()
         #read the post (whose like button the user clicked) object from db
         try:
             post = Posts.objects.get(uuid=post_uuid)
+
+            post_cache.remove(str(post.uuid))
             post.delete()
 
             pic_post = Posts.objects.get(uuid=f'{post_uuid}_pic')
             pic_post.delete()
+
+            return Response(status=200)
+
         except Posts.DoesNotExist: 
             return redirect('stream')
         
@@ -282,7 +291,7 @@ def post_stream(request):
         if post["contentType"] == "text/markdown":
             post["content"] = commonmark.commonmark(post["content"])
         elif post["origin"].startswith(HOSTS[1]) and post["contentType"] not in ("text/plain", "text/markdown"):
-            post["content"] = post["content"].split(",")[1]
+            post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
 

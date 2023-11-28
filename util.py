@@ -121,14 +121,17 @@ def format_local_post_from_db(post: Posts):
 
     return post_data
 
-def format_local_post(post):
+def format_local_post(post, author_details=None):
     post_data = model_to_dict(post)
     post_data["type"] = "post"
     post_data["id"] = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
     post_data["published"] = str(post.published)
 
-    ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
-    post_data["author"] = ad.formatAuthorInfo()
+    if not author_details:
+        ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
+        post_data["author"] = ad.formatAuthorInfo()
+    else:
+        post_data["author"] = author_details
 
     for key in ("author_uuid", "author_local", "author_url", "author_host"):
         post_data.pop(key)

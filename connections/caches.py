@@ -52,7 +52,7 @@ class Cache():
     def initialize(self):
         if not self.init:
             self.init = True
-        self.update()
+            self.update()
 
     def update(self):
         pass
@@ -82,7 +82,6 @@ class AuthorCache(Cache):
 
                 if response.ok:
                     authors = response.json()
-                    
                     for author in authors["items"]:
                         uuid = get_id_from_url(author["id"])
                         self.cache[uuid] = author
@@ -90,7 +89,6 @@ class AuthorCache(Cache):
             except Exception as e:
                 print(e)
                 continue
-
 
 class PostCache(Cache):
     def __init__(self):
@@ -101,11 +99,14 @@ class PostCache(Cache):
         author_cache = AuthorCache()
         node_singleton = Nodes()
 
+        for post in Posts.objects.all():
+            author_override = author_cache.get(str(post.author_uuid))
+            self.cache[post.uuid] = format_local_post(post, author_override)
+        
         for author, details in author_cache.items():
             try:
-                if details['host'] == ENDPOINT:
-                    for post in Posts.objects.all():
-                        self.cache[post.uuid] = format_local_post(post)
+                if details['host'] in (ENDPOINT, f"{node_singleton.get_host_for_index(3)}/"):
+                    continue
                     
                 elif strip_slash(details['host']) == HOSTS[1]:
                     index = HOSTS.index(strip_slash(details['host']))
@@ -171,10 +172,8 @@ class Nodes():
 
         cipher_suite = Fernet(settings.FERNET_KEY)
         for node in Node.objects.all():
-            try:
-                p_bytes = node.password.tobytes()
-            except:
-                p_bytes = node.password
+            try: p_bytes = node.password.tobytes()
+            except: p_bytes = node.password
             self.data.append({
                 "host": node.host,
                 "username": node.username,
