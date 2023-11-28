@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import django_on_heroku
 import datetime
 import os
 from pathlib import Path
@@ -94,8 +94,12 @@ WSGI_APPLICATION = 'django_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'chimp-chat-dev',
+        'USER': 'qHB86EHdP7r^x2V',
+        'PASSWORD': 'gusv^Hwi3MvMsVU6fkt7Z7crZ5gWBSKKTBWC',
+        'HOST': 'www.chimp-chat.win',    # Set to your PostgreSQL server's host
+        'PORT': '5432',         # Default PostgreSQL port
     }
 }
 
@@ -159,3 +163,5 @@ REST_FRAMEWORK = {
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+django_on_heroku.settings(locals())

@@ -1,5 +1,7 @@
 import datetime
 import json
+import bleach
+import commonmark
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
 from django.forms.models import model_to_dict
@@ -7,7 +9,7 @@ import pytz
 import requests
 from connections.caches import AuthorCache, PostCache
 from pages.seralizers import AuthorUserSerializer, CommentListSerializer, CommentSerializer
-from pages.util import AuthorDetail
+from util import AuthorDetail
 from util import get_id_from_url, get_part_from_url
 from rest_framework.response import Response
 from posts.serializers import LikeListSerializer, LocalCommentSerializer, LocalPostsSerializer, PostsSerializer, ResponsePosts
@@ -34,6 +36,7 @@ from drf_yasg import openapi
 import copy
 from requests.auth import HTTPBasicAuth
 from connections.caches import Nodes
+from util import time_since_posted, format_local_post_from_db, format_local_post
 
 
 class PostCreate(CreateView):
@@ -87,7 +90,8 @@ def update_or_create_post(request, post_uuid):
     except Posts.DoesNotExist:
         unique_id = uuid.uuid4()
         author = get_author_info(request.user.id) # convert author object to dictionary
-        post = Posts(uuid=unique_id, author_uuid=author["id"], author_local=1, author_host=ENDPOINT, author_url=author["url"], contentType="text/plain", count=0, comments="", unlisted=False)
+        post_url = f"{ENDPOINT}authors/{author['id']}/posts/{unique_id}"
+        post = Posts(uuid=unique_id, author_uuid=author["id"], source=post_url, origin=post_url, author_local=1, author_host=ENDPOINT, author_url=author["url"], count=0, comments="", unlisted=False)
 
     unique_id_pic = str(unique_id) + "_pic"
 
@@ -98,7 +102,35 @@ def update_or_create_post(request, post_uuid):
     post.comments = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/comments"
     post.visibility = request.POST.get('visibility')
 
+    # strip html tags
+    user_input = request.POST.get('content')
+    bleached = bleach.clean(user_input)
+    post.content = bleached
+
+    cType = request.POST.get('contentType')
+    if cType == "Text":
+        post.contentType = "text/plain"
+    elif cType == "Markdown":
+        post.contentType = "text/markdown"
+    elif cType == "Image":
+        image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
+        post.contentType = contentType_pic
+        post.content = image_base64
+
+    # add images and links to content
+    if request.FILES.get('picture') is not None:
+        source = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/image"
+        if post.contentType == "text/plain":
+            image_tag = f"<img src=\"{source}\" alt=\"{post.title}\" />"
+            post.content += "\n" + image_tag
+        elif post.contentType == "text/markdown":
+            image_tag = f"![{post.title}]({source})"
+            post.content += "\n" + image_tag
+
     post.save()
+
+    post_cache = PostCache()
+    post_cache.add(str(post.uuid), format_local_post(post))
 
     if request.POST.get('author_list') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('author_list')
@@ -132,7 +164,7 @@ def update_or_create_post(request, post_uuid):
         except Exception as e:
             print(e)
 
-    # deal with updating picture
+    # deal with embedded pictures
     try:
         post = Posts.objects.get(uuid=unique_id_pic)
     except Posts.DoesNotExist:
@@ -140,7 +172,7 @@ def update_or_create_post(request, post_uuid):
         post.unlisted = True
 
     # update existing pic post
-    if request.FILES.get('picture') is not None:
+    if cType != "Image" and request.FILES.get('picture') is not None:
         image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
         post.content = image_base64
         post.contentType = contentType_pic
@@ -182,15 +214,21 @@ def edit_post(request, author_id, post_uuid):
     elif request.method == 'POST':
         return update_or_create_post(request, post_uuid)
 
-def delete_post(request, author_id, post_uuid):
+def delete_post(request, post_uuid):
     if request.method == 'GET':
+        post_cache = PostCache()
         #read the post (whose like button the user clicked) object from db
         try:
             post = Posts.objects.get(uuid=post_uuid)
+
+            post_cache.remove(str(post.uuid))
             post.delete()
 
             pic_post = Posts.objects.get(uuid=f'{post_uuid}_pic')
             pic_post.delete()
+
+            return Response(status=200)
+
         except Posts.DoesNotExist: 
             return redirect('stream')
         
@@ -238,31 +276,22 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-def time_since_posted(created_at):
-    import humanize
-    # Parse the created_at timestamp string into a datetime object
-    timezone = pytz.timezone("America/Edmonton")
-    created_at_datetime = datetime.datetime.fromisoformat(created_at)
-
-    # Get the current time
-    current_time = datetime.datetime.now(tz=timezone)
-
-    # Calculate the time difference
-    time_difference = current_time - created_at_datetime
-
-    # Use humanize to get a human-readable representation
-    return humanize.naturaltime(time_difference)
 
 def post_stream(request):
     toReturn = []
 
     post_cache = PostCache()
-    posts = PostCache.values()
+    posts = post_cache.values()
 
     for post in posts:
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"])
+
+        if post["contentType"] == "text/markdown":
+            post["content"] = commonmark.commonmark(post["content"])
+        elif post["origin"].startswith(HOSTS[1]) and post["contentType"] not in ("text/plain", "text/markdown"):
+            post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
 
@@ -285,7 +314,13 @@ def update_post_with_like_count_from_API(post):
     full_url = f"{linkToPost}/likes"
     headers = {"accept": "application/json"}
     auth = nodes.get_auth_for_host(endpoint_tmp)
-    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    try:
+        response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    except:
+        print(f"Error: Could not get likes for post with UUID: {post.uuid}")
+        post.likeCount = 0
+        return post
+    
     if not response.ok: print(f"API error when gathering list of likes for post with UUID: {post.uuid}")
     returned_likes = response.json()
 
@@ -326,7 +361,8 @@ def view_posts(request):
 
     formatted = []
     for post in viewable:
-        post = update_post_with_like_count_from_API(post) #This replaces the likeCount value from the database with a value from the api. Note, this is SLOW (One api call per post)
+        if post.contentType == "text/markdown":
+            post.content = commonmark.commonmark(post.content)
         post_data = format_local_post_from_db(post)
         formatted.append(post_data)
 
@@ -477,46 +513,73 @@ def like_post_handler(request):
 
         return JsonResponse({'new_post_count': post['likeCount'] +1 }) #return new post count
 
-def format_local_post_from_db(post: Posts):
-    post_data = model_to_dict(post)
 
-    ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
-    author = ad.formatAuthorInfo()
+def test(request):
+    return render(request, 'posts/test.html')
 
-    post_data.update({
-        "author": author,
-        "type": "post",
-        "id": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}",
-        "published": str(post.published),
-        "author_uuid": post.author_uuid,
-        "uuid": post.uuid,
-        "delta": time_since_posted(str(post.published))
-    })
+def unlisted_post(request, author_uuid, post_uuid):
+    post = Posts.objects.get(uuid=post_uuid)
+    post_data = format_local_post_from_db(post)
 
-    for k in ("author_url", "author_local", "author_host", "sharedWith"):
-        post_data.pop(k)
+    return render(request, 'single_unlisted_post.html', {"post": post_data})
 
-    return post_data
+@api_view(['GET'])
+def serve_image(request, uuid, post_id):
+    unique_id_pic = str(post_id) + "_pic"
+    author = get_object_or_404(AuthorUser, uuid=uuid)
+    pic_post = get_object_or_404(Posts, uuid=unique_id_pic, author_uuid=uuid)
 
-def format_local_post(post):
-    post_data = model_to_dict(post)
-    post_data["type"] = "post"
-    post_data["id"] = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
-    post_data["published"] = str(post.published)
+    if pic_post.visibility != "PUBLIC":
+        return HttpResponse(status=404)
 
-    ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
-    post_data["author"] = ad.formatAuthorInfo()
+    content_type = pic_post.contentType.split(";")[0]
 
-    for key in ("author_uuid", "author_local", "author_url", "author_host"):
-        post_data.pop(key)
-    
-    return post_data
-
-
+    try:
+        # Set the appropriate content type for the image
+        pic_bytes = base64.b64decode(pic_post.content)
+        response = HttpResponse(content_type=content_type)
+        response.write(pic_bytes)
+        return response
+        # return render(request, "posts/image.html", {"image_base64": pic_post.content})
+    except Exception as e:
+        return HttpResponse(status=500)
 
 
 # API CALLS
 # ===============================================================================================================
+
+# CUSTOM - PUBLIC POSTS
+# =====================
+@swagger_auto_schema(
+    tags=['posts', 'remote'],
+    method='get',
+    operation_description="Retrieves all public posts (paginated).",
+    manual_parameters=[
+            openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Page number"),
+            openapi.Parameter('size', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="Number of posts per page"),
+        ],
+    responses={
+        200: ResponsePosts,
+        404: openapi.Response("No post found for the provided author and post ID."),
+    }
+)
+@api_view(['GET'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
+def public_posts(request):
+    page = request.GET.get('page')
+    size = request.GET.get('size')
+    posts = Posts.objects.filter(visibility="PUBLIC").order_by('-published')
+
+    if page and size:
+        posts = posts[(int(page)-1)*int(size):int(page)*int(size)]
+
+    formatted = []
+    for post in posts:
+        post_data = format_local_post_from_db(post)
+        formatted.append(post_data)
+
+    return Response({"type":"posts", "items":formatted})
 
 # POSTS
 # =====================
@@ -535,8 +598,12 @@ def format_local_post(post):
 )
 @swagger_auto_schema(
     tags=['posts'],
-    methods=['post', 'delete', 'put'],
+    methods=['post', 'put'],
     request_body=PostsSerializer
+)
+@swagger_auto_schema(
+    tags=['posts'],
+    methods=['delete'],
 )
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
 @authentication_classes([BasicAuthentication])
@@ -567,14 +634,9 @@ def api_posts(request, uuid, post_id):
 
         return Response(serializer.validated_data)
 
-    # print(request.user.uuid)
-    # print(uuid)
-    # if request.user.uuid != uuid:
-    #     return Response(status=403, data="You are not authorized to edit this post")
-    
     elif request.method == 'POST':
-        if not request.user.is_authenticated:
-            return Response(status=401, data="You must be logged in to edit a post")
+        if not request.user.uuid != uuid:
+            return Response(status=401, data="Unauthorized")
         
         serializer = PostsSerializer(post, data=request.data, partial=True)
 
@@ -615,6 +677,7 @@ def api_posts(request, uuid, post_id):
 # =====================
 @swagger_auto_schema(
     method='get',
+    tags=['posts'],
     operation_description="Retrieves the binary of the image for the post, if one exists.",
     manual_parameters=[
             openapi.Parameter('author_id', openapi.IN_PATH, type=openapi.TYPE_STRING, description="The unique identifier for the author."),
@@ -715,6 +778,7 @@ def get_image_post(request, author_id, post_id):
 @swagger_auto_schema(
     tags=['posts'],
     method='post',
+    request_body=PostsSerializer
 )
 @api_view(['GET', 'POST'])
 @authentication_classes([BasicAuthentication])
@@ -736,6 +800,8 @@ def api_post_creation(request, uuid):
 
         formatted = []
         for post in posts:
+            if post.uuid.endswith("_pic"):
+                continue
             formatted.append(format_local_post(post))
 
         serializer = PostsSerializer(posts, data=formatted, many=True, partial=True)
@@ -747,6 +813,7 @@ def api_post_creation(request, uuid):
         return Response(response)
     elif request.method == 'POST':
         pass
+
 
 
 # COMMENTS
@@ -882,7 +949,7 @@ def api_post_likes(request, uuid, post_id):
     if post.visibility != "PUBLIC":
         return Response(status=404)
 
-    likes = Likes.objects.filter(liked_object_type="post", liked_id=post_id)
+    likes = Likes.objects.filter(liked_object_type="post", liked_id=post_id).exclude(author_uuid=uuid)
     formatted = []
     for like in likes:
         formatted.append({
@@ -922,7 +989,7 @@ def api_comment_likes(request, uuid, post_id, comment_id):
     post = get_object_or_404(Posts, uuid=post_id)
     comment = get_object_or_404(Comments, uuid=comment_id)
 
-    likes = Likes.objects.filter(liked_object_type="comment", author_uuid=uuid, liked_id=comment_id)
+    likes = Likes.objects.filter(liked_object_type="comment", liked_id=comment_id).exclude(author_uuid=uuid)
     formatted = []
     for like in likes:
         formatted.append({
@@ -967,23 +1034,28 @@ def api_author_liked(request, uuid):
             "author": author_cache.get(like.author_uuid),
             "object": like.liked_object
         }
+
+        found = False
         # determine if local items are public
-        if like.liked_object.startswith(ENDPOINT):
-            if like.liked_object_type == "post":
-                post = Posts.objects.filter(uuid=like.liked_id).first() if len(Posts.objects.filter(uuid=like.liked_id)) > 0 else None
+        if like.liked_object_type == "post":
+            post = Posts.objects.filter(uuid=like.liked_id).first() if len(Posts.objects.filter(uuid=like.liked_id)) > 0 else None
+            if post:
+                found = True
+            if post and post.visibility == "PUBLIC":
+                public.append(formatted)
+        
+        elif like.liked_object_type == "comment":
+            comment = Comments.objects.filter(uuid=like.liked_id).first() if len(Comments.objects.filter(uuid=like.liked_id)) > 0 else None
+            if comment:
+                post = Posts.objects.filter(uuid=comment.post_id).first() if len(Posts.objects.filter(uuid=comment.post_id)) > 0 else None
+                if post:
+                    found = True
                 if post and post.visibility == "PUBLIC":
                     public.append(formatted)
-            
-            elif like.liked_object_type == "comment":
-                comment = Comments.objects.filter(uuid=like.liked_id).first() if len(Comments.objects.filter(uuid=like.liked_id)) > 0 else None
-                if comment:
-                    post = Posts.objects.filter(uuid=comment.post_id).first() if len(Posts.objects.filter(uuid=comment.post_id)) > 0 else None
-                    if post and post.visibility == "PUBLIC":
-                        public.append(formatted)
         
-        # determine if remote items are public
-        else:
+        if not found:
             # do a get on the liked object; it should not return an OK status if it is not public
+            # TODO add basic auth
             try:
                 object_url = like.liked_object
                 response = requests.get(object_url)

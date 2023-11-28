@@ -42,7 +42,7 @@ class AuthorUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return HttpResponseForbidden("You do not have permission to access this page.")
     
     def get_success_url(self): # gpt
-        return reverse_lazy('author_profile', kwargs={'uuid': self.object.uuid})
+        return reverse_lazy('author_detail', kwargs={'host_id': 0, 'uuid': self.object.uuid})
 
 
 # Create your views here.
