@@ -40,9 +40,9 @@ def update_single_column(c: sqlite3.Cursor, table: str, column: str, rows: list[
     Updates the values in a single column.
     """
     try:
-        reg = re.compile(r'www.chimp-chat.win')
+        reg1 = re.compile(r'http://www.chimp-chat.win')
         for row_id, row_value in rows:
-            new_value = reg.sub('localhost:8000', row_value)
+            new_value = reg1.sub('https://chimp-chat-1e0cca1cc8ce.herokuapp.com', row_value)
             print(f"UPDATE {table} SET {column} = '{new_value}' WHERE id = {row_id};")
             c.execute(f"UPDATE {table} SET {column} = ? WHERE id = ?", (new_value, row_id))
         return True
@@ -67,8 +67,8 @@ def main():
 
     columns = {
         # "accounts_authoruser" : ["host", "profile_image", "url"]
-        "posts_posts": ["source", "origin"]
-        # "posts_posts": ["source", "origin", "author_host", "author_url", "comments"],
+        # "posts_posts": ["author_host", "author_url", "comments"],
+        "posts_likes": ["liked_object", "author_host", "author_url"],
         # "posts_comments": ["author_host", "author_url"]
     }
 

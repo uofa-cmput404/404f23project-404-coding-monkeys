@@ -1,3 +1,8 @@
 .venv/
 **/__pycache__/
+db.sqlite3
 codingMonkeysEnv/
+static/vars.py
+scripts/migrate.py
+scripts/load.load
+detect_changes.txt
