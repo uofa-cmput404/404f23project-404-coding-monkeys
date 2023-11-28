@@ -17,7 +17,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from connections.caches import AuthorCache, Nodes
-from inbox.views import api_inbox
 
 
 from util import AuthorDetail
@@ -133,21 +132,46 @@ def get_author_detail(request):
 
     return HttpResponse(content=json.dumps({"host_index":index, "uuid": plain_id}))
 
+def gather_info_local(request, uuid):
+    author_object = AuthorUser.objects.get(uuid=uuid)
+    # author info
+    author_cache = AuthorCache()
+    author = author_cache.get(uuid)
+    author["uuid"] = uuid
+
+    try: followers = Followers.objects.get(author=author_object).followers
+    except Followers.DoesNotExist: followers = []
+    
+    following = False
+    formatted_followers = []
+    for f in followers:
+        formatted_followers.append(author_cache.get(f["uuid"]))
+        if f["uuid"] == request.user.uuid:
+            following = True
+    
+    follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)
+    requested = len(follow_rq) > 0
+
+    return render(request, 'authorprofile.html', {'author': author, 'followers': formatted_followers, 'already_following': following, 'pending_request': requested})
+    
 
 def render_author_detail(request, host_id, uuid):
     # grab the author information
+
+    if host_id == 0:
+        return gather_info_local(request, uuid)
 
     gathered_all_info = True
 
     nodes = Nodes()
     auth = nodes.get_auth_for_host(HOSTS[host_id])
     headers = {"Accept": "application/json"}
+    url = nodes.get_host_for_index(host_id)
 
     try:
         if host_id == 1:
             headers["Referer"] = nodes.get_host_for_index(0)
 
-        url = nodes.get_host_for_index(host_id)
         path = url + "/authors/" + uuid + "/"
         response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
 
@@ -167,29 +191,19 @@ def render_author_detail(request, host_id, uuid):
 
     try:
         path = url + "/authors/" + uuid + "/followers/"     
-        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers, timeout=3)
         if response.ok:
             followers = response.json()
             for follower in followers["items"]:
                 try:
                     # serialize to check if everything is in expected format
-                    serializer = AuthorUserReferenceSerializer(data=follower)
+                    serializer = AuthorDetailSerializer(data=follower)
                     # exclude if invalid
                     if not serializer.is_valid():
                         continue
                     # assign uuid from full url
                     valid_follower = serializer.validated_data
                     valid_follower["uuid"] = get_id_from_url(valid_follower["url"])
-                    # append valid follower to list to pass into view
-
-                    # grab the latest profile image
-                    path = url + "/authors/" + valid_follower["uuid"] + "/"
-                    response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-                    # if response was good, get pfp from response data
-                    if response.ok:
-                        data = response.json()
-                        valid_follower["profileImage"] = data.get("profileImage")
-
                     all_followers.append(valid_follower)
                 except Exception as e:
                     gathered_all_info = False
@@ -603,13 +617,12 @@ def api_follow_requests(request):
     if request.method == "GET":
         follow_requests = FollowRequests.objects.all()
         serializer = FollowRequestsSerializer(follow_requests, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     elif request.method == "POST":
         serializer = FollowRequestsSerializer(data=request.data)
         if serializer.is_valid():
-            uuid = request.data.get('uuid')  # Parse the uuid from the request
-            response = api_inbox(request, uuid)
             serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
-    return Response({'error': 'Invalid request method'}, status=405)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
