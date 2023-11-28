@@ -141,12 +141,12 @@ def render_author_detail(request, host_id, uuid):
     nodes = Nodes()
     auth = nodes.get_auth_for_host(HOSTS[host_id])
     headers = {"Accept": "application/json"}
+    url = nodes.get_host_for_index(host_id)
 
     try:
         if host_id == 1:
             headers["Referer"] = nodes.get_host_for_index(0)
 
-        url = nodes.get_host_for_index(host_id)
         path = url + "/authors/" + uuid + "/"
         response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
 
@@ -166,7 +166,9 @@ def render_author_detail(request, host_id, uuid):
 
     try:
         path = url + "/authors/" + uuid + "/followers/"     
+        print(path)
         response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+        print(response)
         if response.ok:
             followers = response.json()
             for follower in followers["items"]:
