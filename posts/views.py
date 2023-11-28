@@ -368,34 +368,77 @@ def view_posts(request):
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
 def format_comment(comment):
-    comment_obj = model_to_dict(comment)
-    ad = AuthorDetail(comment.author_uuid, comment.author_url, comment.author_host)
+    comment_obj = comment
+    #TODO: Most of this function is redundant. Fix?
+    ad = AuthorDetail(comment['author_uuid'], comment['author_url'], comment['author_host'])
 
     for k in ("author_uuid", "author_url", "author_host"):
         comment_obj.pop(k)
 
     comment_obj["author"] = ad.formatAuthorInfo()
     # idk why these were excluded
-    comment_obj["published"] = str(comment.published)
-    comment_obj["post_id"] = str(comment.post_id)
+    comment_obj["published"] = str(comment['published'])
+    comment_obj["post_id"] = str(comment['post_id'])
 
     return comment_obj
 
 def open_comments_handler(request):
-    # returns commenets for a given post
-    post_uuid = request.GET.get('post_uuid')
-    comments = Comments.objects.filter(post_id=post_uuid)
+    nodes = Nodes()
+
+    #Get the post object from the front end
+    post = json.loads(request.body).get('post', {})
+    print(json.dumps(post, indent=2))
+
+    #gather the host of the post
+    post_host = post['author']['host']
+    if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
+
+    #Get list of comments of this post
+    full_url = f"{post_host}/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/"
+    headers = {
+        "accept": "application/json",
+        }
+    params = {
+        "page": 1,
+        "size": 10
+    }
+    auth = nodes.get_auth_for_host(post_host)
+    # print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
+    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), params=params)
+    if not response.ok: print(f"API error when gathering comments for post with UUID: {post['uuid']}")
+    returned_comments = response.json()
+
+    print(json.dumps(returned_comments, indent=2))
 
     formatted = []
-    for comment in comments:
+    for comment in returned_comments['comments']:
         formatted.append(format_comment(comment))
-    
+
     serialized = LocalCommentSerializer(data=formatted, many=True)
     
     if not serialized.is_valid():
         return JsonResponse({'comments': '{}'})
     #TODO: sort newest to oldest?
     return JsonResponse({'comments': json.dumps(serialized.validated_data)})
+
+
+
+
+    #Old code:
+    # # returns commenets for a given post
+    # post_uuid = request.GET.get('post_uuid')
+    # comments = Comments.objects.filter(post_id=post_uuid)
+
+    # formatted = []
+    # for comment in comments:
+    #     formatted.append(format_comment(comment))
+    
+    # serialized = LocalCommentSerializer(data=formatted, many=True)
+    
+    # if not serialized.is_valid():
+    #     return JsonResponse({'comments': '{}'})
+    # #TODO: sort newest to oldest?
+    # return JsonResponse({'comments': json.dumps(serialized.validated_data)})
 
 def submit_comment_handler(request):
     post_uuid = request.GET.get('post_uuid', None) #get the post in question
@@ -511,7 +554,6 @@ def like_post_handler(request):
         if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
 
         return JsonResponse({'new_post_count': post['likeCount'] +1 }) #return new post count
-
 
 def test(request):
     return render(request, 'posts/test.html')
