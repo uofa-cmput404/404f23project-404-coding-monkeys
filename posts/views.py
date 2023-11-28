@@ -411,18 +411,9 @@ def open_comments_handler(request):
 
     formatted = []
     for comment in returned_comments['comments']:
-        # formatted.append(format_comment(comment))
         formatted.append(comment)
 
     return JsonResponse({'comments': json.dumps(formatted)})
-
-    serialized = LocalCommentSerializer(data=formatted, many=True)
-    
-    if not serialized.is_valid():
-        print("Not valid, not returning comments")
-        return JsonResponse({'comments': '{}'})
-    #TODO: sort newest to oldest?
-    return JsonResponse({'comments': json.dumps(serialized.validated_data)})
 
 def submit_comment_handler(request):
     nodes = Nodes()

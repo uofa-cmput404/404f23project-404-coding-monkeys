@@ -57,19 +57,15 @@
                     success: function (data) {
                         // the backend returns all comments for a post. Here we display them (add them into a container)
                         var comments = JSON.parse(data.comments);
-                        console.log(comments)
                         commentContainer.empty();
                         
                         // Add the comment elements to the page
                         comments.forEach(function (comment) {
-                            console.log(comment)
-
                             comment_uuid = comment.id;
                             if (comment_uuid.endsWith("/")) {
                                 comment_uuid = comment_uuid.slice(0, -1);
                             }
                             comment_uuid = comment_uuid.substring(comment_uuid.lastIndexOf("/") + 1);
-                            console.log(comment_uuid)
 
                             var commentElement = '<div class="comment">' +
                                 '<img src="' + comment.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
