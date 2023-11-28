@@ -6,3 +6,4 @@ static/vars.py
 scripts/migrate.py
 scripts/load.load
 detect_changes.txt
+django_project/settings.py
