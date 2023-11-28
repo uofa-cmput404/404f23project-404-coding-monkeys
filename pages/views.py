@@ -132,9 +132,34 @@ def get_author_detail(request):
 
     return HttpResponse(content=json.dumps({"host_index":index, "uuid": plain_id}))
 
+def gather_info_local(request, uuid):
+    author_object = AuthorUser.objects.get(uuid=uuid)
+    # author info
+    author_cache = AuthorCache()
+    author = author_cache.get(uuid)
+    author["uuid"] = uuid
+
+    try: followers = Followers.objects.get(author=author_object).followers
+    except Followers.DoesNotExist: followers = []
+    
+    following = False
+    formatted_followers = []
+    for f in followers:
+        formatted_followers.append(author_cache.get(f["uuid"]))
+        if f["uuid"] == request.user.uuid:
+            following = True
+    
+    follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)
+    requested = len(follow_rq) > 0
+
+    return render(request, 'authorprofile.html', {'author': author, 'followers': formatted_followers, 'already_following': following, 'pending_request': requested})
+    
 
 def render_author_detail(request, host_id, uuid):
     # grab the author information
+
+    if host_id == 0:
+        return gather_info_local(request, uuid)
 
     gathered_all_info = True
 
@@ -166,9 +191,7 @@ def render_author_detail(request, host_id, uuid):
 
     try:
         path = url + "/authors/" + uuid + "/followers/"     
-        print(path)
-        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-        print(response)
+        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers, timeout=3)
         if response.ok:
             followers = response.json()
             for follower in followers["items"]:
