@@ -173,7 +173,7 @@ def render_author_detail(request, host_id, uuid):
             for follower in followers["items"]:
                 try:
                     # serialize to check if everything is in expected format
-                    serializer = AuthorUserReferenceSerializer(data=follower)
+                    serializer = AuthorDetailSerializer(data=follower)
                     # exclude if invalid
                     if not serializer.is_valid():
                         continue
@@ -213,11 +213,22 @@ def render_author_detail(request, host_id, uuid):
         following = False
         gathered_all_info = False                   
 
+    # gather liked items - might make this load as it's being queried instead of passed into the view
+    try:
+        path = url +"/authors/" + uuid + "/liked/"
+
+        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+        if response.ok:
+            liked_items = response.json()["items"]
+    except:
+        liked_items = []
+
+
     # check if we have a request for the user in view
     follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)
     requested = len(follow_rq) > 0
 
-    return render(request, 'authorprofile.html', {'author': author, 'followers': all_followers, 'already_following': following, 'pending_request': requested, 'missing_info': not gathered_all_info})
+    return render(request, 'authorprofile.html', {'author': author, 'liked':liked_items, 'followers': all_followers, 'already_following': following, 'pending_request': requested, 'missing_info': not gathered_all_info})
 
 
 # We've switched to inbox view for this
