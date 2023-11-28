@@ -276,7 +276,6 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-
 def post_stream(request):
     toReturn = []
 

@@ -1,5 +1,3 @@
-# this represents static variables that are used throughout various parts of the application
-
-# this is the DEV URL of our webserver; we'll need a PROD URL later when we actually deploy
+# static vars used throughout project
 ENDPOINT = "http://localhost:8000/"
-HOSTS = ["http://localhost:8000"]
+HOSTS = ["http://localhost:8000", "https://distributed-network-37d054f03cf4.herokuapp.com", "https://chimp-chat-1e0cca1cc8ce.herokuapp.com"]
