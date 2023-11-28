@@ -172,23 +172,13 @@ def render_author_detail(request, host_id, uuid):
             for follower in followers["items"]:
                 try:
                     # serialize to check if everything is in expected format
-                    serializer = AuthorUserReferenceSerializer(data=follower)
+                    serializer = AuthorDetailSerializer(data=follower)
                     # exclude if invalid
                     if not serializer.is_valid():
                         continue
                     # assign uuid from full url
                     valid_follower = serializer.validated_data
                     valid_follower["uuid"] = get_id_from_url(valid_follower["url"])
-                    # append valid follower to list to pass into view
-
-                    # grab the latest profile image
-                    path = url + "/authors/" + valid_follower["uuid"] + "/"
-                    response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-                    # if response was good, get pfp from response data
-                    if response.ok:
-                        data = response.json()
-                        valid_follower["profileImage"] = data.get("profileImage")
-
                     all_followers.append(valid_follower)
                 except Exception as e:
                     gathered_all_info = False
