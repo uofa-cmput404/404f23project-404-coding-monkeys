@@ -54,6 +54,7 @@ def follow_request_handler(request):
         return JsonResponse({"status": "error"}, status=400)
 
 def inbox_post(request, author_id, inbox_index):
+    # will be used to display post related to inbox item
     try: author = AuthorUser.objects.get(uuid=author_id)
     except: return Response(status=404)
     
