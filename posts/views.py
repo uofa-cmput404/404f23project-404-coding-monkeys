@@ -394,17 +394,23 @@ def open_comments_handler(request):
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
     #Get list of comments of this post
-    full_url = f"{post_host}/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/"
+    # full_url = f"{post_host}/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/"
+    full_url = f"{post_host}/api/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/"
+    # headers = {
+    #     "accept": "application/json",
+    #     }
     headers = {
+        "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
         "accept": "application/json",
         }
-    params = {
-        "page": 1,
-        "size": 10
-    }
+    # params = {
+    #     "page": 1,
+    #     "size": 10
+    # }
     auth = nodes.get_auth_for_host(post_host)
-    # print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
-    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), params=params)
+    print(f"\nAPI Call for Getting Comments:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
+    # response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), params=params)
+    response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
     if not response.ok: print(f"API error when gathering comments for post with UUID: {post['uuid']}")
     returned_comments = response.json()
 
