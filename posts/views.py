@@ -368,6 +368,7 @@ def view_posts(request):
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
 def format_comment(comment):
+    #TODO: Do we even use this anymore?
     comment_obj = comment
     #TODO: Most of this function is redundant. Fix?
     ad = AuthorDetail(comment['author_uuid'], comment['author_url'], comment['author_host'])
@@ -445,21 +446,8 @@ def submit_comment_handler(request):
     comment_details_json = json.dumps(comment_details)
     # print(f"\nAPI Call for Sending Like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
     response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=comment_details_json) #Send the like object to the posting author's inbox
-    if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
-    else:
-        comment_obj = comment_details
-        ad = AuthorDetail(currUser.uuid, f"{currUser.host}/authors/{currUser.uuid}/", currUser.host)
-
-        # for k in ("author_uuid", "author_url", "author_host"):
-        #     comment_obj.pop(k)
-
-        comment_obj["author"] = ad.formatAuthorInfo()
-        # idk why these were excluded
-        comment_obj["published"] = str(comment_details['published'])
-        comment_obj["post_id"] = str(comment_details['post_id'])
-
-
-        return JsonResponse({'comments': json.dumps([comment_obj])})
+    if not response.ok: print(f"API error when adding new comment")
+    return JsonResponse({'comments': json.dumps([comment_details])})
 
 def get_object_type(url):
     sections = url.split("/")
