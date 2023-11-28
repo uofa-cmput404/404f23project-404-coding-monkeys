@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
@@ -80,16 +81,22 @@
 
       {% endfor %}
     </ul>
-    <h2><u>Example liked</u></h2>
+    <h2><u>Liked</u></h2>
     <ul style="list-style-type: none; ">
       {% for liked in liked %}
         <div class="list_profiles_gradience"></div>
 
-        <div class="userProfile_followers" style="display: flex; flex-direction: column; padding:5px;">
-
-          <img src="{{ liked.author.profileImage }}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553;">
-          <li style="word-break:break-all;">{{ liked.author.displayName }}</li>
-
+        <div class="row-flex" style="padding:5px;">
+          <span class="material-symbols-outlined" style="margin-top: 20px; margin-right: 5px;">
+            thumb_up
+            </span>
+          {% if liked.likedObject == "post" %}
+            <p style="margin-top: 20px;">a post made by</p>
+          {% elif liked.likedObject == "comment" %}
+            <p style="margin-top: 20px;">a comment made by</p>
+          {% endif %}
+          <img src="{{ liked.contentAuthor.profileImage }}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553; margin-left: 5px; margin-right: 5px;">
+          <p style="margin-top: 20px;">{{ liked.contentAuthor.displayName }}</p>
         </div>
       {% endfor %}
   </div>

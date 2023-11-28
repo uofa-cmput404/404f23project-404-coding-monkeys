@@ -16,10 +16,13 @@ from rest_framework.authentication import BasicAuthentication, SessionAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from connections.caches import AuthorCache, Nodes
+from connections.caches import AuthorCache, Nodes, PostCache
+from posts.models import Likes, Posts
+from posts.views import get_public_likes
+from util import strip_slash
 
 
-from util import AuthorDetail
+from util import AuthorDetail, get_part_from_url
 from .seralizers import AuthorDetailSerializer, AuthorUserSerializer, FollowRequestsSerializer, FollowerListSerializer, AuthorUserReferenceSerializer, ResponseAuthorsSerializer, ResponseFollowersSerializer
 from static.vars import ENDPOINT, HOSTS
 from util import get_id_from_url
@@ -132,6 +135,14 @@ def get_author_detail(request):
 
     return HttpResponse(content=json.dumps({"host_index":index, "uuid": plain_id}))
 
+def get_liked_author(url):
+    author_cache = AuthorCache()
+    uuid = get_part_from_url(url, "authors")
+    if author_cache.get(uuid):
+        return author_cache.get(uuid)
+    
+    return {"displayName": "an unknown remote author", "profileImage": "https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg"}
+
 def gather_info_local(request, uuid):
     author_object = AuthorUser.objects.get(uuid=uuid)
     # author info
@@ -152,11 +163,27 @@ def gather_info_local(request, uuid):
     follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)
     requested = len(follow_rq) > 0
 
-    return render(request, 'authorprofile.html', {'author': author, 'followers': formatted_followers, 'already_following': following, 'pending_request': requested})
+    formatted_liked = []
+    items, public_posts = get_public_likes(uuid)
+    for i in range(len(items)):
+        like = items[i]
+        formatted_liked.append({
+                "type": "like",
+                "likedObject": like.liked_object_type,
+                "contentAuthor": get_liked_author(like.liked_object),
+                "context": like.context,
+                "summary": like.summary,
+                "author": author_cache.get(like.author_uuid),
+                "object": like.liked_object,
+                "post": public_posts[i]
+            })
+
+    return render(request, 'authorprofile.html', {'author': author, 'liked':formatted_liked, 'followers': formatted_followers, 'already_following': following, 'pending_request': requested})
     
 
 def render_author_detail(request, host_id, uuid):
     # grab the author information
+    author_cache = AuthorCache()
 
     if host_id == 0:
         return gather_info_local(request, uuid)
@@ -237,12 +264,30 @@ def render_author_detail(request, host_id, uuid):
     except:
         liked_items = []
 
+    formatted_liked = []
+    for like in liked_items:
+        stripped = strip_slash(like["object"])
+        split = stripped.split("/")
+        likedType = split[-2][:-1]
+
+        author_uuid = get_part_from_url(like["author"]["url"], "authors")
+        context = like.get("@context") if like.get("@context") else like.get("context")
+
+        formatted_liked.append({
+                "type": "like",
+                "likedObject": likedType,
+                "contentAuthor": get_liked_author(like["object"]),
+                "context": context,
+                "summary": like["summary"],
+                "author": author_cache.get(author_uuid),
+                "object": like["object"],
+            })
 
     # check if we have a request for the user in view
     follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)
     requested = len(follow_rq) > 0
 
-    return render(request, 'authorprofile.html', {'author': author, 'liked':liked_items, 'followers': all_followers, 'already_following': following, 'pending_request': requested, 'missing_info': not gathered_all_info})
+    return render(request, 'authorprofile.html', {'author': author, 'liked':formatted_liked, 'followers': all_followers, 'already_following': following, 'pending_request': requested, 'missing_info': not gathered_all_info})
 
 
 # We've switched to inbox view for this

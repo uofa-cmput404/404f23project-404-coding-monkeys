@@ -1003,8 +1003,55 @@ def api_comment_likes(request, uuid, post_id, comment_id):
     return Response(status=200, data={"type": "likes", "items": formatted})
 
 
+
 # LIKED
 # =====================
+def get_public_likes(uuid):
+    nodes = Nodes()
+    post_cache = PostCache()
+
+    liked_items = []
+    associated_posts = []
+    for item in Likes.objects.filter(author_uuid=uuid):
+        post_id = get_part_from_url(item.liked_object, "posts")
+        try: post = Posts.objects.get(uuid=post_id)
+        except Posts.DoesNotExist: post = None
+
+        if post and post.visibility == "PUBLIC":
+            associated_posts.append(post)
+            liked_items.append(item)
+
+        if not post and post_cache.get(post_id):
+            associated_posts.append(post_cache.get(post_id))
+            liked_items.append(item)
+        
+        if not post:
+            origin = None
+            for host in HOSTS:
+                if item.liked_object.startswith(host):
+                    origin = host
+                    break
+            
+            if origin:
+                try:
+                    auth = nodes.get_auth_for_host(origin)
+                    headers = {"Accept": "application/json"}
+
+                    if origin == HOSTS[1]:
+                        headers["Referer"] = nodes.get_host_for_index(0)
+
+                    response = requests.get(item.liked_object, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                    # we can assume that if we get a 2XX response, the post is public
+                    if response.ok:
+                        post = response.json()
+                        associated_posts.append(post)
+                        liked_items.append(item)
+                except:
+                    continue
+
+    return liked_items, associated_posts
+
+
 @swagger_auto_schema(
     tags=['liked', 'remote'],
     method='get',
@@ -1024,44 +1071,15 @@ def api_author_liked(request, uuid):
     author_cache = AuthorCache()
     author = get_object_or_404(AuthorUser, uuid=uuid)
 
-    public = []
-    likes = Likes.objects.filter(author_uuid=uuid)
-    for like in likes:
-        formatted = {
+    formatted = []
+    items, posts = get_public_likes(uuid)
+    for like in items:
+        formatted.append({
             "type": "like",
             "context": like.context,
             "summary": like.summary,
             "author": author_cache.get(like.author_uuid),
             "object": like.liked_object
-        }
-
-        found = False
-        # determine if local items are public
-        if like.liked_object_type == "post":
-            post = Posts.objects.filter(uuid=like.liked_id).first() if len(Posts.objects.filter(uuid=like.liked_id)) > 0 else None
-            if post:
-                found = True
-            if post and post.visibility == "PUBLIC":
-                public.append(formatted)
-        
-        elif like.liked_object_type == "comment":
-            comment = Comments.objects.filter(uuid=like.liked_id).first() if len(Comments.objects.filter(uuid=like.liked_id)) > 0 else None
-            if comment:
-                post = Posts.objects.filter(uuid=comment.post_id).first() if len(Posts.objects.filter(uuid=comment.post_id)) > 0 else None
-                if post:
-                    found = True
-                if post and post.visibility == "PUBLIC":
-                    public.append(formatted)
-        
-        if not found:
-            # do a get on the liked object; it should not return an OK status if it is not public
-            # TODO add basic auth
-            try:
-                object_url = like.liked_object
-                response = requests.get(object_url)
-                if response.ok:
-                    public.append(formatted)
-            except:
-                continue
+        })
     
-    return Response(status=200, data={"type": "likes", "items": public})
+    return Response(status=200, data={"type": "likes", "items": items})
