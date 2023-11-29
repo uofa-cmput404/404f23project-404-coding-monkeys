@@ -541,6 +541,11 @@ def like_post_handler(request):
 
         return JsonResponse({'new_post_count': post['likeCount'] +1 }) #return new post count
 
+def like_comment_handler(request):
+    print("Entered like comment handler!")
+
+    return JsonResponse({})
+
 def test(request):
     return render(request, 'posts/test.html')
 
