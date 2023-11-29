@@ -98,7 +98,7 @@ DATABASES = {
         'NAME': 'chimp-chat-dev',
         'USER': 'qHB86EHdP7r^x2V',
         'PASSWORD': 'gusv^Hwi3MvMsVU6fkt7Z7crZ5gWBSKKTBWC',
-        'HOST': 'www.chimp-chat.win',    # Set to your PostgreSQL server's host
+        'HOST': 'happy-yak-farm.net',    # Set to your PostgreSQL server's host
         'PORT': '5432',         # Default PostgreSQL port
     }
 }
