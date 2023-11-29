@@ -36,6 +36,7 @@ import copy
 from requests.auth import HTTPBasicAuth
 from connections.caches import Nodes
 from util import time_since_posted, format_local_post_from_db, format_local_post
+from urllib.parse import urlparse
 
 
 class PostCreate(CreateView):
@@ -374,10 +375,12 @@ def open_comments_handler(request):
     print(json.dumps(post, indent=2))
 
     #gather the host of the post
-    post_host = post['author']['host']
+    # post_host = post['author']['host'] #TODO: Get this from the source
+    post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the source
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
+    print(post_host)
 
-    if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com":
+    if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
         #API call for calling code Monkeys
         full_url = f"{post['origin']}/comments/"
         headers = {
@@ -415,8 +418,6 @@ def submit_comment_handler(request):
     post = json.loads(request.body).get('post', {})
     post_host = post['author']['host']
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
-
-    print(json.dumps(post, indent=2))
 
     commentText = json.loads(request.body).get('comment_text', {})
 
