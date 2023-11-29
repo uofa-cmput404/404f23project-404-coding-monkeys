@@ -288,6 +288,11 @@ def post_stream(request):
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"])
 
+        sharedWith = post["sharedWith"]
+        sharedIDs = [user["uuid"] for user in sharedWith]
+        if post["visibility"] != "PUBLIC" and request.user.uuid not in sharedIDs:
+            continue
+
         if post["contentType"] == "text/markdown":
             post["content"] = commonmark.commonmark(post["content"])
         elif post["content"] and post["origin"].startswith(HOSTS[1]) and post["contentType"] not in ("text/plain", "text/markdown"):
