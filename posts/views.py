@@ -371,6 +371,7 @@ def open_comments_handler(request):
 
     #Get the post object from the front end
     post = json.loads(request.body).get('post', {})
+    print(json.dumps(post, indent=2))
 
     #gather the host of the post
     post_host = post['author']['host']
@@ -378,7 +379,7 @@ def open_comments_handler(request):
 
     if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com":
         #API call for calling code Monkeys
-        full_url = f"{post_host}/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/"
+        full_url = f"{post['origin']}/comments/"
         headers = {
             "accept": "application/json",
         }
@@ -390,7 +391,7 @@ def open_comments_handler(request):
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), params=params)
     elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
         #API call for 404 Team not found
-        full_url = f"{post_host}/api/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/"
+        full_url = f"{post['origin']}/comments/"
         headers = {
             "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
             "accept": "application/json",
