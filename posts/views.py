@@ -426,7 +426,7 @@ def submit_comment_handler(request):
 
     if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com":
         #send comment
-        full_url = f"{post_host}/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/"
+        full_url = f"{post['origin']}/comments/"
         headers = {"Content-Type": "application/json"}
         auth = nodes.get_auth_for_host(post_host)
         comment_details = {
@@ -435,7 +435,7 @@ def submit_comment_handler(request):
             "comment": commentText,
             "contentType": "text/plain",
             "published": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S+00:00'),
-            "id": f"{post_host}/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/{uuid.uuid4()}"
+            "id": f"{post['origin']}/comments/{uuid.uuid4()}"
         }
         comment_details_json = json.dumps(comment_details)
         # print(f"\nAPI Call for Sending Like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
@@ -443,7 +443,7 @@ def submit_comment_handler(request):
 
     elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
         #send comment
-        full_url = f"{post_host}/api/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/"
+        full_url = f"{post['origin']}/comments/"
         headers = {
             "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
             "accept": "application/json",
@@ -456,7 +456,7 @@ def submit_comment_handler(request):
             "comment": commentText,
             "contentType": "text/plain",
             "published": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S+00:00'),
-            "id": f"{post_host}/authors/{post['author_uuid']}/posts/{post['uuid']}/comments/{uuid.uuid4()}"
+            "id": f"{post['origin']}/comments/{uuid.uuid4()}"
         }
         comment_details_json = json.dumps(comment_details)
         # print(f"\nAPI Call for Sending Comment Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(comment_details, indent=2)}") #Debug the API call
