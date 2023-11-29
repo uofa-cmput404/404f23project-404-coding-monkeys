@@ -375,10 +375,8 @@ def open_comments_handler(request):
     print(json.dumps(post, indent=2))
 
     #gather the host of the post
-    # post_host = post['author']['host'] #TODO: Get this from the source
     post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the source
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
-    print(post_host)
 
     if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
         #API call for calling code Monkeys
@@ -416,7 +414,8 @@ def submit_comment_handler(request):
     nodes = Nodes()
 
     post = json.loads(request.body).get('post', {})
-    post_host = post['author']['host']
+    #gather the host of the post
+    post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the source
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
     commentText = json.loads(request.body).get('comment_text', {})
@@ -425,7 +424,7 @@ def submit_comment_handler(request):
     currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
     currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
 
-    if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com":
+    if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
         #send comment
         full_url = f"{post['origin']}/comments/"
         headers = {"Content-Type": "application/json"}
