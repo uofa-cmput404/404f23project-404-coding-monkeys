@@ -58,6 +58,7 @@
                         // the backend returns all comments for a post. Here we display them (add them into a container)
                         var comments = JSON.parse(data.comments);
                         commentContainer.empty();
+                        // TODO: Store a link to the commenter's inbox after receiving the comment
                         
                         // Add the comment elements to the page
                         comments.forEach(function (comment) {
@@ -73,7 +74,7 @@
                                     '<p class="comment-username">' + comment.author.displayName + '</p>' +
                                     '<p class="comment-text">' + comment.comment + '</p>' +
                                 '</div>' +
-                                '<button class="like-comment-button" data-comment-uuid="' + comment.uuid + '">Like</button>' +
+                                '<button class="like-comment-button" data-comment-uuid="' + comment_uuid + '">Like</button>' +
                             '</div>';
                             commentContainer.append(commentElement);
                         });
@@ -90,6 +91,30 @@
         $(".cancel-comment-button").click(function () {
             var post_uuid = $(this).data("post-uuid");
             $("#comment-box-container-" + post_uuid).hide();
+        });
+
+        $(document).on('click', '.like-comment-button', function () {
+            var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
+            var post = JSON.parse(post_json); //parse the json into an object
+            var comment_uuid = $(this).data("comment-uuid");
+
+            // Use ajax to get backend to send a like to a comment
+            $.ajax({
+                    url: '{% url "like_comment" %}',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ post: post, comment_uuid: comment_uuid }),
+                    headers: { 'X-CSRFToken': csrfToken }, //include authentication token
+                    success: function (data) {
+                        console.log("returned from like comment handler")
+
+                    
+                    },
+                    error: function (data) {
+                        alert("Error liking comment. Please try again.");
+                    }
+                });
+
         });
 
         $(".submit-comment-button").click(function () {
@@ -135,6 +160,7 @@
                 alert("Please enter text before submitting a comment.");
             }
         });
+
         
         
         $(".authorDetails").click(function () {
