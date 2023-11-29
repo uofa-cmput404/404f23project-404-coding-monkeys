@@ -73,7 +73,7 @@
                                     '<p class="comment-username">' + comment.author.displayName + '</p>' +
                                     '<p class="comment-text">' + comment.comment + '</p>' +
                                 '</div>' +
-                                '<button class="like-comment-button" data-comment-uuid="' + comment.uuid + '">Like</button>' +
+                                '<button class="like-comment-button" data-comment-uuid="' + comment_uuid + '">Like</button>' +
                             '</div>';
                             commentContainer.append(commentElement);
                         });
@@ -95,7 +95,6 @@
         $(document).on('click', '.like-comment-button', function () {
             console.log("entered the like comment button js handler")
             var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
-            console.log(post_json)
             var post = JSON.parse(post_json); //parse the json into an object
             console.log(post)
             var comment_uuid = $(this).data("comment-uuid");
