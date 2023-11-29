@@ -92,6 +92,16 @@
             $("#comment-box-container-" + post_uuid).hide();
         });
 
+        $(document).on('click', '.like-comment-button', function () {
+            console.log("entered the like comment button js handler")
+            var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
+            console.log(post_json)
+            var post = JSON.parse(post_json); //parse the json into an object
+            console.log(post)
+            var comment_uuid = $(this).data("comment-uuid");
+            console.log(comment_uuid)
+        });
+
         $(".submit-comment-button").click(function () {
             var post_json = $(this).siblings(".comment-post-data").text(); // get the corresponding post as json from the html
             var post = JSON.parse(post_json); //parse the json into an object
@@ -135,6 +145,7 @@
                 alert("Please enter text before submitting a comment.");
             }
         });
+
         
         
         $(".authorDetails").click(function () {
