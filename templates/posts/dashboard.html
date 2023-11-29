@@ -58,6 +58,7 @@
                         // the backend returns all comments for a post. Here we display them (add them into a container)
                         var comments = JSON.parse(data.comments);
                         commentContainer.empty();
+                        // TODO: Store a link to the commenter's inbox after receiving the comment
                         
                         // Add the comment elements to the page
                         comments.forEach(function (comment) {
