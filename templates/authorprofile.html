@@ -57,8 +57,8 @@
 
       {% if user.uuid == author.uuid %} <!-- only allow users to update their own profiles; current user username must match that of author-->
         <form action="{% url 'author_edit' uuid=author.uuid %}">
-          <div style="margin-top:121px; position:absolute; right:60px;">
-            <button class="post_button" type="submit" style=" padding:0; font-size:16px; padding-right: 12px; padding-left: 12px;">Edit Profile</button>
+          <div style="margin-top:121px; position:absolute; right:80px;">
+            <button class="post_button" type="submit" style=" padding:0; font-size:16px; padding-right: 15px; padding-left: 15px;">Edit Profile</button>
           </div>
 
         </form>
@@ -67,13 +67,13 @@
           <p style="margin-top:121px; position:absolute; right:60px;">Following</p>
           <form action="{% url 'author_unfollow' uuid=author.uuid rq_uuid=user.uuid %}">
             <div style="margin-top:121px; position:absolute; right:60px;">
-              <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Unfollow</button>
+              <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 15px; padding-left: 15px;">Unfollow</button>
             </div>
         {% elif pending_request == True %} <!--there is a pending friend request; hide follow button, show "requested"-->
             <p style="margin-top:121px; position:absolute; right:60px;">Requested</p>
         {% else %} <!--not following this user and have not sent request yet; show follow button-->
         <div style="margin-top:121px; position:absolute; right:60px;">
-            <button id="followButton" data-requester-id="{{ user.uuid }}" data-recipient-id="{{ author.uuid }}" class="post_button" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Follow</button>
+            <button id="followButton" data-requester-id="{{ user.uuid }}" data-recipient-id="{{ author.uuid }}" class="post_button" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 14px; padding-left: 14px;">Follow</button>
         </div>
         {% endif %}
       {% endif %}
@@ -85,25 +85,20 @@
 
   </div><!--yellow to dark grey background div-->
 
-  <div style="background-color:#1C1A19; min-height:410px; border-bottom-left-radius:11px; border-bottom-right-radius:11px;">
+  <div style="background-color:#1C1A19; min-height:410px; border-bottom-left-radius:11px; border-bottom-right-radius:11px; padding-bottom:25px;">
 
-    <div class="row-flex" style="margin-bottom:10px;">
-      <form>
-        <button class="post_button" type="submit" style=" padding:0; font-size:16px; padding-right: 12px; padding-left: 12px; margin-left:10px;">Github</button>
-      </form>
 
-      <form>
-        <button class="post_button" type="submit" style=" padding:0; font-size:16px; padding-right: 12px; padding-left: 12px; margin-left:10px;">Posts</button>
-      </form>
-    </div>
+    <form>
+      <button class="post_button" type="submit" style=" padding:0; font-size:20px; margin-left:14px; width:110px;">Posts</button>
+    </form>
 
-    <h2 style="margin-top:0; margin-left:12px;"><u>Followers</u></h2>
-    <ul style="list-style-type: none; ">
+    <h2 style="margin-top:0; margin-left:12px; margin-top:20px; margin-bottom:15px;"><u>Followers</u></h2>
+    <ul style="list-style-type: none; padding:10px;"><!--Set padding to something to remove discrepencies between Firefox and Chrome, as Firefox as a default and chrome doesnt-->
       {% for follower in followers %}
 
-        <div class="list_profiles_gradience"></div>
+        <div class="list_profiles_gradience" style="margin-bottom:4px; margin-left:23px;"></div>
 
-        <div class="userProfile_followers" style="display: flex; flex-direction: column; padding:5px;">
+        <div class="userProfile_followers" style="display: flex; flex-direction: column; padding:5px; margin-left:29px;">
 
           <img src="{{ follower.profileImage }}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553;">
           <li style="word-break:break-all;">{{ follower.displayName }}</li>
@@ -112,12 +107,16 @@
 
       {% endfor %}
     </ul>
-    <h2 style="margin-left:12px;"><u>Liked</u></h2>
-    <ul style="list-style-type: none; ">
-      {% for liked in liked %}
-        <div class="list_profiles_gradience"></div>
 
-        <div class="row-flex" style="padding:5px;">
+    <div style="margin-bottom:40px;"></div>
+
+    <h2 style="margin-left:12px; margin-bottom:15px;"><u>Liked</u></h2>
+    <ul style="list-style-type: none; padding:10px;"><!--Set padding to something to remove discrepencies between Firefox and Chrome, as Firefox as a default and chrome doesnt-->
+      {% for liked in liked %}
+
+        <div class="list_profiles_gradience" style="margin-left:23px; margin-bottom:4px;"></div>
+
+        <div class="row-flex" style="padding:5px; margin-left:29px;">
           <span class="material-symbols-outlined" style="margin-top: 20px; margin-right: 5px;">
             thumb_up
             </span>
@@ -130,8 +129,13 @@
           <p style="margin-top: 20px;">{{ liked.contentAuthor.displayName }}</p>
         </div>
       {% endfor %}
-  </div>
 
+
+    <h2 style="margin-top:0; margin-top:20px; margin-bottom:15px;"><u>Github Activity</u></h2>
+
+  </div>
+  
+  
 
 </div><!--light grey box div-->
 {% endblock content %}
