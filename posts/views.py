@@ -438,6 +438,8 @@ def submit_comment_handler(request):
             "id": f"{post['id']}/comments/{uuid.uuid4()}"
         }
         comment_details_json = json.dumps(comment_details)
+        print("Comment Details Local/Live:")
+        print(json.dumps(comment_details, indent=2))
         # print(f"\nAPI Call for Sending Like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
         response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=comment_details_json) #Send the like object to the posting author's inbox
 
@@ -459,6 +461,8 @@ def submit_comment_handler(request):
             "id": f"{post['id']}/comments/{uuid.uuid4()}"
         }
         comment_details_json = json.dumps(comment_details)
+        print("Comment Details T404:")
+        print(json.dumps(comment_details, indent=2))
         # print(f"\nAPI Call for Sending Comment Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(comment_details, indent=2)}") #Debug the API call
         response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=comment_details_json) #Send the like object to the posting author's inbox
     
