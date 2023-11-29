@@ -95,10 +95,10 @@ WSGI_APPLICATION = 'django_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'd70k31aslf0huc',
-        'USER': 'hoynxxxebtkqya',
-        'PASSWORD': '0809c5ff0d70fe1dfe7f662b5038be3528e685c505a8964eb346bbb5ab3f37c9',
-        'HOST': 'ec2-54-156-20-209.compute-1.amazonaws.com',    # Set to your PostgreSQL server's host
+        'NAME': 'chimp-chat-dev',
+        'USER': 'qHB86EHdP7r^x2V',
+        'PASSWORD': 'gusv^Hwi3MvMsVU6fkt7Z7crZ5gWBSKKTBWC',
+        'HOST': 'www.chimp-chat.win',    # Set to your PostgreSQL server's host
         'PORT': '5432',         # Default PostgreSQL port
     }
 }
