@@ -1,0 +1,25 @@
+meta {
+  name: create reference post
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/authors/{{dinoId}}/posts/a8439a28-cb9d-4898-8bb4-bf1e9923928a/comments/?page=1&size=5
+  body: none
+  auth: basic
+}
+
+query {
+  page: 1
+  size: 5
+}
+
+auth:basic {
+  username: dino
+  password: dinouser
+}
+
+assert {
+  res.status: eq 200
+}

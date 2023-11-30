@@ -212,6 +212,7 @@
             });
             
         });
+
     });
 
 </script>
@@ -232,8 +233,8 @@
             <div class="post" style="margin-top:3em">
                 <section id="post_author">
                     <div class="authorDetails" data-get-url="{{ post.author.id }}" data-host="{{ post.author.host }}">
-                        <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
-                        <p style="margin: 0; margin-left:0.25em; margin-top: 0.25em; color:black; font-size:24px; user-select: none">{{ post.author.displayName}}</p>
+                        <img src="{{ post.author.profileImage }}" data-author-index="{{ post.author_index }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
+                        <p class="profile_name" style="margin: 0; margin-left:0.25em; margin-top: 0.25em; color:black; font-size:24px; user-select: none">{{ post.author.displayName}}</p>
                     </div>
                     <div class="flex_grow"></div>
                     <p style="align-self: end;">{{ post.delta }}</p>
@@ -339,6 +340,14 @@
             modal.close();
         });
     };
+
+    var colors = ["#FFD553", "#4260f5", "#ff3b3b"];
+    var profilePictures = document.querySelectorAll(".profile_picture");
+    profilePictures.forEach(function(profilePicture) {
+            var authorIndex = parseInt(profilePicture.getAttribute("data-author-index"));
+            var colorIndex = authorIndex % colors.length;
+            profilePicture.style.borderColor = colors[colorIndex];
+        });
 </script>
 
 {% endblock content %}

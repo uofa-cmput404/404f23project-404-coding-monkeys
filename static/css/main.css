@@ -398,5 +398,16 @@ a{
     background-color: #FFD553;
   }
 
+  .itemBacking {
+    background-color: #464646;
+    border-radius: 8px;
+    padding: 1em;
+    margin: 1em;
+    display: flex;
+    flex-direction: row;
+  }
 
+  .itemBacking:hover {
+    background-color: #595959;
+  }
 

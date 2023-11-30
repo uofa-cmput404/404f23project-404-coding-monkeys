@@ -1,0 +1,20 @@
+meta {
+  name: add follower fane - already following
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/authors/{{dinoId}}/followers/{{faneId}}/
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino
+  password: dinouser
+}
+
+assert {
+  res.status: eq 400
+}

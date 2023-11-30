@@ -1,0 +1,25 @@
+meta {
+  name: create api token
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/token/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "user_id": "6d44a8df-dc0b-44a1-b3a0-1f6939a949ca",
+    "username": "dino",
+    "host": "http://www.chimp-chat.win/",
+    "url": "http://www.chimp-chat.win/authors/6d44a8df-dc0b-44a1-b3a0-1f6939a949ca" 
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.message: eq Succesfully set cookie.
+}

@@ -8,19 +8,21 @@
 
 {% block content %}
 
-<h1>Follow Requests</h1>
+<h1 style="margin-left: 60px;">Follow Requests</h1>
 <ul>
 {% for request in requests_list %}
-    <img src="{{ request.data.profileImage }}">
-    <h3>{{request.data.displayName}} wants to follow you.</h3>
-    <button class="accept-follow" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
-        <span class="material-symbols-outlined">done</span>
-    </button>
-    <button class="deny-follow" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
-        <span class="material-symbols-outlined">close</span>
-    </button>
+    <div class="itemBacking">  
+        <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ request.data.profileImage }}">
+        <h3>{{request.data.displayName}} wants to follow you.</h3>
+        <button class="accept-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+            <span class="material-symbols-outlined">done</span>
+        </button>
+        <button class="deny-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
 {% empty %}
-    <li>No friend requests yet.</li>
+    <li style="margin-left: 40px;">No friend requests yet.</li>
 {% endfor %}
 </ul>
 

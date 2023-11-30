@@ -1,0 +1,21 @@
+meta {
+  name: get all authors
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/authors
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino
+  password: dinouser
+}
+
+assert {
+  res.status: eq 200
+  res.body.items.length: gt 1
+}

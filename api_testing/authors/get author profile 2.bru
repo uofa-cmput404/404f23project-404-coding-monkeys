@@ -1,0 +1,26 @@
+meta {
+  name: get author profile 2
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/authors/{{dinoId}}
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino
+  password: dinouser
+}
+
+assert {
+  res.status: eq 200
+  res.body.type: eq author
+  res.body.id: eq {{dinoUrl}}
+  res.body.host: eq {{baseUrl}}/
+  res.body.displayName: eq dino
+  res.body.url: eq {{dinoUrl}}
+  res.body.github: eq http://getty.com
+}
