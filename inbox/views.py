@@ -52,6 +52,7 @@ def follow_request_handler(request):
     except Exception as e: 
         print(e)
         return JsonResponse({"status": "error"}, status=400)
+    return JsonResponse({"status": "bad response"})
 
 def inbox_post(request, author_id, inbox_index):
     # will be used to display post related to inbox item

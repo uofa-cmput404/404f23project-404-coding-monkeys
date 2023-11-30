@@ -16,7 +16,7 @@ from posts.serializers import LikeListSerializer, LocalPostsSerializer, PostsSer
 from .models import Posts, Likes, Comments
 from .forms import PostForm
 from django.urls import reverse
-from accounts.models import AuthorUser, Followers
+from accounts.models import AuthorUser, Followers, ForeignAuthor
 import uuid
 import base64
 from django.http import JsonResponse
@@ -959,6 +959,7 @@ def api_post_creation(request, uuid):
 @authentication_classes([BasicAuthentication])
 @permission_classes([IsAuthenticated])
 def api_comments(request, uuid, post_id):
+    author_cache = AuthorCache()
     if request.method == 'GET':
         # check if post exists
         post = get_object_or_404(Posts, uuid=post_id, author_uuid=uuid)
@@ -1016,6 +1017,10 @@ def api_comments(request, uuid, post_id):
         author_uuid = get_id_from_url(data["author"]["id"])
         author_host = data["author"]["host"]
         author_url = data["author"]["url"]
+
+        if not author_cache.get(author_uuid):
+            ForeignAuthor.objects.update_or_create(uuid=author_uuid, author_json=data["author"])
+            author_cache.add(author_uuid["author_uuid"], data["author"])
 
         comment_url = data["id"]
         comment_uuid = get_part_from_url(comment_url, "comments")
