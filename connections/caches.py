@@ -1,5 +1,6 @@
 import requests
 from cryptography.fernet import Fernet
+from accounts.models import AuthorUser
 from django_project import settings
 from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
@@ -66,29 +67,43 @@ class AuthorCache(Cache):
         node_singleton = Nodes()
 
         for i in range(len(HOSTS)):
-            host = HOSTS[i]
-
-            auth = node_singleton.get_auth_for_host(host)
-            url = node_singleton.get_host_for_index(i)
-
-            try:
-                authors_url = f"{url}/authors/"
-
-                headers={"Accept": "application/json"}
-                if i == 1:
-                    headers["Referer"] = node_singleton.get_host_for_index(0)
-                    
-                response = requests.get(authors_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-
-                if response.ok:
-                    authors = response.json()
-                    for author in authors["items"]:
-                        uuid = get_id_from_url(author["id"])
-                        self.cache[uuid] = author
             
-            except Exception as e:
-                print(e)
-                continue
+            if i == 0:
+                authors = AuthorUser.objects.all()
+                for auth in authors:
+                    obj = {"id": f"{ENDPOINT}authors/{auth.uuid}/",
+                    "host": auth.host,
+                    "url": auth.url,
+                    "github": auth.github,
+                    "displayName": auth.username,
+                    "profileImage": auth.profile_image}
+
+                    self.cache[auth.uuid] = obj
+            
+            else:
+                host = HOSTS[i]
+
+                auth = node_singleton.get_auth_for_host(host)
+                url = node_singleton.get_host_for_index(i)
+
+                try:
+                    authors_url = f"{url}/authors/"
+
+                    headers={"Accept": "application/json"}
+                    if i == 1:
+                        headers["Referer"] = node_singleton.get_host_for_index(0)
+                        
+                    response = requests.get(authors_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                    if response.ok:
+                        authors = response.json()
+                        for author in authors["items"]:
+                            uuid = get_id_from_url(author["id"])
+                            self.cache[uuid] = author
+                
+                except Exception as e:
+                    print(e)
+                    continue
 
 class PostCache(Cache):
     def __init__(self):
@@ -105,9 +120,40 @@ class PostCache(Cache):
         
         for author, details in author_cache.items():
             try:
-                if details['host'] in (ENDPOINT, f"{node_singleton.get_host_for_index(3)}/"):
+                if details['host'] in (ENDPOINT):
                     continue
-                    
+
+                elif strip_slash(details['host']) == HOSTS[2]:
+                    index = HOSTS.index(strip_slash(details['host']))
+
+                    endpoint = node_singleton.get_host_for_index(index)
+                    auth = ["api","apiadminuser"]
+                    headers = {"Accept": "application/json"}
+                    posts_url = f"{endpoint}/authors/{author}/posts/"
+
+                    try:
+                        response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                        if response.ok:
+                            posts = response.json()
+                            posts = posts["items"]
+                            
+                            for post in posts:
+                                uuid = get_id_from_url(post["id"])
+                                try:
+                                    url = f"{post['id']}/likes/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        likes = response.json()
+                                        post["likeCount"] = len(likes["items"])
+                                except:
+                                    post["likeCount"] = 0
+                                self.cache[uuid] = post
+
+                    except Exception as e:
+                        print(e)
+                        continue
+
                 elif strip_slash(details['host']) == HOSTS[1]:
                     index = HOSTS.index(strip_slash(details['host']))
 
