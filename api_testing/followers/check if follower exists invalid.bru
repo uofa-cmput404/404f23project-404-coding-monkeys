@@ -1,0 +1,20 @@
+meta {
+  name: check if follower exists invalid
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/authors/{{dinoId}}/followers/invalidid/
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino
+  password: dinouser
+}
+
+assert {
+  res.status: eq 404
+}

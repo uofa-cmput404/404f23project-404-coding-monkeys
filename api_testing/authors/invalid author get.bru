@@ -1,0 +1,20 @@
+meta {
+  name: invalid author get
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/authors/invalidid/
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino
+  password: dinouser
+}
+
+assert {
+  res.status: eq 404
+}

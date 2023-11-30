@@ -283,6 +283,7 @@ def post_stream(request):
     posts = post_cache.values()
 
     for post in posts:
+        post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"])

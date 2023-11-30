@@ -1,0 +1,20 @@
+meta {
+  name: make sure fane is not following
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/authors/{{dinoId}}/followers/{{faneId}}/
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino
+  password: dinouser
+}
+
+assert {
+  res.status: eq 404
+}
