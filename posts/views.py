@@ -1014,10 +1014,19 @@ def get_github_actvity(uuid):
     github_events_url=f"https://api.github.com/users/{username}/events"
     
     response = requests.get(github_events_url)
-
+    retrived_events = []
     if response.status_code==200:
-        print(response.json())
-        return response.json()
+        events=response.json()
+        for event in events:
+            extracted_data={
+            'id': event['id'],
+            'type': event['type'],
+            'repo': event['repo']['name'],
+            'repo': event['repo']['url'],
+            'created_at': event['created_at']
+            }
+            retrived_events.append(extracted_data)
+        return retrived_events
     else:
         return None
     
