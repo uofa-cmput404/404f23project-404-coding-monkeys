@@ -72,19 +72,16 @@ class Cache():
         self.initialize()
         res = self.cache.get(key)
         if not res:
-            print(f"Error getting {key} from cache, updating cache...")
-            self.update()
+            try: foreign = ForeignAuthor.objects.get(uuid=key)
+            except: foreign = None
+            if not foreign:
+                print(f"Error getting {key} from cache, updating cache...")
+                self.update()
+            else:
+                return foreign.author_json
         
         # This case should not happen but is a safety
-        return self.cache.get(key, {
-            "type": "author",
-            "id": f"{ENDPOINT}authors/404",
-            "url": f"{ENDPOINT}authors/404",
-            "host": ENDPOINT,
-            "displayName": "Unknown Remote User",
-            "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg",
-            "github": None
-        })
+        return self.cache.get(key)
     
     def remove(self, key):
         self.initialize()
