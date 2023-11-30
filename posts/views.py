@@ -984,7 +984,7 @@ def api_comments(request, uuid, post_id):
         formatted = []
         for comment in comments:
             data = model_to_dict(comment)
-            data["author"] = AuthorDetail(comment.author_uuid, comment.author_url, comment.author_host).formatAuthorInfo()
+            data["author"] = author_cache.get(comment.author_uuid)
 
             for k in ("author_uuid", "author_url", "author_host"):
                 data.pop(k)
