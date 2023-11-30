@@ -36,7 +36,7 @@ from drf_yasg import openapi
 import copy
 from requests.auth import HTTPBasicAuth
 from connections.caches import Nodes
-from util import time_since_posted, format_local_post_from_db, format_local_post
+from util import time_since_posted, format_local_post_from_db, format_local_post, strip_slash
 
 
 class PostCreate(CreateView):
@@ -288,13 +288,23 @@ def post_stream(request):
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"])
 
-        sharedWith = post["sharedWith"]
-        sharedIDs = [user["uuid"] for user in sharedWith]
-        if post["visibility"] != "PUBLIC" and request.user.uuid not in sharedIDs:
-            continue
-
+        # filter out posts that shouldn't be shared with current user
+        if post["origin"] == strip_slash(ENDPOINT):
+            try: post = Posts.objects.get(uuid=post["uuid"])
+            except Posts.DoesNotExist: post = None
+            if post:
+                sharedIDs = [user["uuid"] for user in post.sharedWith]
+                # don't serve post if not shared with logged in author
+                if post.visibility != "PUBLIC" and request.user.uuid not in sharedIDs:
+                    continue
+            # dont serve if post is deleted
+            else:
+                continue
+        
+        # pass html rendered as commonmark into dashboard view
         if post["contentType"] == "text/markdown":
             post["content"] = commonmark.commonmark(post["content"])
+        # custom logic for 404 not found's group
         elif post["content"] and post["origin"].startswith(HOSTS[1]) and post["contentType"] not in ("text/plain", "text/markdown"):
             post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)

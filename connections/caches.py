@@ -5,6 +5,7 @@ from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
 from posts.models import Posts
 from static.vars import ENDPOINT, HOSTS
+import threading
 
 from util import format_local_post, get_id_from_url, strip_slash, format_local_post_from_db
 from .models import Node
@@ -20,6 +21,13 @@ class Cache():
             cls._instance = object.__new__(cls)
             cls._instance.init = False
             cls._instance.cache = {}
+            cls._instance.locks = {}
+
+            # start the thread that updates the cache every 5 minutes
+            thread = threading.Timer(300, cls._instance.update)
+            thread.daemon = True # program will exit if only daemon threads are left
+            thread.start()
+
         return cls._instance
     
     def items(self):
@@ -35,19 +43,59 @@ class Cache():
         return self.cache.values()
 
     def add(self, key, value):
+        """
+        Locks are needed here incase the user refreshes the page and the cache is being updated
+        simultaneously. I am not sure what happens in this case, but better safe than sorry.
+        These locks should cost next to nothing in terms of performance. There should be
+        little to no lock contention, and the branch predictor should be able to predict
+        the branch correctly almost every time.
+        """
         self.initialize()
+
+        # create a lock for this key if it doesn't exist
+        if key not in self.locks:
+            self.locks[key] = threading.Lock()
+
+        # if the lock is already acquired by another thread, return
+        # this cache entry is already being updated, so there is no need to update it again
+        if not self.locks[key].acquire(blocking=False):
+            return
+
+        # update the value to the cache
         self.cache[key] = value
+
+        # release the lock
+        self.locks[key].release()
 
     def get(self, key):
         self.initialize()
-        return self.cache.get(key)
-
+        res = self.cache.get(key)
+        if not res:
+            print(f"Error getting {key} from cache, updating cache...")
+            self.update()
+        
+        # This case should not happen but is a safety
+        return {
+            "type": "author",
+            "id": f"{ENDPOINT}authors/404",
+            "url": f"{ENDPOINT}authors/404",
+            "host": ENDPOINT,
+            "displayName": "Unknown Remote User",
+            "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg",
+            "github": None
+        }
+    
     def remove(self, key):
         self.initialize()
         self.cache.pop(key)
 
+        # remove the lock if it exists
+        if key in self.locks:
+            self.locks.pop(key)
+
     def clear(self):
         self.cache = {}
+        self.locks = {}
     
     def initialize(self):
         if not self.init:
