@@ -1020,11 +1020,13 @@ def get_github_actvity(uuid):
         for event in events:
             extracted_data={
             'id': event['id'],
+            'actor': event['actor']['display_login'],
+            'actor_url': event['actor']['url'],
+            'actor_avatar': event['actor']['avatar_url'],
             'type': event['type'],
             'repo': event['repo']['name'],
             'repo': event['repo']['url'],
-            'created_at': event['created_at']
-            }
+            'created_at': event['created_at']}
             retrived_events.append(extracted_data)
         return retrived_events
     else:
