@@ -54,6 +54,7 @@ def follow_request_handler(request):
         return JsonResponse({"status": "error"}, status=400)
 
 def inbox_post(request, author_id, inbox_index):
+    # will be used to display post related to inbox item
     try: author = AuthorUser.objects.get(uuid=author_id)
     except: return Response(status=404)
     
@@ -214,11 +215,8 @@ def api_inbox(request, uuid):
             for extra in ("type","id"):
                 post_data.pop(extra)
 
-            try: post = Posts.objects.get(uuid=post_data["uuid"])
-            except Posts.DoesNotExist: post = None
-
             # update visibility only if new and remote or local and private
-            if post and data["visibility"] != "PUBLIC" and post_data["author_host"] != ENDPOINT and data["visibility"] != "FRIENDS":
+            if post_data["visibility"] != "PUBLIC":
                 # shared with current author
                 shared_author = AuthorUser.objects.get(uuid=uuid)
                 ad = AuthorDetail(shared_author.uuid, shared_author.url, shared_author.host)
@@ -228,6 +226,9 @@ def api_inbox(request, uuid):
                     post.save()
             
             itemID = post_data["uuid"]
+
+            try: post = Posts.objects.get(uuid=itemID)
+            except: post = None
 
             if post:
                 post_data.pop("uuid")

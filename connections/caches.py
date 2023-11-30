@@ -1,5 +1,6 @@
 import requests
 from cryptography.fernet import Fernet
+from accounts.models import ForeignAuthor
 from django_project import settings
 from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
@@ -75,7 +76,7 @@ class Cache():
             self.update()
         
         # This case should not happen but is a safety
-        return {
+        return self.cache.get(key, {
             "type": "author",
             "id": f"{ENDPOINT}authors/404",
             "url": f"{ENDPOINT}authors/404",
@@ -83,7 +84,7 @@ class Cache():
             "displayName": "Unknown Remote User",
             "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg",
             "github": None
-        }
+        })
     
     def remove(self, key):
         self.initialize()
@@ -113,6 +114,9 @@ class AuthorCache(Cache):
     def update(self):
         node_singleton = Nodes()
 
+        foreigns = ForeignAuthor.objects.all()
+        {self.cache[f.get("uuid")] : f.get("author_json") for f in foreigns}
+
         for i in range(len(HOSTS)):
             host = HOSTS[i]
 
@@ -121,6 +125,7 @@ class AuthorCache(Cache):
 
             try:
                 authors_url = f"{url}/authors/"
+                print(authors_url)
 
                 headers={"Accept": "application/json"}
                 if i == 1:
@@ -153,19 +158,45 @@ class PostCache(Cache):
         
         for author, details in author_cache.items():
             try:
-                if details['host'] in (ENDPOINT, f"{node_singleton.get_host_for_index(3)}/"):
+                # skip local posts
+                if details['host'] == node_singleton.get_host_for_index(0):
                     continue
-                    
+                
+                index = HOSTS.index(strip_slash(details['host']))
+                endpoint = node_singleton.get_host_for_index(index)
+                auth = node_singleton.get_auth_for_host(details["host"])
+                headers = {"Accept": "application/json"}
+                posts_url = f"{endpoint}/authors/{author}/posts/"
+
+                print(posts_url)
+
+                # Chimp Chat Prod Server
+                if len(HOSTS) >= 3 and strip_slash(details['host']) == HOSTS[2]:
+                    try:
+                        response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                        if response.ok:
+                            posts = response.json()
+                            posts = posts["items"]
+                            
+                            for post in posts:
+                                uuid = get_id_from_url(post["id"])
+                                try:
+                                    url = f"{post['id']}/likes/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        likes = response.json()
+                                        post["likeCount"] = len(likes["items"])
+                                except:
+                                    post["likeCount"] = 0
+                                self.cache[uuid] = post
+
+                    except Exception as e:
+                        print(e)
+                        continue
+
+                # 404 Not Found
                 elif strip_slash(details['host']) == HOSTS[1]:
-                    index = HOSTS.index(strip_slash(details['host']))
-
-                    endpoint = node_singleton.get_host_for_index(index)
-                    auth = node_singleton.get_auth_for_host(details["host"])
-                    print(endpoint)
-                    headers = {"Accept": "application/json", "Referer": node_singleton.get_host_for_index(0)}
-                    posts_url = f"{endpoint}/authors/{author}/posts/"
-                    print(posts_url)
-
                     try:
                         response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
                         if response.ok:
@@ -232,7 +263,7 @@ class Nodes():
         self.initialize_values()
         
         for node in self.data:
-            if node["host"].startswith(host):
+            if node["host"].startswith(strip_slash(host)):
                 return (node["username"], node["password"])
         return None
 

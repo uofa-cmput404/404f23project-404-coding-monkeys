@@ -1,18 +1,18 @@
 import datetime
 import json
+from urllib.parse import urlparse
 import bleach
 import commonmark
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.views.generic import CreateView
 from django.forms.models import model_to_dict
-import pytz
 import requests
 from connections.caches import AuthorCache, PostCache
 from pages.seralizers import AuthorUserSerializer, CommentListSerializer, CommentSerializer
 from util import AuthorDetail
 from util import get_id_from_url, get_part_from_url
 from rest_framework.response import Response
-from posts.serializers import LikeListSerializer, LocalCommentSerializer, LocalPostsSerializer, PostsSerializer, ResponsePosts
+from posts.serializers import LikeListSerializer, LocalPostsSerializer, PostsSerializer, ResponsePosts
 from .models import Posts, Likes, Comments
 from .forms import PostForm
 from django.urls import reverse
@@ -276,7 +276,6 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-
 def post_stream(request):
     toReturn = []
 
@@ -383,73 +382,106 @@ def view_posts(request):
 
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
-def format_comment(comment):
-    comment_obj = model_to_dict(comment)
-    ad = AuthorDetail(comment.author_uuid, comment.author_url, comment.author_host)
-
-    for k in ("author_uuid", "author_url", "author_host"):
-        comment_obj.pop(k)
-
-    comment_obj["author"] = ad.formatAuthorInfo()
-    # idk why these were excluded
-    comment_obj["published"] = str(comment.published)
-    comment_obj["post_id"] = str(comment.post_id)
-
-    return comment_obj
-
 def open_comments_handler(request):
-    # returns commenets for a given post
-    post_uuid = request.GET.get('post_uuid')
-    comments = Comments.objects.filter(post_id=post_uuid)
+    nodes = Nodes()
+
+    #Get the post object from the front end
+    post = json.loads(request.body).get('post', {})
+    print(json.dumps(post, indent=2))
+
+    #gather the host of the post
+    post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the source
+    if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
+
+    if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
+        #API call for calling code Monkeys
+        full_url = f"{post['origin']}/comments/"
+        headers = {
+            "accept": "application/json",
+        }
+        params = {
+            "page": 1,
+            "size": 10
+        }
+        auth = nodes.get_auth_for_host(post_host)
+        response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), params=params)
+    elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
+        #API call for 404 Team not found
+        full_url = f"{post['origin']}/comments/"
+        headers = {
+            "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+            "accept": "application/json",
+        }
+        auth = nodes.get_auth_for_host(post_host)
+        response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+
+
+    if not response.ok: print(f"API error when gathering comments for post with UUID: {post['uuid']}")
+    returned_comments = response.json()
 
     formatted = []
-    for comment in comments:
-        formatted.append(format_comment(comment))
-    
-    serialized = LocalCommentSerializer(data=formatted, many=True)
-    
-    if not serialized.is_valid():
-        return JsonResponse({'comments': '{}'})
-    #TODO: sort newest to oldest?
-    return JsonResponse({'comments': json.dumps(serialized.validated_data)})
+    print("COMMENTS RETURNED FROM API:")
+    for comment in returned_comments['comments']:
+        print(json.dumps(comment, indent=2))
+
+        formatted.append(comment)
+
+    return JsonResponse({'comments': json.dumps(formatted)})
 
 def submit_comment_handler(request):
-    post_uuid = request.GET.get('post_uuid', None) #get the post in question
-    commentText = request.GET.get('comment_text', None) #get the text of the comment
-    author = AuthorUser.objects.get(id=request.user.id) #get the current user
+    nodes = Nodes()
 
-    #read the post (whose like button the user clicked) object from db
-    try: post = Posts.objects.get(uuid=post_uuid)
-    except Posts.DoesNotExist: print(f"Error: Post with UUID:{post_uuid} does not exist.")
+    post = json.loads(request.body).get('post', {})
+    #gather the host of the post
+    post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the source
+    if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
-    post.count += 1
-    post.save()
+    commentText = json.loads(request.body).get('comment_text', {})
+
+    #Get current user info
+    currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
+    currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
+
+    if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
+        #send comment
+        full_url = f"{post['origin']}/comments/"
+        headers = {"Content-Type": "application/json"}
+        auth = nodes.get_auth_for_host(post_host)
+        comment_details = {
+            "type": "comment",
+            "author": currUser_API,
+            "comment": commentText,
+            "contentType": "text/plain",
+            "published": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S+00:00'),
+            "id": f"{post['origin']}/comments/{uuid.uuid4()}"
+        }
+        comment_details_json = json.dumps(comment_details)
+        # print(f"\nAPI Call for Sending Like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=comment_details_json) #Send the like object to the posting author's inbox
+
+    elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
+        #send comment
+        full_url = f"{post['origin']}/comments/"
+        headers = {
+            "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+            "accept": "application/json",
+            'Content-Type': 'application/json'
+        }
+        auth = nodes.get_auth_for_host(post_host)
+        comment_details = {
+            "type": "comment",
+            "author": currUser_API,
+            "comment": commentText,
+            "contentType": "text/plain",
+            "published": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S+00:00'),
+            "id": f"{post['origin']}/comments/{uuid.uuid4()}"
+        }
+        comment_details_json = json.dumps(comment_details)
+        # print(f"\nAPI Call for Sending Comment Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(comment_details, indent=2)}") #Debug the API call
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=comment_details_json) #Send the like object to the posting author's inbox
     
-
-    print(f"{author.username} entered comment handler for post: {post_uuid}")
-    print(f"Comment contents: {commentText}")
-
-
-    #create and save new comment object
-    commentID = ""
-    # Example ID
-    # "id":"http://127.0.0.1:5454/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/de305d54-75b4-431b-adb2-eb6b9e546013/comments/f6255bb01c648fe967714d52a89e8e9c",
-    #       http://127.0.0.1:8000/authors/[ID OF POST AUTHOR]                     /posts/[ID OF POST]              /comments/[ID OF COMMENT]
-    # commentID = f"http://127.0.0.1:8000/authors/{post.author['id']}/posts/{post.uuid}/comments/{uuid.uuid4()}"
-    commentID = uuid.uuid4()
-    commentPost = post
-    commentText = commentText
-
-    authorID = author.uuid
-    authorHost = author.host
-    authorURL = author.url
-
-    commentObj = Comments(uuid= commentID, post= commentPost, comment= commentText, author_uuid=authorID, author_host=authorHost, author_url=authorURL, contentType= "text/plain")
-    commentObj.save(force_insert=True)
-
-    newComment = Comments.objects.get(uuid=commentID)
-    formattedComment = format_comment(newComment)
-    return JsonResponse({'comments': json.dumps([formattedComment])})
+    if not response.ok: print(f"API error when adding new comment")
+    return JsonResponse({'comments': json.dumps([comment_details])})
 
 def get_object_type(url):
     sections = url.split("/")
@@ -527,7 +559,67 @@ def like_post_handler(request):
         if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
 
         return JsonResponse({'new_post_count': post['likeCount'] +1 }) #return new post count
+    
+def like_comment_handler(request):
+    # #TODO: WE NEED TO SEND THIS TO THE COMMENT AUTHOR's INBOX
 
+    # print("Entered like comment handler!")
+    # nodes = Nodes()
+
+    # post = json.loads(request.body).get('post', {})
+    # post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the source
+    # if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
+    # print(json.dumps(post, indent=2))
+
+    # comment_uuid = json.loads(request.body).get('comment_uuid', {})
+    # print(f"Comment UUID: {comment_uuid}")
+
+    # #Get current user info
+    # currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
+    # currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
+
+    # if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
+    #     #send like object for comment
+    #     full_url = f"{post_host}/authors/{post['author_uuid']}/inbox/"
+    #     headers = {"Content-Type": "application/json"}
+    #     auth = nodes.get_auth_for_host(post_host)
+    #     like_details = {
+    #         "context": "https://www.w3.org/ns/activitystreams",
+    #         "summary": f"{currUser.username} Likes your comment",
+    #         "type": "Like",
+    #         "author": currUser_API,
+    #         "object": f"{post['comments']}/{comment_uuid}"
+    #     }
+    #     like_details_json = json.dumps(like_details)
+    #     # print(f"\nAPI Call for Sending comment like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(like_details, indent=2)}") #Debug the API call
+    #     response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=like_details_json) #Send the like object to the posting author's inbox
+    #     print(response)
+    #     print(response.text)
+
+    # elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
+    #     #send comment
+    #     full_url = f"{post_host}/api/authors/{post['author_uuid']}/inbox"
+    #     headers = {
+    #         "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+    #         "accept": "application/json",
+    #         'Content-Type': 'application/json'
+    #     }
+    #     auth = nodes.get_auth_for_host(post_host)
+    #     like_details = {
+    #         "context": "https://www.w3.org/ns/activitystreams",
+    #         "summary": f"{currUser.username} Likes your comment",
+    #         "type": "Like",
+    #         "author": currUser_API,
+    #         "object": f"{post['comments']}/{comment_uuid}"
+    #     }
+    #     like_details_json = json.dumps(like_details)
+    #     # print(f"\nAPI Call for Sending Comment Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(comment_details, indent=2)}") #Debug the API call
+    #     response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=like_details_json) #Send the like object to the posting author's inbox
+    #     print(response)
+    #     print(response.text)
+
+    # if not response.ok: print(f"API error when adding new comment")
+    return JsonResponse({})
 
 def test(request):
     return render(request, 'posts/test.html')
@@ -1018,8 +1110,55 @@ def api_comment_likes(request, uuid, post_id, comment_id):
     return Response(status=200, data={"type": "likes", "items": formatted})
 
 
+
 # LIKED
 # =====================
+def get_public_likes(uuid):
+    nodes = Nodes()
+    post_cache = PostCache()
+
+    liked_items = []
+    associated_posts = []
+    for item in Likes.objects.filter(author_uuid=uuid):
+        post_id = get_part_from_url(item.liked_object, "posts")
+        try: post = Posts.objects.get(uuid=post_id)
+        except Posts.DoesNotExist: post = None
+
+        if post and post.visibility == "PUBLIC":
+            associated_posts.append(post)
+            liked_items.append(item)
+
+        if not post and post_cache.get(post_id):
+            associated_posts.append(post_cache.get(post_id))
+            liked_items.append(item)
+        
+        if not post:
+            origin = None
+            for host in HOSTS:
+                if item.liked_object.startswith(host):
+                    origin = host
+                    break
+            
+            if origin:
+                try:
+                    auth = nodes.get_auth_for_host(origin)
+                    headers = {"Accept": "application/json"}
+
+                    if origin == HOSTS[1]:
+                        headers["Referer"] = nodes.get_host_for_index(0)
+
+                    response = requests.get(item.liked_object, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                    # we can assume that if we get a 2XX response, the post is public
+                    if response.ok:
+                        post = response.json()
+                        associated_posts.append(post)
+                        liked_items.append(item)
+                except:
+                    continue
+
+    return liked_items, associated_posts
+
+
 @swagger_auto_schema(
     tags=['liked', 'remote'],
     method='get',
@@ -1039,44 +1178,15 @@ def api_author_liked(request, uuid):
     author_cache = AuthorCache()
     author = get_object_or_404(AuthorUser, uuid=uuid)
 
-    public = []
-    likes = Likes.objects.filter(author_uuid=uuid)
-    for like in likes:
-        formatted = {
+    formatted = []
+    items, posts = get_public_likes(uuid)
+    for like in items:
+        formatted.append({
             "type": "like",
             "context": like.context,
             "summary": like.summary,
             "author": author_cache.get(like.author_uuid),
             "object": like.liked_object
-        }
-
-        found = False
-        # determine if local items are public
-        if like.liked_object_type == "post":
-            post = Posts.objects.filter(uuid=like.liked_id).first() if len(Posts.objects.filter(uuid=like.liked_id)) > 0 else None
-            if post:
-                found = True
-            if post and post.visibility == "PUBLIC":
-                public.append(formatted)
-        
-        elif like.liked_object_type == "comment":
-            comment = Comments.objects.filter(uuid=like.liked_id).first() if len(Comments.objects.filter(uuid=like.liked_id)) > 0 else None
-            if comment:
-                post = Posts.objects.filter(uuid=comment.post_id).first() if len(Posts.objects.filter(uuid=comment.post_id)) > 0 else None
-                if post:
-                    found = True
-                if post and post.visibility == "PUBLIC":
-                    public.append(formatted)
-        
-        if not found:
-            # do a get on the liked object; it should not return an OK status if it is not public
-            # TODO add basic auth
-            try:
-                object_url = like.liked_object
-                response = requests.get(object_url)
-                if response.ok:
-                    public.append(formatted)
-            except:
-                continue
+        })
     
-    return Response(status=200, data={"type": "likes", "items": public})
+    return Response(status=200, data={"type": "likes", "items": items})
