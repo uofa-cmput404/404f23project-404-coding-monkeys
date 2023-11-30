@@ -58,3 +58,4 @@ urlpatterns = [
     path('api/token/', accounts.views.generate_jwt_token, name='get_token'),
     # path('fullDocs/', full_schema_view.with_ui('swagger', cache_timeout=0),name='full-schema-swagger-ui')
 ]
+#
