@@ -717,9 +717,7 @@ def public_posts(request):
 @authentication_classes([BasicAuthentication])
 @permission_classes([IsAuthenticated])
 def api_posts(request, uuid, post_id):
-    if request.method == 'PUT':
-        post = Posts.objects.create(uuid=post_id, author_uuid=uuid)
-    else:
+    if request.method != 'PUT':
         post = get_object_or_404(Posts, uuid=post_id, author_uuid=uuid)
 
     try:
@@ -772,11 +770,27 @@ def api_posts(request, uuid, post_id):
         return Response(status=204)
 
     elif request.method == 'PUT':
-        serializer = PostsSerializer(post, data=request.data, partial=True)
+        if not request.user.uuid == uuid:
+            return Response(status=401, data="Unauthorized")
+        
+        serializer = PostsSerializer(data=request.data, partial=True)
 
         if serializer.is_valid():
-            serializer.update(post, serializer.validated_data)
-            return Response(serializer.data)
+            put_data = copy.deepcopy(dict(serializer.validated_data))
+            author = put_data.pop("author")
+            put_data["uuid"] = post_id
+            put_data["author_uuid"] = get_id_from_url(author.get("id"))
+            put_data["author_local"] = author.get("host") == ENDPOINT
+            put_data["author_url"] = author.get("url")
+            put_data["author_host"] = author.get("host")
+
+            for extra in ("type","id"):
+                put_data.pop(extra)
+
+            new_post = Posts(**put_data)
+            new_post.save()
+
+            return Response(serializer.validated_data)
         
         return Response(status=400, data=serializer.errors)
 
