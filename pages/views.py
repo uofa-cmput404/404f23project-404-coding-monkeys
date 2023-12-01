@@ -64,6 +64,7 @@ def list_profiles(request):
 
     if request.method == "POST":#if the search bar is used
         search_text=request.POST['search_bar']#get the string from the search bar
+        search_text=search_text.lower()
         searchbar_is_used=True
 
     author_cache = AuthorCache()
