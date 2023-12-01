@@ -1,0 +1,52 @@
+meta {
+  name: PUT Post
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{localUrl}}/authors/{{userUuid}}/posts/1424480c-c872-4cf4-9c85-1b228ff28a58/
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: TestUser1_dev
+  password: helloPassword7&
+}
+
+body:json {
+  {
+    "type": "post",
+    "title": "Test PUT post",
+    "id": "http://localhost:8000/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a22/posts/1424480c-c872-4cf4-9c85-1b228ff28a58",
+    "source": "http://localhost:8000/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a22/posts/1424480c-c872-4cf4-9c85-1b228ff28a58",
+    "origin": "http://localhost:8000/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a22/posts/1424480c-c872-4cf4-9c85-1b228ff28a58",
+    "description": "test post",
+    "contentType": "text/plain",
+    "content": "PUT Post local api call working",
+    "author": {
+      "type": "author",
+      "id": "http://localhost:8000/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a22",
+      "host": "http://localhost:8000/",
+      "displayName": "TestUser1",
+      "url": "http://localhost:8000/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a22",
+      "github": "http://github.com/test1",
+      "profileImage": "https://avatars.akamai.steamstatic.com/c718b0c234a3f5ff5fc8f0b99c3f64f0de4ccefe_full.jpg"
+    },
+    "categories": [
+      "api",
+      "test"
+    ],
+    "count": 0,
+    "comments": "http://localhost/authors/a02e3525-bb5a-44eb-852d-0f93f63d1a22/posts/1424480c-c872-4cf4-9c85-1b228ff28a58/comments",
+    "commentsSrc": {},
+    "published": "2023-11-30T13:07:04+00:00",
+    "visibility": "PUBLIC",
+    "unlisted": "false"
+  }
+}
+
+assert {
+  : 
+}
