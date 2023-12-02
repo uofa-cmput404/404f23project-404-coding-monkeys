@@ -383,7 +383,7 @@ button, .context_button {
 }
 
 
-.delete_button, .close_button {
+.delete_button, .share_button, .close_button {
     background-color: transparent;
     border-style: none;
 }
