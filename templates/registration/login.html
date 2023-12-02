@@ -10,23 +10,63 @@
 {% endblock css %}
 
 {% block content %}
-<h2 style="color:white; margin-left:20px; margin-top:30px;">User Log In</h2>
-<form method="post" style="margin-left:20px;">{% csrf_token %}
-    <div class="row-flex" style="margin-top:15px;">
-        <div class="col-flex" style="width:7%;">
-            <label for="{{ form.username.id_for_label }}">Username:</label>
-            <div style="height:1em;"></div>
-            <label for="{{ form.password.id_for_label }}">Password:</label>
-        </div>
-        <div class="col-flex" style="width:30%;">
-            {{ form.username }}
-            <div style="height:0.5em;"></div>
-            {{ form.password }}
-        </div>
+
+
+
+
+
+<div><!-- FOR BACKGROUND ANIMATION EFFECT-->
+    <ul class="circles">
+            <li style="right: 5.5%;"><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 17.5%;"><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 23.5%;"><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 81.5%;"><img src={% static 'images/A5.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 95.5%;"><img src={% static 'images/A6.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 51.5%;"><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 23.5%;"><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 66.5%;"><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 11.5%;"><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 73.5%;"><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+    </ul>
+</div ><!-- FOR BACKGROUND ANIMATION EFFECT-->
+
+
+
+<div style="width: 560px; height:300px; margin-left:auto; margin-right:auto; margin-top:30px; 
+border-style:solid; border-width:5px;  border-color:#FFD553; border-radius:7px; padding-bottom:10px; background-color:#1C1A19;">
+
+    
+    <div class="row-flex" style="background-color:#FFD553;">
+        <img src={% static 'images/monkey_icon.jpg'%} alt="" title = "" width="60" height="60" style="background-color:#FFD553; padding-bottom:10px; padding-left:10px;">
+        <h2 style="color:white; background-color:#FFD553; padding-left:10px; color:black; padding-top:10px;">User Log In</h2>
     </div>
 
-    <div class="row-flex" style="margin-top:2.5em; width: 37%; justify-content: right;">
-        <button style="padding:0; padding-right: 10px; padding-left: 10px;"class="post_button" type="submit">Log In</button>
-    </div>
-</form>
+
+    
+    <form method="post" style="margin-left:20px; width:520px; padding-top:20px;">
+        {% csrf_token %}
+        <div class="row-flex" style="margin-top:15px;">
+            <div class="col-flex" style="width:20%;">
+                <label style="padding-bottom:8px;" for="{{ form.username.id_for_label }}">Username:</label>
+                <div style="height:1em;"></div>
+                <div style="padding-top:15px;"></div>
+                <label for="{{ form.password.id_for_label }}">Password:</label>
+            </div>
+
+            <div style="padding-top:15px;"></div>
+            
+
+            <div class="col-flex" style="width:70%; ">
+                {{ form.username }}
+                <div style="height:0.5em;"></div>
+                <div style="padding-top:15px;"></div>
+                {{ form.password }}
+            </div>
+        </div>
+
+        <div class="row-flex" style="margin-top:2.5em; width: 90.5%; justify-content: right;">
+            <button style="padding:0; font-size:16px; padding-right:15px; padding-left:15px;"class="post_button" type="submit">Log In</button>
+        </div>
+    </form>
+</div>
 {% endblock content %}
