@@ -108,7 +108,7 @@ class InboxItem():
 @swagger_auto_schema(
     methods=['POST'], 
     tags=['inbox', 'remote'],
-    operation_description="Refer to the following: <a href='http://www.chimp-chat.win/extra/docs#Inbox'>Section</a>",
+    operation_description="Refer to the following: <a href='https://chimp-chat-1e0cca1cc8ce.herokuapp.com/extra/docs#Inbox'>Section</a>",
     responses={
         200: openapi.Response("Returns the newly created object from the request body."),
         400: openapi.Response("Poorly formatted request body."),
