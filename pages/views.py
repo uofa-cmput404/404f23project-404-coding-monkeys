@@ -78,7 +78,10 @@ def list_profiles(request):
         toReturn = author_cache.values()
     
     for a in toReturn:
-        a["index"] = HOSTS.index(strip_slash(a["host"]))
+        try: a["index"] = HOSTS.index(strip_slash(a["host"]))
+        # exception only thrown for foreign authors, we aren't connected with
+        # these authors so we do not want to display this
+        except: continue
 
     sorted_list = sorted(toReturn, key=lambda x: x['displayName'].lower())
 
