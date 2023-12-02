@@ -1128,9 +1128,7 @@ def api_comment_likes(request, uuid, post_id, comment_id):
         })
     
     return Response(status=200, data={"type": "likes", "items": formatted})
-
-
-
+    
 # LIKED
 # =====================
 def get_public_likes(uuid):
