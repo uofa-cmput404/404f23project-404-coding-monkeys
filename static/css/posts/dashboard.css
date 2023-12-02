@@ -403,3 +403,26 @@ button, .context_button {
     border-radius: 15px;
     box-shadow: 0 0 10px rgb(24, 23, 23)
 }
+
+/* CHATGPT SEE BOOKMARK */
+.follower-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* Adjust as needed */
+}
+
+.follower-details {
+    display: flex;
+    align-items: center;
+}
+
+.follower-username {
+    margin-right: 10px; /* Adjust as needed */
+}
+
+.follower-profile-picture {
+    width: 30px; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    border-radius: 50%; /* Make it circular */
+    margin-right: 10px; /* Adjust as needed */
+}

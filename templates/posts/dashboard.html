@@ -253,7 +253,23 @@
                 });
         });
 
+        $(".share-close-button").click(function () {
+            // hades
+            //$("#share_modal .followers-list").empty()
+            $.ajax({
+                    success: function (data) {
+                        //console.log("close share triggered")
+                        $("#share_modal .followers-list").empty()
+                    },
+                    error: function (data) {
+                        alert("Error fetching followers. Please try again.");
+                    }
+                });
+        });
+
     });
+
+    
 
 </script>
 
