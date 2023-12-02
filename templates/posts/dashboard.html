@@ -213,7 +213,64 @@
             
         });
 
+        $(".share_button").click(function () {
+            console.log("share triggered") // zeus
+            //var author_uuid = 'a02e3525-bb5a-44eb-852d-0f93f63d1a22'; // TODO how to get user uuid like above?
+            var user_uuid = $(this).data("user-uuid")
+
+            // TODO forced to log-in? //$("#share_modal .followers-list").empty()
+            $.ajax({
+                    url: 'http://127.0.0.1:8000/authors/' + user_uuid + '/followers/', //TODO change from localhost to live
+                    method: 'GET',
+                    contentType: 'application/json',
+
+                    success: function (data) {
+                        /* console.log("RETURNED DATA: ");
+                        console.dir(data);
+                        console.log("Stuff:")
+                        console.log(data.items) */
+                        console.log("List of Followers:")
+                        var array_of_followers = data.items
+                        for (let i = 0; i < array_of_followers.length; i++) {
+                            //console.log("User: " + array_of_followers[i].displayName)
+                            //console.log("PFP: " + array_of_followers[i].profileImage)
+                            user_name = array_of_followers[i].displayName
+                            profile_picture = array_of_followers[i].profileImage
+
+                            // Create HTML elements for follower info
+                            var followerElement = '<div class="follower-item">' +
+                                '<img src="' + profile_picture + '" class="follower-profile-picture" alt="Profile Picture">' +
+                                '<p class="follower-username">' + user_name + '</p>' +
+                                '</div>';
+
+                            // Append followerElement to the followers-list in share_modal
+                            $("#share_modal .followers-list").append(followerElement);
+                        } 
+                    
+                    },
+                    error: function (data) {
+                        alert("Error fetching followers. Please try again.");
+                    }
+                });
+        });
+
+        $(".share-close-button").click(function () {
+            // hades
+            //$("#share_modal .followers-list").empty()
+            $.ajax({
+                    success: function (data) {
+                        //console.log("close share triggered")
+                        $("#share_modal .followers-list").empty()
+                    },
+                    error: function (data) {
+                        alert("Error fetching followers. Please try again.");
+                    }
+                });
+        });
+
     });
+
+    
 
 </script>
 
@@ -265,6 +322,7 @@
                         <div class="context_menu" id="context_menu">
                             <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author_uuid %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
                             <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
+                            <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> <!--dummy share button-->
                         </div>
                         <dialog class="modal" id="modal">
                             <div class="col-flex">
@@ -273,6 +331,12 @@
                                 <button style="margin-right: 10px;" class="close-button" type="button">Cancel</button>
                                 <button class="delete-confirm" data-post-uuid="{{ post.uuid }}" data-author-uuid="{{ post.author_uuid }}">Confirm</button>
                             </div>
+                        </dialog>
+                        <dialog class="share_modal" id="share_modal"> <!--apollo-->
+                            <div class="col-flex">
+                            <h1>Share with Followers</h1>
+                            <div class ="followers-list"></div>
+                            <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
                         </dialog>
                         <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
                     {% endif %}
@@ -331,6 +395,24 @@
         const open_modal = open_modals[i];
         const modal = modals[i];
         const close_modal = close_modals[i];
+
+        open_modal.addEventListener("click", () => {
+            modal.showModal();
+        });
+
+        close_modal.addEventListener("click", () => {
+            modal.close();
+        });
+    };
+
+    const open_share_modals = document.querySelectorAll(".share_button");
+    const share_modals = document.querySelectorAll(".share_modal");
+    const close_share_modals = document.querySelectorAll(".share-close-button");
+
+    for (let i = 0; i < open_share_modals.length; i++) {
+        const open_modal = open_share_modals[i];
+        const modal = share_modals[i];
+        const close_modal = close_share_modals[i];
 
         open_modal.addEventListener("click", () => {
             modal.showModal();
