@@ -112,7 +112,8 @@ class AuthorCache(Cache):
         node_singleton = Nodes()
 
         foreigns = ForeignAuthor.objects.all()
-        {self.cache[f.get("uuid")] : f.get("author_json") for f in foreigns}
+        for f in foreigns:
+            self.cache[str(f.uuid)] = f.author_json
 
         for i in range(len(HOSTS)):
             host = HOSTS[i]
