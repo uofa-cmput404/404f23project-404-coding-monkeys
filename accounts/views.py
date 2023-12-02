@@ -49,7 +49,7 @@ class AuthorUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 @swagger_auto_schema(
     methods=['POST'], 
     tags=['remote','token'],
-    operation_description="Refer to the following: <a href='http://www.chimp-chat.win/extra/docs#AuthCookie'>Section</a>",
+    operation_description="Refer to the following: <a href='https://chimp-chat-1e0cca1cc8ce.herokuapp.com/extra/docs#AuthCookie'>Section</a>",
     request_body=TokenSerializer,
     responses={
         200: openapi.Response("Success."),
