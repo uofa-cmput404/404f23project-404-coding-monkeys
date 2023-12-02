@@ -214,18 +214,37 @@
         });
 
         $(".share_button").click(function () {
-            console.log("share triggered")
-            var author_uuid = 'a02e3525-bb5a-44eb-852d-0f93f63d1a22'; // how to get user uuid like above?
+            console.log("share triggered") // zeus
+            var author_uuid = 'a02e3525-bb5a-44eb-852d-0f93f63d1a22'; // TODO how to get user uuid like above?
 
-            // Get existing comments for this post, and load them into the comments container
+            // TODO forced to log-in? //$("#share_modal .followers-list").empty()
             $.ajax({
                     url: 'http://127.0.0.1:8000/authors/' + author_uuid + '/followers/', //TODO change from localhost to live
                     method: 'GET',
                     contentType: 'application/json',
 
                     success: function (data) {
-                        console.log("RETURNED DATA: ");
+                        /* console.log("RETURNED DATA: ");
                         console.dir(data);
+                        console.log("Stuff:")
+                        console.log(data.items) */
+                        console.log("List of Followers:")
+                        var array_of_followers = data.items
+                        for (let i = 0; i < array_of_followers.length; i++) {
+                            //console.log("User: " + array_of_followers[i].displayName)
+                            //console.log("PFP: " + array_of_followers[i].profileImage)
+                            user_name = array_of_followers[i].displayName
+                            profile_picture = array_of_followers[i].profileImage
+
+                            // Create HTML elements for follower info
+                            var followerElement = '<div class="follower-item">' +
+                                '<img src="' + profile_picture + '" class="follower-profile-picture" alt="Profile Picture">' +
+                                '<p class="follower-username">' + user_name + '</p>' +
+                                '</div>';
+
+                            // Append followerElement to the followers-list in share_modal
+                            $("#share_modal .followers-list").append(followerElement);
+                        } 
                     
                     },
                     error: function (data) {
@@ -299,7 +318,7 @@
                         <dialog class="share_modal" id="share_modal"> <!--apollo-->
                             <div class="col-flex">
                             <h1>Share with Followers</h1>
-                            <p style="color:white; font-size: 20px;">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus eligendi ex, omnis ut modi officiis ducimus esse eveniet, quasi illum ipsa voluptates? Itaque enim cum, accusantium laborum sint explicabo rem?</p>
+                            <div class ="followers-list"></div>
                             <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
                         </dialog>
                         <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
