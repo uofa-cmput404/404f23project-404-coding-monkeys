@@ -27,11 +27,11 @@ class AuthorUserSerializer(serializers.ModelSerializer):
 
 class AuthorDetailSerializer(serializers.Serializer):
     type = serializers.CharField(default="author", max_length=6)
-    id = serializers.CharField()
-    url = serializers.CharField()
-    host = serializers.CharField()
+    id = serializers.CharField(max_length=300)
+    url = serializers.CharField(max_length=300)
+    host = serializers.CharField(max_length=300)
     github = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    displayName = serializers.CharField(max_length=50)
+    displayName = serializers.CharField(max_length=100)
     profileImage = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
 class ResponseAuthorsSerializer(serializers.Serializer):

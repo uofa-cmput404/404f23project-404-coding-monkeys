@@ -19,9 +19,9 @@
 
         $(".like-button").click(function () {
             var post_json = $(this).siblings(".post-data").text(); // get the corresponding post as json from the html
+            var post = JSON.parse(post_json); //parse the json into an object
             var likeButtonData = $(this).siblings(".like-button-data");
             var likeButtonAlreadyPressed = likeButtonData.data('already-pressed-this-session');
-            var post = JSON.parse(post_json); //parse the json into an object
 
             if (!likeButtonAlreadyPressed){
                 $.ajax({
@@ -43,35 +43,43 @@
         });
 
         $(".comment-button").click(function () {
-            var post_uuid = $(this).data("post-uuid");
-            var commentContainer = $("#comment-box-container-" + post_uuid + " .scrollable-comments");
+            var post_json = $(this).siblings(".post-data").text(); // get the corresponding post as json from the html
+            var post = JSON.parse(post_json); //parse the json into an object
+            var commentContainer = $("#comment-box-container-" + post.uuid + " .scrollable-comments");
 
             // Get existing comments for this post, and load them into the comments container
             $.ajax({
                     url: '{% url "open_comments" %}',
-                    method: 'GET',
-                    data: { 
-                        post_uuid: post_uuid,
-                    }, 
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ post: post }),
+                    headers: { 'X-CSRFToken': csrfToken }, //include authentication token
                     success: function (data) {
                         // the backend returns all comments for a post. Here we display them (add them into a container)
                         var comments = JSON.parse(data.comments);
                         commentContainer.empty();
+                        // TODO: Store a link to the commenter's inbox after receiving the comment
                         
                         // Add the comment elements to the page
                         comments.forEach(function (comment) {
+                            comment_uuid = comment.id;
+                            if (comment_uuid.endsWith("/")) {
+                                comment_uuid = comment_uuid.slice(0, -1);
+                            }
+                            comment_uuid = comment_uuid.substring(comment_uuid.lastIndexOf("/") + 1);
+
                             var commentElement = '<div class="comment">' +
                                 '<img src="' + comment.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
                                 '<div class="comment-details">' +
                                     '<p class="comment-username">' + comment.author.displayName + '</p>' +
                                     '<p class="comment-text">' + comment.comment + '</p>' +
                                 '</div>' +
-                                '<button class="like-comment-button" data-comment-uuid="' + comment.uuid + '">Like</button>' +
+                                '<button class="like-comment-button" data-comment-uuid="' + comment_uuid + '">Like</button>' +
                             '</div>';
                             commentContainer.append(commentElement);
                         });
 
-                        $("#comment-box-container-" + post_uuid).show();
+                        $("#comment-box-container-" + post.uuid).show();
                     
                     },
                     error: function (data) {
@@ -85,20 +93,46 @@
             $("#comment-box-container-" + post_uuid).hide();
         });
 
+        $(document).on('click', '.like-comment-button', function () {
+            var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
+            var post = JSON.parse(post_json); //parse the json into an object
+            var comment_uuid = $(this).data("comment-uuid");
+
+            // Use ajax to get backend to send a like to a comment
+            $.ajax({
+                    url: '{% url "like_comment" %}',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ post: post, comment_uuid: comment_uuid }),
+                    headers: { 'X-CSRFToken': csrfToken }, //include authentication token
+                    success: function (data) {
+                        console.log("returned from like comment handler")
+
+                    
+                    },
+                    error: function (data) {
+                        alert("Error liking comment. Please try again.");
+                    }
+                });
+
+        });
+
         $(".submit-comment-button").click(function () {
-            var post_uuid = $(this).data("post-uuid"); // Get the post ID from the button's data attribute
-            var commentText = $("#comment-textbox-" + post_uuid).val(); // Get the comment text from the text box
-            var commentContainer = $("#comment-box-container-" + post_uuid + " .scrollable-comments");
+            var post_json = $(this).siblings(".comment-post-data").text(); // get the corresponding post as json from the html
+            var post = JSON.parse(post_json); //parse the json into an object
+            var commentText = $("#comment-textbox-" + post.uuid).val(); // Get the comment text from the text box
+            var commentContainer = $("#comment-box-container-" + post.uuid + " .scrollable-comments");
 
             if (commentText.trim() !== "") {
                 $.ajax({
                     url: '{% url "submit_comment" %}',
-                    method: 'GET',
-                    data: { 
-                        // We will use this data on the backend to create a new comment
-                        post_uuid: post_uuid,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ 
+                        post: post, 
                         comment_text: commentText
-                    }, 
+                    }),
+                    headers: { 'X-CSRFToken': csrfToken }, //include authentication token
                     success: function (data) {
                         // Here we read the list of all comments from the db that perfectly match the comment just submitted (this will only be one comment, but for the sake of using the same code as above, we kept this structure)
                         // Once we get the new comment from the db, we add it to the comments displayed
@@ -126,6 +160,7 @@
                 alert("Please enter text before submitting a comment.");
             }
         });
+
         
         
         $(".authorDetails").click(function () {
@@ -177,6 +212,7 @@
             });
             
         });
+
     });
 
 </script>
@@ -197,8 +233,8 @@
             <div class="post" style="margin-top:3em">
                 <section id="post_author">
                     <div class="authorDetails" data-get-url="{{ post.author.id }}" data-host="{{ post.author.host }}">
-                        <img src="{{ post.author.profileImage }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
-                        <p style="margin: 0; margin-left:0.25em; margin-top: 0.25em; color:black; font-size:24px; user-select: none">{{ post.author.displayName}}</p>
+                        <img src="{{ post.author.profileImage }}" data-author-index="{{ post.author_index }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
+                        <p class="profile_name" style="margin: 0; margin-left:0.25em; margin-top: 0.25em; color:black; font-size:24px; user-select: none">{{ post.author.displayName}}</p>
                     </div>
                     <div class="flex_grow"></div>
                     <p style="align-self: end;">{{ post.delta }}</p>
@@ -223,7 +259,7 @@
                     <div class="post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the like button -->
                     <div class="like-button-data" style="display: none;" data-already-pressed-this-session="false"></div>
                     <!-- comment button-->
-                    <button style="padding-top: 10px;" type="button"class="comment-button" data-post-uuid="{{ post.uuid }}"><i class="material-symbols-outlined">tooltip</i></button>
+                    <button style="padding-top: 10px;" type="button"class="comment-button"><i class="material-symbols-outlined">tooltip</i></button>
                     {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->
                         <div class="flex_grow"></div>
                         <div class="context_menu" id="context_menu">
@@ -251,7 +287,8 @@
                 <div class="submit-comment-box">
                     <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
                     <button class="cancel-comment-button" data-post-uuid="{{ post.uuid }}">Cancel</button>
-                    <button class="submit-comment-button" data-post-uuid="{{ post.uuid }}">Submit</button>
+                    <button class="submit-comment-button">Submit</button>
+                    <div class="comment-post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the submit comment button -->
                 </div>  
             </div>
         </div>
@@ -303,6 +340,14 @@
             modal.close();
         });
     };
+
+    var colors = ["#FFD553", "#4260f5", "#ff3b3b"];
+    var profilePictures = document.querySelectorAll(".profile_picture");
+    profilePictures.forEach(function(profilePicture) {
+            var authorIndex = parseInt(profilePicture.getAttribute("data-author-index"));
+            var colorIndex = authorIndex % colors.length;
+            profilePicture.style.borderColor = colors[colorIndex];
+        });
 </script>
 
 {% endblock content %}

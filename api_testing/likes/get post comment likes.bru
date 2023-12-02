@@ -1,0 +1,20 @@
+meta {
+  name: get post comment likes
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/authors/{{dinoId}}/posts/{{postId}}/comments/af83574d-fd62-4f22-9290-800484d74826/likes/
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino_dev
+  password: dinouser
+}
+
+assert {
+  res.status: eq 200
+}

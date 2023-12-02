@@ -1,10 +1,12 @@
 import requests
 from cryptography.fernet import Fernet
+from accounts.models import ForeignAuthor
 from django_project import settings
 from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
 from posts.models import Posts
 from static.vars import ENDPOINT, HOSTS
+import threading
 
 from util import format_local_post, get_id_from_url, strip_slash, format_local_post_from_db
 from .models import Node
@@ -20,6 +22,13 @@ class Cache():
             cls._instance = object.__new__(cls)
             cls._instance.init = False
             cls._instance.cache = {}
+            cls._instance.locks = {}
+
+            # start the thread that updates the cache every 5 minutes
+            thread = threading.Timer(300, cls._instance.update)
+            thread.daemon = True # program will exit if only daemon threads are left
+            thread.start()
+
         return cls._instance
     
     def items(self):
@@ -35,19 +44,56 @@ class Cache():
         return self.cache.values()
 
     def add(self, key, value):
+        """
+        Locks are needed here incase the user refreshes the page and the cache is being updated
+        simultaneously. I am not sure what happens in this case, but better safe than sorry.
+        These locks should cost next to nothing in terms of performance. There should be
+        little to no lock contention, and the branch predictor should be able to predict
+        the branch correctly almost every time.
+        """
         self.initialize()
+
+        # create a lock for this key if it doesn't exist
+        if key not in self.locks:
+            self.locks[key] = threading.Lock()
+
+        # if the lock is already acquired by another thread, return
+        # this cache entry is already being updated, so there is no need to update it again
+        if not self.locks[key].acquire(blocking=False):
+            return
+
+        # update the value to the cache
         self.cache[key] = value
+
+        # release the lock
+        self.locks[key].release()
 
     def get(self, key):
         self.initialize()
+        res = self.cache.get(key)
+        if not res:
+            try: foreign = ForeignAuthor.objects.get(uuid=key)
+            except: foreign = None
+            if not foreign:
+                print(f"Error getting {key} from cache, updating cache...")
+                self.update()
+            else:
+                return foreign.author_json
+        
+        # This case should not happen but is a safety
         return self.cache.get(key)
-
+    
     def remove(self, key):
         self.initialize()
         self.cache.pop(key)
 
+        # remove the lock if it exists
+        if key in self.locks:
+            self.locks.pop(key)
+
     def clear(self):
         self.cache = {}
+        self.locks = {}
     
     def initialize(self):
         if not self.init:
@@ -65,6 +111,9 @@ class AuthorCache(Cache):
     def update(self):
         node_singleton = Nodes()
 
+        foreigns = ForeignAuthor.objects.all()
+        {self.cache[f.get("uuid")] : f.get("author_json") for f in foreigns}
+
         for i in range(len(HOSTS)):
             host = HOSTS[i]
 
@@ -73,6 +122,7 @@ class AuthorCache(Cache):
 
             try:
                 authors_url = f"{url}/authors/"
+                print(authors_url)
 
                 headers={"Accept": "application/json"}
                 if i == 1:
@@ -105,19 +155,45 @@ class PostCache(Cache):
         
         for author, details in author_cache.items():
             try:
-                if details['host'] in (ENDPOINT, f"{node_singleton.get_host_for_index(3)}/"):
+                # skip local posts
+                if details['host'] == node_singleton.get_host_for_index(0):
                     continue
-                    
+                
+                index = HOSTS.index(strip_slash(details['host']))
+                endpoint = node_singleton.get_host_for_index(index)
+                auth = node_singleton.get_auth_for_host(details["host"])
+                headers = {"Accept": "application/json"}
+                posts_url = f"{endpoint}/authors/{author}/posts/"
+
+                print(posts_url)
+
+                # Chimp Chat Prod Server
+                if len(HOSTS) >= 3 and strip_slash(details['host']) == HOSTS[2]:
+                    try:
+                        response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                        if response.ok:
+                            posts = response.json()
+                            posts = posts["items"]
+                            
+                            for post in posts:
+                                uuid = get_id_from_url(post["id"])
+                                try:
+                                    url = f"{post['id']}/likes/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        likes = response.json()
+                                        post["likeCount"] = len(likes["items"])
+                                except:
+                                    post["likeCount"] = 0
+                                self.cache[uuid] = post
+
+                    except Exception as e:
+                        print(e)
+                        continue
+
+                # 404 Not Found
                 elif strip_slash(details['host']) == HOSTS[1]:
-                    index = HOSTS.index(strip_slash(details['host']))
-
-                    endpoint = node_singleton.get_host_for_index(index)
-                    auth = node_singleton.get_auth_for_host(details["host"])
-                    print(endpoint)
-                    headers = {"Accept": "application/json", "Referer": node_singleton.get_host_for_index(0)}
-                    posts_url = f"{endpoint}/authors/{author}/posts/"
-                    print(posts_url)
-
                     try:
                         response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
                         if response.ok:
@@ -184,7 +260,7 @@ class Nodes():
         self.initialize_values()
         
         for node in self.data:
-            if node["host"].startswith(host):
+            if node["host"].startswith(strip_slash(host)):
                 return (node["username"], node["password"])
         return None
 

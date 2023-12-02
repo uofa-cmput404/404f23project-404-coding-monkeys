@@ -49,6 +49,16 @@
 
         });
     });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var colors = ["#FFD553", "#4260f5", "#ff3b3b"];
+        var profilePictures = document.querySelectorAll(".user_icon");
+        profilePictures.forEach(function(profilePicture) {
+            var authorIndex = parseInt(profilePicture.getAttribute("data-author-index"));
+            var colorIndex = authorIndex % colors.length;
+            profilePicture.style.borderColor = colors[colorIndex];
+        });
+    });
 </script>
 
 
@@ -73,7 +83,7 @@
         <div class="list_profiles_gradience"></div>
 
         <div class="userProfile_List_of_Users" data-host="{{ author.host }}" data-get-url="{{ author.id }}" style="display: flex; flex-direction: column; padding:15px; padding-left:45px; ">
-            <li> <img src="{{ author.profileImage }}" class="user_icon" style="width: 90px; height: 90px; border-color:#FFD553;"> </li>
+            <li> <img data-author-index="{{ author.index }}" src="{{ author.profileImage }}" class="user_icon" style="width: 90px; height: 90px; border-color:#FFD553;"> </li>
             <li>{{ author.displayName }}</li>
         </div>
         {% empty %}

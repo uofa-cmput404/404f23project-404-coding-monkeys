@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-from accounts.models import AuthorUser, FollowRequests
+from accounts.models import AuthorUser, FollowRequests, ForeignAuthor
 from static.vars import ENDPOINT
 from .models import Inbox
 from drf_yasg.utils import swagger_auto_schema
@@ -52,6 +52,7 @@ def follow_request_handler(request):
     except Exception as e: 
         print(e)
         return JsonResponse({"status": "error"}, status=400)
+    return JsonResponse({"status": "bad response"})
 
 def inbox_post(request, author_id, inbox_index):
     # will be used to display post related to inbox item
@@ -122,6 +123,7 @@ class InboxItem():
 @authentication_classes([BasicAuthentication])
 @permission_classes([IsAuthenticated])
 def api_inbox(request, uuid):
+    author_cache = AuthorCache()
     try:
         sender_cookie = request.COOKIES.get('ChimpChatToken')
         sender_data = decode_cookie(sender_cookie)
@@ -205,16 +207,17 @@ def api_inbox(request, uuid):
             post_data["author_url"] = author.get("url")
             post_data["author_host"] = author.get("host")
 
+            if not author_cache.get(post_data["author_uuid"]):
+                ForeignAuthor.objects.update_or_create(uuid=post_data["author_uuid"], author_json=author)
+                author_cache.add(post_data["author_uuid"], author)
+
             post_data["uuid"] = get_part_from_url(post_data["id"], "posts")
 
             for extra in ("type","id"):
                 post_data.pop(extra)
 
-            try: post = Posts.objects.get(uuid=post_data["uuid"])
-            except Posts.DoesNotExist: post = None
-
             # update visibility only if new and remote or local and private
-            if post and data["visibility"] != "PUBLIC" and post_data["author_host"] != ENDPOINT and data["visibility"] != "FRIENDS":
+            if post_data["visibility"] != "PUBLIC":
                 # shared with current author
                 shared_author = AuthorUser.objects.get(uuid=uuid)
                 ad = AuthorDetail(shared_author.uuid, shared_author.url, shared_author.host)
@@ -224,6 +227,9 @@ def api_inbox(request, uuid):
                     post.save()
             
             itemID = post_data["uuid"]
+
+            try: post = Posts.objects.get(uuid=itemID)
+            except: post = None
 
             if post:
                 post_data.pop("uuid")
@@ -242,6 +248,10 @@ def api_inbox(request, uuid):
             requester_uuid = get_id_from_url(data["actor"]["id"])
             requester_host = data["actor"]["host"]
             requester_url = data["actor"]["url"]
+
+            if not author_cache.get(requester_uuid):
+                ForeignAuthor.objects.update_or_create(uuid=requester_uuid, author_json=data["actor"])
+                author_cache.add(requester_uuid, data["actor"])
 
             if not sender:
                 ad = AuthorDetail(requester_uuid, requester_url, requester_host)
@@ -263,6 +273,10 @@ def api_inbox(request, uuid):
             author_host = data["author"]["host"]
             author_url = data["author"]["url"]
 
+            if not author_cache.get(author_uuid):
+                ForeignAuthor.objects.update_or_create(uuid=author_uuid, author_json=data["author"])
+                author_cache.add(author_uuid, data["author"])
+
             if not sender:
                 ad = AuthorDetail(author_uuid, author_url, author_host)
                 sender = ad.formMapping()
@@ -283,6 +297,10 @@ def api_inbox(request, uuid):
             author_uuid = get_id_from_url(data["author"]["id"])
             author_host = data["author"]["host"]
             author_url = data["author"]["url"]
+
+            if not author_cache.get(author_uuid):
+                ForeignAuthor.objects.update_or_create(uuid=author_uuid, author_json=data["author"])
+                author_cache.add(author_uuid, data["author"])
 
             if not sender:
                 ad = AuthorDetail(author_uuid, author_url, author_host)

@@ -1,0 +1,26 @@
+meta {
+  name: get author profile 1
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/authors/{{dinoId}}
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino_dev
+  password: dinouser
+}
+
+assert {
+  res.status: eq 200
+  res.body.type: eq author
+  res.body.id: eq {{dinoUrl}}
+  res.body.host: eq {{baseUrl}}/
+  res.body.displayName: eq dino_dev
+  res.body.url: eq {{dinoUrl}}
+  res.body.github: eq http://DINOMITE.com
+}

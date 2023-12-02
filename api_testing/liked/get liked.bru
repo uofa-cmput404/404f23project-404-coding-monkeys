@@ -1,0 +1,20 @@
+meta {
+  name: get liked
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/authors/{{faneId}}/liked/
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino_dev
+  password: dinouser
+}
+
+assert {
+  res.status: eq 200
+}

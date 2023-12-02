@@ -1,6 +1,8 @@
 {% extends "base_with_sidebar.html" %}
 {% load static %}
 
+<title>{% block title %}{{author.displayName}}'s Profile{% endblock title %}</title>
+
 {% block css %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -39,66 +41,116 @@
   });
 </script>
 
-<div style="padding:25px; background-color:#2a2a2a; margin:1em; border-style:solid; border-color:#FFD553; border-radius:5px;">
-  <h1 style="margin-left:0.5em;">Welcome to {{author.displayName}}'s profile.</h1>
-  {% if user.uuid == author.uuid %} <!-- only allow users to update their own profiles; current user username must match that of author-->
-      <form action="{% url 'author_edit' uuid=author.uuid %}">
-        <div>
-          <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Edit Profile</button>
-        </div>
 
-      </form>
-  {% else %} <!-- someone else's profile-->
-    {% if already_following == True %} <!--if user already following this user, hide follow button, show unfollow button-->
-      <p>Following</p>
-      <form action="{% url 'author_unfollow' uuid=author.uuid rq_uuid=user.uuid %}">
-        <div>
-          <button class="post_button" type="submit" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Unfollow</button>
-        </div>
-    {% elif pending_request == True %} <!--there is a pending friend request; hide follow button, show "requested"-->
-        <p>Requested</p>
-    {% else %} <!--not following this user and have not sent request yet; show follow button-->
-        <button id="followButton" data-requester-id="{{ user.uuid }}" data-recipient-id="{{ author.uuid }}" class="post_button" style=" margin-left:1em; padding:0; font-size:17px; padding-right: 10px; padding-left: 10px;">Follow</button>
-    {% endif %}
+<div style="padding:20px; background-color:#2a2a2a; margin:1em; border-radius:4px; width:870px; margin-left: auto; margin-right: auto;">
+
+
+  {% if user.uuid == author.uuid %} <!-- only allow users to update their own profiles; current user username must match that of author-->
+    <h1 style="margin-left:0.5em;">My Account</h1>
+  
   {% endif %}
 
-  <div style="padding:20px; background-color:#1C1A19; margin:0.8em; border-radius:5px;">
-    <img src="{{ author.profileImage }}" href="{% static 'css/main.css' %}" class="user_icon" style="width: 200px; height:200px;"> <!--To edit image styling, go to css/main.css-->
-    <h2><u>Personal Info</u></h2>
-    <p>TBA</p>
-    <h2 style="margin-top:40px"><u>Followers</u></h2>
-    <ul style="list-style-type: none; ">
-      {% for follower in followers %}
+  <div style="background-color:#1C1A19; min-height:430px; border-radius:11px; padding-bottom:25px;">
 
-        <div class="list_profiles_gradience"></div>
 
-        <div class="userProfile_followers" style="display: flex; flex-direction: column; padding:5px;">
 
-          <img src="{{ follower.profileImage }}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553;">
-          <li style="word-break:break-all;">{{ follower.displayName }}</li>
+    <div style="background: conic-gradient( #FFD553 0deg 90deg, #1C1A19 90deg 270deg, #FFD553 270deg 360deg); 
+     border-top-left-radius:11px; border-top-right-radius:11px; height:210px;">
+      
 
-        </div>
+      <div class="row-flex">
+        <img src="{{ author.profileImage }}" href="{% static 'css/main.css' %}" class="user_icon" style="width: 100px; height:100px; border-color:#1C1A19; border-width:8px; margin-left:20px; margin-top:60px;"> 
+        <h1 style="color:white; margin-top:110px; width:600px;">{{author.displayName}}</h1><!--To adjust distance between username and follow,editprofile etc.. button, change width-->>
+         <!--{{author.displayName}}-->
 
-      {% endfor %}
-    </ul>
-    <h2><u>Liked</u></h2>
-    <ul style="list-style-type: none; ">
-      {% for liked in liked %}
-        <div class="list_profiles_gradience"></div>
 
-        <div class="row-flex" style="padding:5px;">
-          <span class="material-symbols-outlined" style="margin-top: 20px; margin-right: 5px;">
-            thumb_up
-            </span>
-          {% if liked.likedObject == "post" %}
-            <p style="margin-top: 20px;">a post made by</p>
-          {% elif liked.likedObject == "comment" %}
-            <p style="margin-top: 20px;">a comment made by</p>
+        {% if user.uuid == author.uuid %} <!-- only allow users to update their own profiles; current user username must match that of author-->
+          <form action="{% url 'author_edit' uuid=author.uuid %}">
+            <div style="margin-top:121px;">
+              <button class="post_button" type="submit" style=" padding:0; font-size:17px; padding-right: 15px; padding-left: 15px;">Edit Profile</button>
+            </div>
+
+          </form>
+        {% else %} <!-- someone else's profile-->
+          {% if already_following == True %} <!--if user already following this user, hide follow button, show unfollow button-->
+            <p style="margin-top:121px;">Following</p>
+            <form action="{% url 'author_unfollow' uuid=author.uuid rq_uuid=user.uuid %}">
+              <div style="margin-top:121px;">
+                <button class="post_button" type="submit" style="padding:0; font-size:17px; padding-right: 15px; padding-left: 15px;">Unfollow</button>
+              </div>
+          {% elif pending_request == True %} <!--there is a pending friend request; hide follow button, show "requested"-->
+              <p style="margin-top:121px;">Requested</p>
+          {% else %} <!--not following this user and have not sent request yet; show follow button-->
+          <div style="margin-top:121px;">
+              <button id="followButton" data-requester-id="{{ user.uuid }}" data-recipient-id="{{ author.uuid }}" class="post_button" style="padding:0; font-size:17px; padding-right: 16px; padding-left: 16px;">Follow</button>
+          </div>
           {% endif %}
-          <img src="{{ liked.contentAuthor.profileImage }}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553; margin-left: 5px; margin-right: 5px;">
-          <p style="margin-top: 20px;">{{ liked.contentAuthor.displayName }}</p>
-        </div>
-      {% endfor %}
-  </div>
-</div>
+        {% endif %}
+
+
+
+
+      </div>
+
+    </div>
+
+    
+
+
+    <form>
+      <button class="post_button" type="submit" style=" padding:0; font-size:20px; margin-left:14px; width:100px;">Posts</button>
+    </form>
+
+    <h2 style="margin-top:0; margin-left:12px; margin-top:20px; margin-bottom:15px;"><u>Followers</u></h2>
+    <ul style="list-style-type: none; padding:10px;"><!--Set padding to something to remove discrepencies between Firefox and Chrome, as Firefox as a default and chrome doesnt-->
+      <div style="max-height:200px; min-height:40px; overflow:auto;">
+        {% for follower in followers %}
+
+          <div class="list_profiles_gradience" style="margin-bottom:4px; margin-left:23px;"></div>
+          <div class="userProfile_followers" style="display: flex; flex-direction: column; padding:5px; margin-left:29px;">
+
+            <img src="{{ follower.profileImage }}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553;">
+            <li style="word-break:break-all;">{{ follower.displayName }}</li>
+
+          </div>
+
+        {% endfor %}
+      </div>
+
+    </ul>
+
+    <div style="margin-bottom:20px;"></div>
+
+    <h2 style="margin-left:12px; margin-bottom:15px;"><u>Liked</u></h2>
+    <ul style="list-style-type: none; padding:10px;"><!--Set padding to something to remove discrepencies between Firefox and Chrome, as Firefox as a default and chrome doesnt-->
+      
+      <div style="max-height:200px; min-height:40px; overflow:auto;">
+        {% for liked in liked %}
+
+          <div class="list_profiles_gradience" style="margin-left:23px; margin-bottom:4px;"></div>
+
+          <div class="row-flex" style="padding:5px; margin-left:29px;">
+            <span class="material-symbols-outlined" style="margin-top: 20px; margin-right: 5px;">
+              thumb_up
+              </span>
+            {% if liked.likedObject == "post" %}
+              <p style="margin-top: 20px;">a post made by</p>
+            {% elif liked.likedObject == "comment" %}
+              <p style="margin-top: 20px;">a comment made by</p>
+            {% endif %}
+            <img src="{{ liked.contentAuthor.profileImage }}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553; margin-left: 5px; margin-right: 5px;">
+            <p style="margin-top: 20px;">{{ liked.contentAuthor.displayName }}</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      <h2 style="margin-top:0; margin-top:20px; margin-bottom:15px;"><u>Github Activity</u></h2>
+  
+    </div>
+
+  
+  
+  
+
+</div><!--light grey box div-->
 {% endblock content %}

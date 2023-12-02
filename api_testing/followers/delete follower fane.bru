@@ -1,0 +1,20 @@
+meta {
+  name: delete follower fane
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/authors/{{dinoId}}/followers/{{faneId}}/
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino_dev
+  password: dinouser
+}
+
+assert {
+  res.status: eq 200
+}

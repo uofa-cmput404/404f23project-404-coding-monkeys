@@ -1,0 +1,20 @@
+meta {
+  name: make sure fane is follower
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/authors/{{dinoId}}/followers/{{faneId}}/
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: dino_dev
+  password: dinouser
+}
+
+assert {
+  res.status: eq 200
+}

@@ -64,6 +64,7 @@ def list_profiles(request):
 
     if request.method == "POST":#if the search bar is used
         search_text=request.POST['search_bar']#get the string from the search bar
+        search_text=search_text.lower()
         searchbar_is_used=True
 
     author_cache = AuthorCache()
@@ -76,7 +77,12 @@ def list_profiles(request):
     else:
         toReturn = author_cache.values()
     
-    return render(request, 'listprofiles.html', {'authors_list': toReturn, 'search_text':search_text})
+    for a in toReturn:
+        a["index"] = HOSTS.index(strip_slash(a["host"]))
+
+    sorted_list = sorted(toReturn, key=lambda x: x['displayName'].lower())
+
+    return render(request, 'listprofiles.html', {'authors_list': sorted_list, 'search_text':search_text})
 
 
 @DeprecationWarning
@@ -149,6 +155,7 @@ def gather_info_local(request, uuid):
     author_cache = AuthorCache()
     author = author_cache.get(uuid)
     author["uuid"] = uuid
+    author["index"] = 0 
 
     try: followers = Followers.objects.get(author=author_object).followers
     except Followers.DoesNotExist: followers = []
@@ -206,6 +213,7 @@ def render_author_detail(request, host_id, uuid):
             author = response.json()
             # already validated from the originating view, so do not have to check for serialization
             author["uuid"] = uuid
+            author["index"] = host_id
         else:
             # TODO render and error page
             return HttpResponse(content="Author not found", status=response.status_code)
