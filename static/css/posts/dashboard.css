@@ -341,7 +341,7 @@ button, .context_button {
     flex-grow: 1;
 }
 
-.modal {
+.modal, .share_modal {
     z-index: -1;
     background-color: #191919;
     border-radius: 2em;
@@ -355,7 +355,7 @@ button, .context_button {
     opacity: 0.5;
 }
 
-.delete-confirm, .close-button {
+.delete-confirm, .close-button, .share-close-button {
     border-radius: 2em;
     background-color: #525151;
     border-style: none;
@@ -372,7 +372,7 @@ button, .context_button {
     box-shadow: 10px 10px 5px rgb(24, 23, 23)
 }
 
-.delete-confirm:hover, .close-button:hover {
+.delete-confirm:hover, .close-button:hover, .share-close-button:hover {
     background-color: #878686;
     /* box-shadow: 0 0 5px rgb(250, 250, 250) */
 }

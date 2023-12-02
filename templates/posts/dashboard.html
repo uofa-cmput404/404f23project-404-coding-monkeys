@@ -275,6 +275,12 @@
                                 <button class="delete-confirm" data-post-uuid="{{ post.uuid }}" data-author-uuid="{{ post.author_uuid }}">Confirm</button>
                             </div>
                         </dialog>
+                        <dialog class="share_modal" id="share_modal"> <!--apollo-->
+                            <div class="col-flex">
+                            <h1>Share with Followers</h1>
+                            <p style="color:white; font-size: 20px;">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus eligendi ex, omnis ut modi officiis ducimus esse eveniet, quasi illum ipsa voluptates? Itaque enim cum, accusantium laborum sint explicabo rem?</p>
+                            <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
+                        </dialog>
                         <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
                     {% endif %}
                 </div>
@@ -332,6 +338,24 @@
         const open_modal = open_modals[i];
         const modal = modals[i];
         const close_modal = close_modals[i];
+
+        open_modal.addEventListener("click", () => {
+            modal.showModal();
+        });
+
+        close_modal.addEventListener("click", () => {
+            modal.close();
+        });
+    };
+
+    const open_share_modals = document.querySelectorAll(".share_button");
+    const share_modals = document.querySelectorAll(".share_modal");
+    const close_share_modals = document.querySelectorAll(".share-close-button");
+
+    for (let i = 0; i < open_share_modals.length; i++) {
+        const open_modal = open_share_modals[i];
+        const modal = share_modals[i];
+        const close_modal = close_share_modals[i];
 
         open_modal.addEventListener("click", () => {
             modal.showModal();
