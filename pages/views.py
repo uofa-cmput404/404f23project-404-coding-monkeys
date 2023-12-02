@@ -306,6 +306,8 @@ def render_author_detail(request, host_id, uuid):
         response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
         if response.ok:
             liked_items = response.json()["items"]
+        else:
+            raise Exception("Could not get liked items")
     except:
         liked_items = []
 
