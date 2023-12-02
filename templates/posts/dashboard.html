@@ -213,6 +213,27 @@
             
         });
 
+        $(".share_button").click(function () {
+            console.log("share triggered")
+            var author_uuid = 'a02e3525-bb5a-44eb-852d-0f93f63d1a22'; // how to get user uuid like above?
+
+            // Get existing comments for this post, and load them into the comments container
+            $.ajax({
+                    url: 'http://127.0.0.1:8000/authors/' + author_uuid + '/followers/', //TODO change from localhost to live
+                    method: 'GET',
+                    contentType: 'application/json',
+
+                    success: function (data) {
+                        console.log("RETURNED DATA: ");
+                        console.dir(data);
+                    
+                    },
+                    error: function (data) {
+                        alert("Error fetching followers. Please try again.");
+                    }
+                });
+        });
+
     });
 
 </script>
