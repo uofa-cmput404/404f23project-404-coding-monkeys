@@ -73,7 +73,8 @@ def list_profiles(request):
 
     # filter out foreigns in author cache
     author_cache = AuthorCache()
-    authors = [author_cache.get(uuid) for uuid in author_cache if uuid not in foreign_uuids]
+    cache = dict(author_cache.items())
+    authors = [author_cache.get(uuid) for uuid in cache if uuid not in foreign_uuids]
     toReturn = []
 
     if searchbar_is_used == True:
