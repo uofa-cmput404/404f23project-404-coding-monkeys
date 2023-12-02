@@ -215,11 +215,12 @@
 
         $(".share_button").click(function () {
             console.log("share triggered") // zeus
-            var author_uuid = 'a02e3525-bb5a-44eb-852d-0f93f63d1a22'; // TODO how to get user uuid like above?
+            //var author_uuid = 'a02e3525-bb5a-44eb-852d-0f93f63d1a22'; // TODO how to get user uuid like above?
+            var user_uuid = $(this).data("user-uuid")
 
             // TODO forced to log-in? //$("#share_modal .followers-list").empty()
             $.ajax({
-                    url: 'http://127.0.0.1:8000/authors/' + author_uuid + '/followers/', //TODO change from localhost to live
+                    url: 'http://127.0.0.1:8000/authors/' + user_uuid + '/followers/', //TODO change from localhost to live
                     method: 'GET',
                     contentType: 'application/json',
 
@@ -321,7 +322,7 @@
                         <div class="context_menu" id="context_menu">
                             <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author_uuid %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
                             <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
-                            <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" id="share-button" type="button">Share</button></div> <!--dummy share button-->
+                            <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> <!--dummy share button-->
                         </div>
                         <dialog class="modal" id="modal">
                             <div class="col-flex">
