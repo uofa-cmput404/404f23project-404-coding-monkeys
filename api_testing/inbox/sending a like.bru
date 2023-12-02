@@ -1,0 +1,38 @@
+meta {
+  name: sending a like
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/authors/{{dinoId}}/inbox/
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: fane_dev
+  password: faneuser
+}
+
+body:json {
+  {
+       "context": "https://www.w3.org/ns/activitystreams",
+       "summary": "fane Likes your post",         
+       "type": "Like",
+       "author":{
+          "type": "author",
+          "id": "http://localhost:8000/authors/1f3f82d2-cc5f-43c2-80cd-3c163d58d972",
+          "host": "http://localhost:8000",
+          "displayName": "fane_dev",
+          "url": "http://localhost:8000/authors/1f3f82d2-cc5f-43c2-80cd-3c163d58d972",
+          "github": "http://fake-github.com/yeo",
+          "profileImage": "https://wiki.teamfortress.com/w/images/thumb/9/9b/Icon_spy.jpg/150px-Icon_spy.jpg"
+      },
+       "object":"http://localhost:8000/authors/6d44a8df-dc0b-44a1-b3a0-1f6939a949c2/posts/b0a078a0-993a-4f3f-babd-ed4d7694cd50"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
