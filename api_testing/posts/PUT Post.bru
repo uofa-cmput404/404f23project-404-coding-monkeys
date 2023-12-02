@@ -5,7 +5,7 @@ meta {
 }
 
 put {
-  url: {{localUrl}}/authors/{{userUuid}}/posts/1424480c-c872-4cf4-9c85-1b228ff28a58/
+  url: {{baseUrl}}/authors/{{userUuid}}/posts/1424480c-c872-4cf4-9c85-1b228ff28a58/
   body: json
   auth: basic
 }
@@ -48,5 +48,5 @@ body:json {
 }
 
 assert {
-  : 
+  res.status: eq 200
 }

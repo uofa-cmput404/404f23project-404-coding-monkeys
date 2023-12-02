@@ -11,19 +11,19 @@ post {
 }
 
 auth:basic {
-  username: dino
+  username: dino_dev
   password: dinouser
 }
 
 body:json {
   {
     "type": "author",
-    "id": "http://www.chimp-chat.win/authors/6d44a8df-dc0b-44a1-b3a0-1f6939a949ca",
-    "host": "http://www.chimp-chat.win/",
-    "displayName": "dino",
-    "url": "http://www.chimp-chat.win/authors/6d44a8df-dc0b-44a1-b3a0-1f6939a949ca",
+    "id": "http://localhost:8000/authors/6d44a8df-dc0b-44a1-b3a0-1f6939a949ca",
+    "host": "http://localhost:8000/",
+    "displayName": "dino_dev",
+    "url": "http://localhost:8000/authors/6d44a8df-dc0b-44a1-b3a0-1f6939a949ca",
     "github": "http://DINOMITE.com",
-    "profileImage": "http://hahahaha.jpg"
+    "profileImage": "https://cdn.mos.cms.futurecdn.net/i3bonQ5rxzT5qB9kbg4WbJ-1200-80.jpeg"
   }
 }
 
@@ -32,6 +32,6 @@ assert {
   res.body.type: eq author
   res.body.id: eq {{dinoUrl}}
   res.body.host: eq {{baseUrl}}/
-  res.body.displayName: eq dino
+  res.body.displayName: eq dino_dev
   res.body.url: eq {{dinoUrl}}
 }

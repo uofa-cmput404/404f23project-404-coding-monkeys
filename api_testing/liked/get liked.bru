@@ -1,18 +1,13 @@
 meta {
-  name: create reference post
+  name: get liked
   type: http
   seq: 1
 }
 
 get {
-  url: {{baseUrl}}/authors/{{dinoId}}/posts/{{postId}}/comments/?page=1&size=5
+  url: {{baseUrl}}/authors/{{faneId}}/liked/
   body: none
   auth: basic
-}
-
-query {
-  page: 1
-  size: 5
 }
 
 auth:basic {

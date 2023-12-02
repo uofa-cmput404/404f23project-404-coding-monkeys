@@ -1083,7 +1083,7 @@ def api_post_likes(request, uuid, post_id):
             "type": "like",
             "context": like.context,
             "summary": like.summary,
-            "author": author_cache.get(like.author_uuid),
+            "author": author_cache.get(str(like.author_uuid)),
             "object": like.liked_object
         })
     
@@ -1209,4 +1209,4 @@ def api_author_liked(request, uuid):
             "object": like.liked_object
         })
     
-    return Response(status=200, data={"type": "likes", "items": items})
+    return Response(status=200, data={"type": "likes", "items": formatted})

@@ -11,7 +11,7 @@ get {
 }
 
 auth:basic {
-  username: dino
+  username: dino_dev
   password: dinouser
 }
 
@@ -20,7 +20,7 @@ assert {
   res.body.type: eq author
   res.body.id: eq {{dinoUrl}}
   res.body.host: eq {{baseUrl}}/
-  res.body.displayName: eq dino
+  res.body.displayName: eq dino_dev
   res.body.url: eq {{dinoUrl}}
   res.body.github: eq http://DINOMITE.com
 }
