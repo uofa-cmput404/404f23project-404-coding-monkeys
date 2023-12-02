@@ -10,40 +10,94 @@
 {% endblock css %}
 
 {% block content %}
-<h2 style="color:white; margin-left:20px; margin-top:30px;">Account Sign Up</h2>
-<form method="post" style="margin-left:20px;">
-    {% csrf_token %}
-    <div class="row-flex" style="margin-top:15px;">
-        <div class="col-flex" style="width:10%;">
-            <label style="margin-bottom:1em;" for="{{ form.username.id_for_label }}">Username:</label>
-            <label style="margin-bottom:1em;" for="{{ form.email.id_for_label }}">Email:</label>
-            <label style="margin-bottom:1em;" for="{{ form.github.id_for_label }}">Github URL:</label>
-            <label style="margin-bottom:1em;" for="{{ form.profile_image.id_for_label }}">Profile Image URL:</label>
-            <label style="margin-bottom:1em;" for="{{ form.password1.id_for_label }}">Password:</label>
-        </div>
-        <div class="col-flex" style="width:50%;">
-            {{ form.username }}
-            <div style="height:0.5em;"></div>
-            {{ form.email }}
-            {{ form.github }}
-            {{ form.profile_image }}
-            {{ form.password1 }}
-            <small class="form-text text-muted">{{ form.password1.help_text }}</small>
-        </div>
-    </div>
-    <div class="row-flex" style="margin-top:15px;">
-        <div class="col-flex" style="width:10%;">
-            <label for="{{ form.password2.id_for_label }}">Confirm Password:</label>
-        </div>
-        <div class="col-flex" style="width:50%;">
-            {{ form.password2 }}
-            <small class="form-text text-muted">{{ form.password2.help_text }}</small>
-        </div>
-    </div>
-    <div class="row-flex" style="margin-top:2.5em; width: 60%; justify-content: right;">
-        <button class="post_button" type="submit">Sign Up</button>
+
+<div><!-- FOR BACKGROUND ANIMATION EFFECT-->
+    <ul class="circles">
+            <li style="right: 5.5%;"><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 17.5%;"><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 23.5%;"><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 81.5%;"><img src={% static 'images/A5.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 95.5%;"><img src={% static 'images/A6.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 51.5%;"><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 23.5%;"><img src={% static 'images/A1.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 66.5%;"><img src={% static 'images/A2.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 11.5%;"><img src={% static 'images/A4.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+            <li style="right: 73.5%;"><img src={% static 'images/A7.png'%} alt="" title = "" width="21px" height="auto" class=""></li>
+    </ul>
+</div ><!-- FOR BACKGROUND ANIMATION EFFECT-->
+
+
+
+
+
+<div style="width: 760px; height:620px; margin-left:auto; margin-right:auto; margin-top:40px; margin-bottom:40px; 
+    border-style:solid; border-width:5px;  border-color:#FFD553; border-radius:7px;">
+
+    <div class="row-flex">
+        <img src={% static 'images/monkey_icon.jpg'%} alt="" title = "" width="60" height="60" style="background-color:#FFD553; padding-bottom:10.4px; padding-left:10px;">
+        <h2 style="color:white; padding-top:20px; background-color:#FFD553; margin-top:0; padding-bottom:12.43px; color:black; padding-left:68px; width:90%;">Account Sign Up</h2>
     </div>
     
-</form>
+    <form method="post" style="background-color:#1C1A19; margin-top:10px;">
+        {% csrf_token %}
+        <div class="row-flex" style="margin-top:15px; ">
+            <div class="col-flex" style="width:120px; margin-left:135px;">
+                <label style="margin-bottom:19px; margin-top:4px;" for="{{ form.username.id_for_label }}">Username:</label>
+                <label style="margin-bottom:25px;" for="{{ form.email.id_for_label }}">Email:</label>
+                <label style="margin-bottom:6px;" for="{{ form.github.id_for_label }}">Github URL:</label>
+                <label style="margin-bottom:11px;" for="{{ form.profile_image.id_for_label }}">Profile Image URL:</label>
+                <label style="margin-bottom:7px;" for="{{ form.password1.id_for_label }}">Password:</label>
+            </div>
+            <div class="col-flex" style="width:50%;">
+                {{ form.username }}
+                <div style="height:0.5em;"></div>
+                {{ form.email }}
+                {{ form.github }}
+                {{ form.profile_image }}
+                {{ form.password1 }}
+
+                <ul style = "font-size:12px; margin-top:5px; list-style-type: circle; padding:0; margin-top:30px; list-style-type: none;">
+
+                    <div class="row-flex">
+                        <img src={% static 'images/A1.png'%} alt="" title = "" width="12" height="12" style="padding-right:10px;">
+                        <li>Your password can’t be too similar to your other personal information</li>
+                    </div>
+                    <div class="row-flex">
+                        <img src={% static 'images/A7.png'%} alt="" title = "" width="12" height="12" style="padding-right:10px;">
+                        <li>Your password must contain at least 8 characters</li>
+                    </div>
+                    <div class="row-flex">
+                        <img src={% static 'images/A4.png'%} alt="" title = "" width="12" height="12" style="padding-right:10px;">
+                        <li>Your password can’t be a commonly used password</li>
+                    </div>
+                    <div class="row-flex">
+                        <img src={% static 'images/A5.png'%} alt="" title = "" width="12" height="12" style="padding-right:10px;">
+                        <li>Your password can’t be entirely numeric</li>
+                    </div>
+
+                </ul>
+                
+
+
+            </div>
+        </div>
+        <div class="row-flex">
+            <div class="col-flex" style="width:120px; margin-left:135px;">
+                <label for="{{ form.password2.id_for_label }}">Confirm Password:</label>
+            </div>
+            <div class="col-flex" style="width:50%; margin-top:15px;">
+                {{ form.password2 }}
+                <small class="form-text text-muted" style="margin-top:5px;">{{ form.password2.help_text }}</small>
+            </div>
+        </div>
+        <div class="row-flex" style="margin-top:2em; margin-right:125px; justify-content: right;">
+            <button class="post_button" style="font-size:16px; padding-right:15px; padding-left:15px;" type="submit">Sign Up</button>
+            
+        </div>
+        
+    </form>
+
+</div>
+
 
 {% endblock content %}

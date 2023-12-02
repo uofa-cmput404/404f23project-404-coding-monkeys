@@ -79,7 +79,7 @@ p {
     margin: auto;
     margin-bottom: 20px;
     width: 650px;
-    min-height: 628px;
+    min-height: 500px;
 }
 
 .post-container {
@@ -91,7 +91,7 @@ p {
     margin: auto;
     margin-bottom: 20px;
 
-    height: 628px;
+    height: 500px;
     width: 450px;
     border-style: solid;
     border-radius: 10px;
