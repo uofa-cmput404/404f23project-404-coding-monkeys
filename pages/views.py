@@ -3,7 +3,7 @@ from django.http import HttpResponse
 
 from django.forms.models import model_to_dict
 from django.views.generic import TemplateView, ListView, DetailView
-from accounts.models import AuthorUser, FollowRequests, Followers
+from accounts.models import AuthorUser, FollowRequests, Followers, ForeignAuthor
 
 # wip
 from django.shortcuts import get_object_or_404, redirect, render 
@@ -66,16 +66,23 @@ def list_profiles(request):
         search_text=request.POST['search_bar']#get the string from the search bar
         search_text=search_text.lower()
         searchbar_is_used=True
+    
+    # do not include foreign authors
+    foreigns = ForeignAuthor.objects.all()
+    foreign_uuids = [str(f.uuid) for f in foreigns]
 
+    # filter out foreigns in author cache
     author_cache = AuthorCache()
+    cache = dict(author_cache.items())
+    authors = [author_cache.get(uuid) for uuid in cache if uuid not in foreign_uuids]
     toReturn = []
 
     if searchbar_is_used == True:
-        for author in author_cache.values():
+        for author in authors:
             if author["displayName"].find(search_text) > -1:
                 toReturn.append(author)
     else:
-        toReturn = author_cache.values()
+        toReturn = authors
     
     for a in toReturn:
         a["index"] = HOSTS.index(strip_slash(a["host"]))
