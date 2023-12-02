@@ -283,13 +283,15 @@ def post_stream(request):
     posts = post_cache.values()
 
     for post in posts:
+        print(post)
         post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
         post["uuid"] = get_part_from_url(post["id"], "posts")
-        post["delta"] = time_since_posted(post["published"])
+        post["delta"] = time_since_posted(post["published"], post["author_index"])
 
         # filter out posts that shouldn't be shared with current user
-        if post["origin"] == strip_slash(ENDPOINT):
+        # if post["origin"] == strip_slash(ENDPOINT):
+        if post["id"] == strip_slash(ENDPOINT):
             try: post = Posts.objects.get(uuid=post["uuid"])
             except Posts.DoesNotExist: post = None
             if post:
@@ -300,12 +302,14 @@ def post_stream(request):
             # dont serve if post is deleted
             else:
                 continue
-        
+
+        contentType = "contentType" if post["author_index"] != 2 else "content_type"
+
         # pass html rendered as commonmark into dashboard view
-        if post["contentType"] == "text/markdown":
+        if post[contentType] == "text/markdown":
             post["content"] = commonmark.commonmark(post["content"])
         # custom logic for 404 not found's group
-        elif post["content"] and post["origin"].startswith(HOSTS[1]) and post["contentType"] not in ("text/plain", "text/markdown"):
+        elif post["content"] and post["id"].startswith(HOSTS[1]) and post[contentType] not in ("text/plain", "text/markdown"):
             post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)

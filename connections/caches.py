@@ -168,33 +168,8 @@ class PostCache(Cache):
 
                 print(posts_url)
 
-                # Chimp Chat Prod Server
-                if len(HOSTS) >= 3 and strip_slash(details['host']) == HOSTS[2]:
-                    try:
-                        response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-                        if response.ok:
-                            posts = response.json()
-                            posts = posts["items"]
-                            
-                            for post in posts:
-                                uuid = get_id_from_url(post["id"])
-                                try:
-                                    url = f"{post['id']}/likes/"
-                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-
-                                    if response.ok:
-                                        likes = response.json()
-                                        post["likeCount"] = len(likes["items"])
-                                except:
-                                    post["likeCount"] = 0
-                                self.cache[uuid] = post
-
-                    except Exception as e:
-                        print(e)
-                        continue
-
                 # 404 Not Found
-                elif strip_slash(details['host']) == HOSTS[1]:
+                if strip_slash(details['host']) == HOSTS[1]:
                     try:
                         response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
                         if response.ok:
@@ -216,6 +191,36 @@ class PostCache(Cache):
                     except Exception as e:
                         print(e)
                         continue
+
+                # Web Wizards
+                elif strip_slash(details['host']) == HOSTS[2]:
+                    try:
+                        params = {
+                            "page": 1,
+                            "size": 20
+                        }
+                        response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers, params=params)
+                        if response.ok:
+                            posts = response.json()
+                            posts = posts["items"]
+                            
+                            for post in posts:
+                                uuid = get_id_from_url(post["id"])
+                                try:
+                                    url = f"{post['id']}/likes/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        likes = response.json()
+                                        post["likeCount"] = len(likes["items"])
+                                except:
+                                    post["likeCount"] = 0
+                                self.cache[uuid] = post
+
+                    except Exception as e:
+                        print(e)
+                        continue
+
             except Exception as e:
                 print(e)
         
