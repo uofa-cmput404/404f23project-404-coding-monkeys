@@ -1128,36 +1128,6 @@ def api_comment_likes(request, uuid, post_id, comment_id):
         })
     
     return Response(status=200, data={"type": "likes", "items": formatted})
-
-# GIT Hub Acivtity 
-# =====================
-def get_github_actvity(uuid):
-    author_cache = AuthorCache()
-    author= author_cache.get(uuid)
-    github_url=author["github"]
-
-    username=github_url.split("/")[-1]
-
-    github_events_url=f"https://api.github.com/users/{username}/events"
-    
-    response = requests.get(github_events_url)
-    retrived_events = []
-    if response.status_code==200:
-        events=response.json()
-        for event in events:
-            extracted_data={
-            'id': event['id'],
-            'actor': event['actor']['display_login'],
-            'actor_url': event['actor']['url'],
-            'actor_avatar': event['actor']['avatar_url'],
-            'type': event['type'],
-            'repo': event['repo']['name'],
-            'repo': event['repo']['url'],
-            'created_at': event['created_at']}
-            retrived_events.append(extracted_data)
-        return retrived_events
-    else:
-        return None
     
 # LIKED
 # =====================

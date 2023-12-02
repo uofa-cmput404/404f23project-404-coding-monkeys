@@ -125,7 +125,35 @@ def author_user_detail(request, uuid):
 
     return render(request, 'authorprofile.html', {'author': author_user, 'followers': followers, 'already_following': already_following, 'follower_avatars': follower_avatars, 'pending_request': pending_request})
 
+# GIT Hub Acivtity 
+# =====================
+def get_github_actvity(uuid):
+    author_cache = AuthorCache()
+    author= author_cache.get(uuid)
+    github_url=author["github"]
 
+    username=github_url.split("/")[-1]
+
+    github_events_url=f"https://api.github.com/users/{username}/events"
+    
+    response = requests.get(github_events_url)
+    retrived_events = []
+    if response.status_code==200:
+        events=response.json()
+        for event in events:
+            extracted_data={
+            'id': event['id'],
+            'actor': event['actor']['display_login'],
+            'actor_url': event['actor']['url'],
+            'actor_avatar': event['actor']['avatar_url'],
+            'type': event['type'],
+            'repo': event['repo']['name'],
+            'repo': event['repo']['url'],
+            'created_at': event['created_at']}
+            retrived_events.append(extracted_data)
+        return retrived_events
+    else:
+        return None
 
 # RESTful Author Profile
 # ----------------------
@@ -185,7 +213,9 @@ def gather_info_local(request, uuid):
                 "post": public_posts[i]
             })
 
-    return render(request, 'authorprofile.html', {'author': author, 'liked':formatted_liked, 'followers': formatted_followers, 'already_following': following, 'pending_request': requested})
+    activity = get_github_actvity(uuid)
+
+    return render(request, 'authorprofile.html', {'author': author, 'github':activity, 'liked':formatted_liked, 'followers': formatted_followers, 'already_following': following, 'pending_request': requested})
     
 
 def render_author_detail(request, host_id, uuid):
