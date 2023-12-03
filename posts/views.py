@@ -512,10 +512,14 @@ def like_post_handler(request):
 
     #Get the post object from the front end
     post = json.loads(request.body).get('post', {})
-    print(json.dumps(post))
+    print(json.dumps(post, indent=2))
 
     #gather the host of the post
-    post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    try:
+        post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    except:
+        #Webwizards doesnt have an origin field LOL
+        post_host = f"{urlparse(post['id']).scheme}://{urlparse(post['id']).netloc}"
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
     print(f"Post Host: {post_host}")
 
@@ -543,18 +547,33 @@ def like_post_handler(request):
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
     
     elif post_host == "https://webwizards-backend-952a98ea6ec2.herokuapp.com":
+        print("Entered like handler for webwizards")
         #API call for web wizards
-        full_url = f"{post_host}/api/authors/{currUser.uuid}/liked/"
+        full_url = f"{post_host}/service/authors/{currUser.uuid}/liked/"
         headers = {
-            "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
             "accept": "application/json",
         }
         auth = nodes.get_auth_for_host(post_host)
-        # response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+        response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+        print(response)
+        print(response.text)
+        print(response.json())
+        if response.status_code == 404:
+            #for web wizards, if the user isnt already in their system, they'll give a 404. So simulate that things are chill
+            response = requests.Response()
+            response.status_code = 200
+            empty_like_obj = json.dumps({'type': 'likes', 'items': []})
+
     
 
     if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
-    returned_likes = response.json()
+    try:
+        returned_likes = response.json()
+    except:
+        #for the web wizards broken functionality
+        returned_likes = json.loads(empty_like_obj)
+    print(returned_likes)
+    print(json.dumps(returned_likes, indent=2))
     
     #Determine if the current user has already liked the post
     post_already_liked = False
@@ -564,11 +583,13 @@ def like_post_handler(request):
             break
 
     if post_already_liked:
+        print("Post already liked")
         #dont do anything
         # return JsonResponse({'new_post_count': post['likeCount']}) #return existing post count
         return JsonResponse({'new_post_count': post['likeCount']}) #return new post count
     else:
         #send like
+        print("Post not liked yet")
         if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
             full_url = f"{post_host}/authors/{post['author_uuid']}/inbox/"
             headers = {"Content-Type": "application/json"}
@@ -585,7 +606,7 @@ def like_post_handler(request):
             response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json) #Send the like object to the posting author's inbox
         
         elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
-            #send comment
+            #send like
             full_url = f"{post_host}/api/authors/{post['author_uuid']}/inbox/"
             headers = {
                 "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
@@ -603,6 +624,29 @@ def like_post_handler(request):
             body_json = json.dumps(body_dict)
             # print(f"\nAPI Call for Sending like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
             response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
+
+        elif post_host == "https://webwizards-backend-952a98ea6ec2.herokuapp.com":
+            full_url = f"{post_host}/service/authors/{post['author_uuid']}/inbox/"
+            headers = {
+                "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+                "accept": "application/json",
+                'Content-Type': 'application/json'
+            }
+            auth = nodes.get_auth_for_host(post_host)
+            body_dict = {
+                "context": "https://www.w3.org/ns/activitystreams",
+                "summary": f"{currUser.username} Likes your post",
+                "type": "Like",
+                "author": currUser_API,
+                "object": f"{post_host}/service/authors/{post['author_uuid']}/posts/{post['uuid']}"
+            }
+            body_json = json.dumps(body_dict)
+            # print(f"\nAPI Call for Sending like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
+            response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
+            print(response)
+            print(response.text)
+            print(response.json())
+
 
         if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
         post_cache = PostCache()
