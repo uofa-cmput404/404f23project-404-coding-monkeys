@@ -149,7 +149,7 @@
                             '</div>';
                             commentContainer.append(commentElement);
                         });
-                        $("#comment-textbox-" + post_uuid).val(''); // Clear the contents of the textbox after successfully adding the comment
+                        $("#comment-textbox-" + post.uuid).val(''); // Clear the contents of the textbox after successfully adding the comment
                     },
                     error: function (data) {
                         alert("Error submitting comment. Please try again.");
