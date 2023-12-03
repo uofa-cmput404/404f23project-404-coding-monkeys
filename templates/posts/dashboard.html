@@ -280,12 +280,6 @@
 
     });
 
-    
-
-</script>
-
-
-
 </script>
 <!-- <script src="{% static '/js/like_button.js' %}"></script> -->
 
@@ -293,115 +287,113 @@
 
 {% block content %}
 
-<!-- TODO: This is a security risk as all posts are sent to the browser (potentially including non-authorized ones). Edit this so that we only send authorized posts from the server -->
 {% for post in all_posts %}
-    {% if not post.unlisted %}
-        <div class="post-container">
-            {% if post.author_index == 0 %}
-            <div class="post" style="margin-top:3em;">
-            {% elif post.author_index == 1 %}
-            <div class="post" style="margin-top:3em; border-color: #34bdeb">
-            {% elif post.author_index == 2 %}
-            <div class="post" style="margin-top:3em; border-color: #7947ed">
-            {% elif post.author_index == 3 %}
-            <div class="post" style="margin-top:3em; border-color: #fc4c4c">
-            {% endif %}
-                <section id="post_author">
-                    <div class="authorDetails" data-get-url="{{ post.author.id }}" data-host="{{ post.author.host }}">
-                        <img src="{{ post.author.profileImage }}" data-author-index="{{ post.author_index }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
-                        <p class="profile_name" style="margin: 0; margin-left:0.25em; margin-top: 0.25em; color:black; font-size:24px; user-select: none">{{ post.author.displayName}}</p>
-                    </div>
-                    <div class="flex_grow"></div>
-                    <p style="align-self: end;">{{ post.delta }}</p>
-                </section>
-                <section id="post_body">
-                    <h1>{{ post.title }}</h1>
-                    {% if post.contentType == "text/plain" or post.contentType == "text/markdown" %}
-                        {{ post.content|safe }}
-                    {% endif %}
-                </section>
-                {% if post.contentType == "application/base64" or post.contentType == "image/jpeg;base64" or post.contentType == "image/png;base64" %}
-                    <div style=" margin-bottom:2px;" >
-                        <img class="postImage" src="data:{{ post.contentType }},{{ post.content }}" alt="Image for {{ post.title }}" />
-                    </div>
-                {% endif %}
+    <div class="post-container">
+        {% if post.author_index == 1 %}
+        <div class="post" style="margin-top:3em; border-color: #34bdeb">
+        {% elif post.author_index == 2 %}
+        <div class="post" style="margin-top:3em; border-color: #7947ed">
+        {% elif post.author_index == 3 %}
+        <div class="post" style="margin-top:3em; border-color: #fc4c4c">
+        {% else %}
+        <div class="post" style="margin-top:3em;">
+        {% endif %}
+            <section id="post_author">
+                <div class="authorDetails" data-get-url="{{ post.author.id }}" data-host="{{ post.author.host }}">
+                    <img src="{{ post.author.profileImage }}" data-author-index="{{ post.author_index }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
+                    <p class="profile_name" style="margin: 0; margin-left:0.25em; margin-top: 0.25em; color:black; font-size:24px; user-select: none">{{ post.author.displayName}}</p>
+                </div>
                 <div class="flex_grow"></div>
-                <div class="footer">
-                    <!-- Post like button -->
-                    <!-- Old -->
-                    <!-- <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span> -->
-                    <!-- <p class="likes"id="result-{{ post.uuid }}">{{ post.likeCount}} </p> -->
-                    <!-- <button style="padding-top: 10px;" type="button"class="like-button"><i class="material-symbols-outlined">favorite</i></button> -->
-                    <div class="post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the like button -->
-                    <!-- New Comment Button -->
-                    <!-- <div class="like-button-data" style="display: none;" data-already-pressed-this-session="false"></div> -->
-                    <a class="button-icon-link like-button">
-                        <span title="{{ post.likeCount}} people liked this post" class="material-symbols-outlined button-icon" style="margin:0;">thumb_up</span>
-                    </a>
-                    <!-- comment button-->
-                    <!-- Old Comment Button -->
-                    <!-- <button style="padding-top: 10px;" type="button"class="comment-button"><i class="material-symbols-outlined">tooltip</i></button> -->
-                    <a class="button-icon-link comment-button" style="margin-left: 10px;">
-                        <span title="{{ post.count}} people commented on this" class="material-symbols-outlined button-icon" style="margin:0;">tooltip</span>
-                    </a>
-                    {% if user.uuid == post.author_uuid and post.visibility != PRIVATE %} <!-- only allow users to update their own posts; current user username must match that of author-->
-                        <div class="flex_grow"></div>
-                        <div class="context_menu" id="context_menu">
-                            <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author_uuid %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
-                            <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
-                            <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
-                        </div>
-                        <dialog class="modal" id="modal">
-                            <div class="col-flex">
-                            <p style="color:white; font-size: 32px;">Are you sure you want to delete this post?</p>
-                            <div class="row-flex" style="justify-content: center; align-items: center;">
-                                <button style="margin-right: 10px;" class="close-button" type="button">Cancel</button>
-                                <button class="delete-confirm" data-post-uuid="{{ post.uuid }}" data-author-uuid="{{ post.author_uuid }}">Confirm</button>
-                            </div>
-                        </dialog>
-                        <dialog class="share_modal" id="share_modal"> <!--apollo-->
-                            <div class="col-flex">
-                            {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
-                                <a href="{{post.url}}/unlisted"></a>
-                            {% endif %}
-                            <h1>Share with Followers</h1>
-                            <div class ="followers-list"></div>
-                            <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
-                        </dialog>
-                        <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
-                    {% elif user.uuid != post.author_uuid and post.visibility != PRIVATE %} <!--NOT the user's post, allow them to share only-->
-                        <div class="flex_grow"></div>
-                        <div class="context_menu" id="context_menu">
-                            <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
-                        </div>
-                        <dialog class="share_modal" id="share_modal"> 
-                            <div class="col-flex">
-                            {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
-                                <a href="{{post.url}}/unlisted"></a>
-                            {% endif %}
-                            <h1>Share with Followers</h1>
-                            <div class ="followers-list"></div>
-                            <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
-                        </dialog>
-                        <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
-                    {% endif %}
+                <p style="align-self: end;">{{ post.delta }}</p>
+            </section>
+            <section id="post_body">
+                <h1>{{ post.title }}</h1>
+                {% if post.contentType == "text/plain" or post.contentType == "text/markdown" %}
+                    {{ post.content|safe }}
+                {% endif %}
+            </section>
+            {% if post.contentType == "application/base64" or post.contentType == "image/jpeg;base64" or post.contentType == "image/png;base64" %}
+                <div style=" margin-bottom:2px;" >
+                    <img class="postImage" src="data:{{ post.contentType }},{{ post.content }}" alt="Image for {{ post.title }}" />
                 </div>
-            </div>
-            <div class="comment-box-container" id="comment-box-container-{{ post.uuid }}" style="display: none;">
-                <div class="scrollable-comments">
-                    <!-- comments are loaded into this container via the ajax script -->
-                    <div class="comment">
+            {% endif %}
+            <div class="flex_grow"></div>
+            <div class="footer">
+                <!-- Post like button -->
+                <!-- Old -->
+                <!-- <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span> -->
+                <!-- <p class="likes"id="result-{{ post.uuid }}">{{ post.likeCount}} </p> -->
+                <!-- <button style="padding-top: 10px;" type="button"class="like-button"><i class="material-symbols-outlined">favorite</i></button> -->
+                <div class="post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the like button -->
+                <!-- New Comment Button -->
+                <!-- <div class="like-button-data" style="display: none;" data-already-pressed-this-session="false"></div> -->
+                <a class="button-icon-link like-button">
+                    <span title="{{ post.likeCount}} people liked this post" class="material-symbols-outlined button-icon" style="margin:0;">thumb_up</span>
+                </a>
+                <!-- comment button-->
+                <!-- Old Comment Button -->
+                <!-- <button style="padding-top: 10px;" type="button"class="comment-button"><i class="material-symbols-outlined">tooltip</i></button> -->
+                <a class="button-icon-link comment-button" style="margin-left: 10px;">
+                    <span title="{{ post.count}} people commented on this" class="material-symbols-outlined button-icon" style="margin:0;">tooltip</span>
+                </a>
+                {% if user.uuid == post.author_uuid and post.visibility != PRIVATE %} <!-- only allow users to update their own posts; current user username must match that of author-->
+                    <div class="flex_grow"></div>
+                    <div class="context_menu" id="context_menu">
+                        <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author_uuid %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
+                        <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
+                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
                     </div>
-                </div>
-                <div class="submit-comment-box">
-                    <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
-                    <button class="cancel-comment-button comment_section_button" data-post-uuid="{{ post.uuid }}">Cancel</button>
-                    <button class="submit-comment-button comment_section_button">Submit</button>
-                    <div class="comment-post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the submit comment button -->
-                </div>  
+                    <dialog class="modal" id="modal">
+                        <div class="col-flex">
+                        <p style="color:white; font-size: 32px;">Are you sure you want to delete this post?</p>
+                        <div class="row-flex" style="justify-content: center; align-items: center;">
+                            <button style="margin-right: 10px;" class="close-button" type="button">Cancel</button>
+                            <button class="delete-confirm" data-post-uuid="{{ post.uuid }}" data-author-uuid="{{ post.author_uuid }}">Confirm</button>
+                        </div>
+                    </dialog>
+                    <dialog class="share_modal" id="share_modal"> <!--apollo-->
+                        <div class="col-flex">
+                        {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
+                            <a href="{{post.url}}/unlisted"></a>
+                        {% endif %}
+                        <h1>Share with Followers</h1>
+                        <div class ="followers-list"></div>
+                        <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
+                    </dialog>
+                    <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
+                {% elif user.uuid != post.author_uuid and post.visibility != PRIVATE %} <!--NOT the user's post, allow them to share only-->
+                    <div class="flex_grow"></div>
+                    <div class="context_menu" id="context_menu">
+                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
+                    </div>
+                    <dialog class="share_modal" id="share_modal"> 
+                        <div class="col-flex">
+                        {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
+                            <a href="{{post.url}}/unlisted"></a>
+                        {% endif %}
+                        <h1>Share with Followers</h1>
+                        <div class ="followers-list"></div>
+                        <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
+                    </dialog>
+                    <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
+                {% endif %}
+        </div>
+    </div>
+    <div class="comment-box-container" id="comment-box-container-{{ post.uuid }}" style="display: none;">
+        <div class="scrollable-comments">
+            <!-- comments are loaded into this container via the ajax script -->
+            <div class="comment">
             </div>
         </div>
-    {% endif %}
+        <div class="submit-comment-box">
+            <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
+            
+            <button class="cancel-comment-button comment_section_button" data-post-uuid="{{ post.uuid }}">Cancel</button>
+            <button class="submit-comment-button comment_section_button">Submit</button>
+            <div class="comment-post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the submit comment button -->
+        </div>  
+    </div>
+</div>
 
 
 {% empty %}

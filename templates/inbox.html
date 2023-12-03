@@ -19,16 +19,115 @@
 <h1 style="padding-left:35px; margin-top:20px;"><u>Inbox</u></h1>
 
 <nav class="InboxNavbar">
-    <a class="InboxNavbar_Link" href="{% url 'follow_requests' %}">Follow Requests</a>
-    <a class="InboxNavbar_Link" href="#">Likes</a>
-    <a class="InboxNavbar_Link" href="#">Comments</a>
-    <a class="InboxNavbar_Link" href="#">Posts</a>
-    <div class="animation start-FollowRequestsPage"></div><!--THIS IS WHERE YOU CHANGE THE STARTING POINT OF THE ANIMATION!-->
-                        <!--Your options are "start-FollowRequestsPage"-->
-                        <!--Your options are "start-LikesPage"-->
-                        <!--Your options are "start-CommentsPage"-->
-                        <!--Your options are "start-PostsPage"-->
-    <!-- TODO: make 3 more .html pages. just make sure to change start-XXXXPage respectively -->                     
-
+    <button id="fq" class="InboxNavbar_Link" >Follow Requests</button>
+    <button id="likes" class="InboxNavbar_Link">Likes</button>
+    <button id="comments" class="InboxNavbar_Link">Comments</button>
+    <button id="posts" class="InboxNavbar_Link">Posts</button>
 </nav>
+
+<div id="fq-div">
+<h1 style="margin-left: 60px;">Follow Requests</h1>
+<ul>
+{% for request in requests_list %}
+    <div class="itemBacking">  
+        <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ request.data.profileImage }}">
+        <h3>{{request.data.displayName}} wants to follow you.</h3>
+        <button class="accept-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+            <span class="material-symbols-outlined">done</span>
+        </button>
+        <button class="deny-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+{% empty %}
+    <li style="margin-left: 40px;">No friend requests yet.</li>
+{% endfor %}
+</ul>
+</div>
+
+<div id="likes-div">
+<h1 style="margin-left: 60px;">Likes</h1>
+<ul>
+{% for like in likes_list %}
+    <div class="itemBacking">  
+        <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ like.data.profileImage }}">
+        <h3>{{like.data.displayName}} liked your post.</h3>
+        <a href="{% url 'post' like.post_uuid %}">View Post</a>
+    </div>
+{% empty %}
+    <li style="margin-left: 40px;">No likes yet.</li>
+{% endfor %}
+</ul>
+</div>
+
+<div id="comments-div">
+<h1 style="margin-left: 60px;">Comments</h1>
+<ul>
+{% for comment in comments_list %}
+    <div class="itemBacking">  
+        <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ comment.data.profileImage }}">
+        <h3>{{comment.data.displayName}} commented on your post.</h3>
+        <a href="{% url 'post' comment.post_uuid %}">View Post</a>
+    </div>
+{% empty %}
+    <li style="margin-left: 40px;">No comments yet.</li>
+{% endfor %}
+</ul>
+</div>
+
+<div id="posts-div">
+<h1 style="margin-left: 60px;">Posts</h1>
+<ul>
+{% for post in posts_list %}
+    <div class="itemBacking">  
+        <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ post.data.profileImage }}">
+        <h3>{{post.data.displayName}} posted.</h3>
+        <a href="{% url 'post' post.post_uuid %}">View Post</a>
+    </div>
+{% empty %}
+    <li style="margin-left: 40px;">No posts yet.</li>
+{% endfor %}
+</ul>
+</div>
+
+<script>
+    $(document).ready(function () {
+        var csrfToken = $('meta[name=csrf-token]').attr('content');
+
+        $(".accept-follow").click(function () {
+            var recipient_uuid = $(this).data("recipient-uuid");
+            var requester_uuid = $(this).data("requester-uuid");
+            $.ajax({
+                url: '{% url "accept_fq" %}',
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                data: { recipient_uuid: recipient_uuid, requester_uuid: requester_uuid },
+                success: function (data) {
+                    console.log("success")
+                    location.reload();
+                }
+            });
+        });
+
+        $(".deny-follow").click(function () {
+            var recipient_uuid = $(this).data("recipient-uuid");
+            var requester_uuid = $(this).data("requester-uuid");
+            $.ajax({
+                url: '{% url "deny_fq" %}',
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                data: { recipient_uuid: recipient_uuid, requester_uuid: requester_uuid },
+                success: function (data) {
+                    console.log("success")
+                    location.reload();
+                }
+            });
+        });
+    });
+</script>
+
 {% endblock content %}

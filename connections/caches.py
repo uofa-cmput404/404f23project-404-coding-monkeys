@@ -165,6 +165,9 @@ class PostCache(Cache):
             if len(likes) != post.likeCount:
                 post.likeCount = len(likes)
                 post.save()
+            
+            if post.uuid.endswith("_pic"):
+                continue
 
             author_override = author_cache.get(str(post.author_uuid))
             self.cache[post.uuid] = format_local_post(post, author_override)
