@@ -122,14 +122,13 @@ p {
     color:white;
     background-color: #525151;
     border: 2px solid #FFD553;
-    
+
 }
 
 .cancel-comment-button:hover, .submit-comment-button:hover{
     box-shadow: 0 0 10px #FFD553;
 
 }
-
 
 .comment-textbox{
     background-color: #1C1A19;
@@ -184,6 +183,10 @@ p {
     margin-top:9px;
     margin-right:5px;
     
+
+    min-width:11.3%;
+    min-height:11.3%;
+
     background-color:transparent;
     border: none;
     color:white;
@@ -228,8 +231,6 @@ p {
 .button-icon-link:hover .button-icon{
     color: #FFD553;
 }
-
-
 
 .comment-profile-picture{
     width: 40px;

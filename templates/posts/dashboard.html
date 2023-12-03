@@ -75,7 +75,7 @@
                                     '<p class="comment-text">' + comment.comment + '</p>' +
                                 '</div>' +
                                 '<button class="like-comment-button comment_section_button material-symbols-outlined" data-comment-uuid="' + comment_uuid + '">thumb_up</button>' +
-                            '</div>';
+                                '</div>';
                             commentContainer.append(commentElement);
                         });
 
@@ -149,7 +149,7 @@
                             '</div>';
                             commentContainer.append(commentElement);
                         });
-                        $("#comment-textbox-" + post_uuid).val(''); // Clear the contents of the textbox after successfully adding the comment
+                        $("#comment-textbox-" + post.uuid).val(''); // Clear the contents of the textbox after successfully adding the comment
                     },
                     error: function (data) {
                         alert("Error submitting comment. Please try again.");
@@ -214,15 +214,18 @@
         });
 
         $(".share_button").click(function () {
-            console.log("share triggered") // zeus
-            //var author_uuid = 'a02e3525-bb5a-44eb-852d-0f93f63d1a22'; // TODO how to get user uuid like above?
+            //console.log("share triggered") // zeus
             var user_uuid = $(this).data("user-uuid")
+            var username = 'api_dev' 
+            var password = 'apiadminuser'
 
-            // TODO forced to log-in? //$("#share_modal .followers-list").empty()
             $.ajax({
-                    url: 'http://127.0.0.1:8000/authors/' + user_uuid + '/followers/', //TODO change from localhost to live
+                    url: '/authors/' + user_uuid + '/followers/', 
                     method: 'GET',
                     contentType: 'application/json',
+                    headers: {
+                      'Authorization': 'Basic ' + btoa(username + ':' + password)
+                    },
 
                     success: function (data) {
                         /* console.log("RETURNED DATA: ");
@@ -238,14 +241,21 @@
                             profile_picture = array_of_followers[i].profileImage
 
                             // Create HTML elements for follower info
-                            var followerElement = '<div class="follower-item">' +
+                            var followerElement = '<button type="button" class="follower-item">' +
                                 '<img src="' + profile_picture + '" class="follower-profile-picture" alt="Profile Picture">' +
                                 '<p class="follower-username">' + user_name + '</p>' +
-                                '</div>';
+                                '</button>';
 
                             // Append followerElement to the followers-list in share_modal
                             $("#share_modal .followers-list").append(followerElement);
                         } 
+
+                        // Attach click event handler to the clickable button
+                        $(".follower-item").on("click", function () {
+                            // Handle click event here, you can perform actions like opening a profile page or triggering a function
+                            var clickedUserName = $(this).find(".follower-username").text();
+                            alert("Clicked on follower: " + clickedUserName);
+                        });
                     
                     },
                     error: function (data) {
@@ -270,12 +280,6 @@
 
     });
 
-    
-
-</script>
-
-
-
 </script>
 <!-- <script src="{% static '/js/like_button.js' %}"></script> -->
 
@@ -283,10 +287,17 @@
 
 {% block content %}
 
-<!-- TODO: This is a security risk as all posts are sent to the browser (potentially including non-authorized ones). Edit this so that we only send authorized posts from the server -->
 {% for post in all_posts %}
     <div class="post-container">
-        <div class="post" style="margin-top:3em">
+        {% if post.author_index == 1 %}
+        <div class="post" style="margin-top:3em; border-color: #34bdeb">
+        {% elif post.author_index == 2 %}
+        <div class="post" style="margin-top:3em; border-color: #7947ed">
+        {% elif post.author_index == 3 %}
+        <div class="post" style="margin-top:3em; border-color: #fc4c4c">
+        {% else %}
+        <div class="post" style="margin-top:3em;">
+        {% endif %}
             <section id="post_author">
                 <div class="authorDetails" data-get-url="{{ post.author.id }}" data-host="{{ post.author.host }}">
                     <img src="{{ post.author.profileImage }}" data-author-index="{{ post.author_index }}" href="{% static 'css/main.css' %}" class="profile_picture"></img>
@@ -308,28 +319,29 @@
             {% endif %}
             <div class="flex_grow"></div>
             <div class="footer">
-                <a class="button-icon-link like-button">
-                    <span title="{{ post.likeCount}} people liked this comment" class="material-symbols-outlined button-icon" style="margin:0;">thumb_up</span>
-                </a>
-
-                
-
-
                 <!-- Post like button -->
+                <!-- Old -->
+                <!-- <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span> -->
+                <!-- <p class="likes"id="result-{{ post.uuid }}">{{ post.likeCount}} </p> -->
+                <!-- <button style="padding-top: 10px;" type="button"class="like-button"><i class="material-symbols-outlined">favorite</i></button> -->
                 <div class="post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the like button -->
-                <div class="like-button-data" style="display: none;" data-already-pressed-this-session="false"></div>
+                <!-- New Comment Button -->
+                <!-- <div class="like-button-data" style="display: none;" data-already-pressed-this-session="false"></div> -->
+                <a class="button-icon-link like-button">
+                    <span title="{{ post.likeCount}} people liked this post" class="material-symbols-outlined button-icon" style="margin:0;">thumb_up</span>
+                </a>
                 <!-- comment button-->
-
+                <!-- Old Comment Button -->
+                <!-- <button style="padding-top: 10px;" type="button"class="comment-button"><i class="material-symbols-outlined">tooltip</i></button> -->
                 <a class="button-icon-link comment-button" style="margin-left: 10px;">
                     <span title="{{ post.count}} people commented on this" class="material-symbols-outlined button-icon" style="margin:0;">tooltip</span>
                 </a>
-
-                {% if user.uuid == post.author_uuid %} <!-- only allow users to update their own profiles; current user username must match that of author-->
+                {% if user.uuid == post.author_uuid and post.visibility != PRIVATE %} <!-- only allow users to update their own posts; current user username must match that of author-->
                     <div class="flex_grow"></div>
                     <div class="context_menu" id="context_menu">
                         <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author_uuid %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
                         <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
-                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> <!--dummy share button-->
+                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
                     </div>
                     <dialog class="modal" id="modal">
                         <div class="col-flex">
@@ -341,29 +353,47 @@
                     </dialog>
                     <dialog class="share_modal" id="share_modal"> <!--apollo-->
                         <div class="col-flex">
+                        {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
+                            <a href="{{post.url}}/unlisted"></a>
+                        {% endif %}
+                        <h1>Share with Followers</h1>
+                        <div class ="followers-list"></div>
+                        <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
+                    </dialog>
+                    <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
+                {% elif user.uuid != post.author_uuid and post.visibility != PRIVATE %} <!--NOT the user's post, allow them to share only-->
+                    <div class="flex_grow"></div>
+                    <div class="context_menu" id="context_menu">
+                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
+                    </div>
+                    <dialog class="share_modal" id="share_modal"> 
+                        <div class="col-flex">
+                        {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
+                            <a href="{{post.url}}/unlisted"></a>
+                        {% endif %}
                         <h1>Share with Followers</h1>
                         <div class ="followers-list"></div>
                         <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
                     </dialog>
                     <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
                 {% endif %}
-            </div>
-        </div>
-        <div class="comment-box-container" id="comment-box-container-{{ post.uuid }}" style="display: none;">
-            <div class="scrollable-comments">
-                <!-- comments are loaded into this container via the ajax script -->
-                <div class="comment">
-                </div>
-            </div>
-            <div class="submit-comment-box">
-                <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
-                
-                <button class="cancel-comment-button comment_section_button" data-post-uuid="{{ post.uuid }}">Cancel</button>
-                <button class="submit-comment-button comment_section_button">Submit</button>
-                <div class="comment-post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the submit comment button -->
-            </div>  
         </div>
     </div>
+    <div class="comment-box-container" id="comment-box-container-{{ post.uuid }}" style="display: none;">
+        <div class="scrollable-comments">
+            <!-- comments are loaded into this container via the ajax script -->
+            <div class="comment">
+            </div>
+        </div>
+        <div class="submit-comment-box">
+            <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
+            
+            <button class="cancel-comment-button comment_section_button" data-post-uuid="{{ post.uuid }}">Cancel</button>
+            <button class="submit-comment-button comment_section_button">Submit</button>
+            <div class="comment-post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the submit comment button -->
+        </div>  
+    </div>
+</div>
 
 
 {% empty %}
@@ -430,7 +460,7 @@
         });
     };
 
-    var colors = ["#FFD553", "#4260f5", "#ff3b3b"];
+    var colors = ["#FFD553", "#34bdeb", "#7947ed", "#fc4c4c"];;
     var profilePictures = document.querySelectorAll(".profile_picture");
     profilePictures.forEach(function(profilePicture) {
             var authorIndex = parseInt(profilePicture.getAttribute("data-author-index"));
