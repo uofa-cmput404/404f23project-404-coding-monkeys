@@ -74,8 +74,8 @@
                                     '<p class="comment-username">' + comment.author.displayName + '</p>' +
                                     '<p class="comment-text">' + comment.comment + '</p>' +
                                 '</div>' +
-                                '<button class="like-comment-button" data-comment-uuid="' + comment_uuid + '">Like</button>' +
-                            '</div>';
+                                '<button class="like-comment-button comment_section_button material-symbols-outlined" data-comment-uuid="' + comment_uuid + '">thumb_up</button>' +
+                                '</div>';
                             commentContainer.append(commentElement);
                         });
 
@@ -145,7 +145,7 @@
                                     '<p class="comment-username">' + comment.author.displayName + '</p>' +
                                     '<p class="comment-text">' + comment.comment + '</p>' +
                                 '</div>' +
-                                '<button class="like-comment-button" data-comment-uuid="' + comment.uuid + '">Like</button>' +
+                                '<button class="like-comment-button comment_section_button material-symbols-outlined" data-comment-uuid="' + comment.uuid + '">thumb_up</button>' +
                             '</div>';
                             commentContainer.append(commentElement);
                         });
@@ -327,14 +327,23 @@
                 {% endif %}
                 <div class="flex_grow"></div>
                 <div class="footer">
-                    <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span>
-                    <p class="likes"id="result-{{ post.uuid }}">{{ post.likeCount}} </p>
                     <!-- Post like button -->
-                    <button style="padding-top: 10px;" type="button"class="like-button"><i class="material-symbols-outlined">favorite</i></button>
+                    <!-- Old -->
+                    <!-- <span class="material-symbols-outlined" style="padding: 10px; font-size:33px;">thumb_up</span> -->
+                    <!-- <p class="likes"id="result-{{ post.uuid }}">{{ post.likeCount}} </p> -->
+                    <!-- <button style="padding-top: 10px;" type="button"class="like-button"><i class="material-symbols-outlined">favorite</i></button> -->
                     <div class="post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the like button -->
-                    <div class="like-button-data" style="display: none;" data-already-pressed-this-session="false"></div>
+                    <!-- New Comment Button -->
+                    <!-- <div class="like-button-data" style="display: none;" data-already-pressed-this-session="false"></div> -->
+                    <a class="button-icon-link like-button">
+                        <span title="{{ post.likeCount}} people liked this post" class="material-symbols-outlined button-icon" style="margin:0;">thumb_up</span>
+                    </a>
                     <!-- comment button-->
-                    <button style="padding-top: 10px;" type="button"class="comment-button"><i class="material-symbols-outlined">tooltip</i></button>
+                    <!-- Old Comment Button -->
+                    <!-- <button style="padding-top: 10px;" type="button"class="comment-button"><i class="material-symbols-outlined">tooltip</i></button> -->
+                    <a class="button-icon-link comment-button" style="margin-left: 10px;">
+                        <span title="{{ post.count}} people commented on this" class="material-symbols-outlined button-icon" style="margin:0;">tooltip</span>
+                    </a>
                     {% if user.uuid == post.author_uuid and post.visibility != PRIVATE %} <!-- only allow users to update their own posts; current user username must match that of author-->
                         <div class="flex_grow"></div>
                         <div class="context_menu" id="context_menu">
@@ -386,8 +395,8 @@
                 </div>
                 <div class="submit-comment-box">
                     <textarea class="comment-textbox" id="comment-textbox-{{ post.uuid }}" placeholder="Leave a comment"></textarea>
-                    <button class="cancel-comment-button" data-post-uuid="{{ post.uuid }}">Cancel</button>
-                    <button class="submit-comment-button">Submit</button>
+                    <button class="cancel-comment-button comment_section_button" data-post-uuid="{{ post.uuid }}">Cancel</button>
+                    <button class="submit-comment-button comment_section_button">Submit</button>
                     <div class="comment-post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the submit comment button -->
                 </div>  
             </div>
