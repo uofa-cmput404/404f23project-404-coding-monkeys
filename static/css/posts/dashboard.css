@@ -119,8 +119,18 @@ p {
 
 .cancel-comment-button, .submit-comment-button{
     font-size: 11px;
+    color:white;
+    background-color: #525151;
+    border: 2px solid #FFD553;
+    
+}
+
+.cancel-comment-button:hover, .submit-comment-button:hover{
+    box-shadow: 0 0 10px #FFD553;
 
 }
+
+
 .comment-textbox{
     background-color: #1C1A19;
     border-style: solid;
@@ -170,16 +180,56 @@ p {
 
 .like-comment-button{
     margin-left: auto;
-    font-size: 11px;
+    font-size: 20px;
     margin-top:9px;
     margin-right:5px;
     
+    background-color:transparent;
+    border: none;
+    color:white;
 
     min-width:11.3%;
     min-height:11.3%;
-
-
 }
+
+.like-comment-button:hover{
+    color:#FFD553;
+}
+
+
+
+.button-icon-link {
+    background-color: #525151;
+
+
+    width:50px;
+    height:50px;
+
+    border-radius: 50%;
+    border: 2px solid #FFD553;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin:5px;
+    transition: all 0.4s ease;
+}
+
+.button-icon {
+    color: #fff;
+    border: none;
+    font-size:25px;
+}
+
+.button-icon-link:hover {
+    box-shadow: 0 0 10px #FFD553;
+}
+
+
+.button-icon-link:hover .button-icon{
+    color: #FFD553;
+}
+
+
 
 .comment-profile-picture{
     width: 40px;
@@ -253,13 +303,12 @@ p {
 .likes {
     background-color: #1C1A19;
     border-radius:50%;
-    height: 30px;
-    width: 30px;
-    line-height: 31px;
+    height: 50px;
+    width: 50px;
+    line-height: 23px;
     display: inline-block;
     text-align: center;
-    padding:10px;
-    font-size: 25px;
+    font-size: 18px;
     margin: 0;
 
 
