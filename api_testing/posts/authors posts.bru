@@ -1,0 +1,49 @@
+meta {
+  name: authors posts
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/authors/{{userUuid}}/posts/
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: TestUser1_dev
+  password: helloPassword7&
+}
+
+body:json {
+  {
+    "type": "post",
+    "title": "string",
+    "id": "string",
+    "source": "string",
+    "origin": "string",
+    "description": "string",
+    "contentType": "string",
+    "content": "string",
+    "author": {
+      "type": "author",
+      "id": "string",
+      "url": "string",
+      "host": "string",
+      "github": "string",
+      "displayName": "string",
+      "profileImage": "string"
+    },
+    "categories": [],
+    "count": 0,
+    "comments": "string",
+    "commentsSrc": {},
+    "published": "string",
+    "visibility": "string",
+    "unlisted": true
+  }
+}
+
+assert {
+  res.status: eq 200
+}
