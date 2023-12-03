@@ -383,7 +383,7 @@ button, .context_button {
 }
 
 
-.delete_button, .share_button, .close_button {
+.delete_button, .share_button, .close_button, .follower-item {
     background-color: transparent;
     border-style: none;
 }
@@ -426,3 +426,4 @@ button, .context_button {
     border-radius: 50%; /* Make it circular */
     margin-right: 10px; /* Adjust as needed */
 }
+
