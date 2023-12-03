@@ -4,7 +4,7 @@ from accounts.models import ForeignAuthor
 from django_project import settings
 from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
-from posts.models import Posts
+from posts.models import Likes, Posts
 from static.vars import ENDPOINT, HOSTS
 import threading
 
@@ -120,7 +120,6 @@ class AuthorCache(Cache):
 
             auth = node_singleton.get_auth_for_host(host)
             url = node_singleton.get_host_for_index(i)
-
             try:
                 authors_url = f"{url}/authors/"
                 print(authors_url)
@@ -133,8 +132,11 @@ class AuthorCache(Cache):
 
                 if response.ok:
                     authors = response.json()
+
                     for author in authors["items"]:
                         uuid = get_id_from_url(author["id"])
+                        if not author["profileImage"]:
+                            author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
                         self.cache[uuid] = author
             
             except Exception as e:
@@ -145,12 +147,25 @@ class PostCache(Cache):
     def __init__(self):
         super().__init__()
 
+    def incrementLikeCount(self, post_id):
+        self.initialize()
+        post = self.cache.get(post_id)
+        if post:
+            post["likeCount"] += 1
+            self.cache[post_id] = post
+
     # TODO grab all local then mess with remotes
     def update(self):
         author_cache = AuthorCache()
         node_singleton = Nodes()
 
         for post in Posts.objects.all():
+            # update likes if diff detected
+            likes = Likes.objects.filter(liked_object_type='post', liked_id=post.uuid)
+            if len(likes) != post.likeCount:
+                post.likeCount = len(likes)
+                post.save()
+
             author_override = author_cache.get(str(post.author_uuid))
             self.cache[post.uuid] = format_local_post(post, author_override)
         
@@ -168,8 +183,61 @@ class PostCache(Cache):
 
                 print(posts_url)
 
-                # Chimp Chat Prod Server
-                if len(HOSTS) >= 3 and strip_slash(details['host']) == HOSTS[2]:
+                # 404 Not Found
+                if strip_slash(details['host']) == HOSTS[1]:
+                    try:
+                        response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                        if response.ok:
+                            posts = response.json()
+                            
+                            for post in posts:
+                                uuid = get_id_from_url(post["id"])
+                                try:
+                                    url = f"{post['id']}/likes/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        likes = response.json()
+                                        post["likeCount"] = len(likes)
+                                except:
+                                    post["likeCount"] = 0
+                                self.cache[uuid] = post
+
+                    except Exception as e:
+                        print(e)
+                        continue
+
+                # Web Wizards
+                elif strip_slash(details['host']) == HOSTS[2]:
+                    try:
+                        params = {
+                            "page": 1,
+                            "size": 20
+                        }
+                        response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers, params=params)
+                        if response.ok:
+                            posts = response.json()
+                            posts = posts["items"]
+                            
+                            for post in posts:
+                                uuid = get_id_from_url(post["id"])
+                                try:
+                                    url = f"{post['id']}/likes/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        likes = response.json()
+                                        post["likeCount"] = len(likes["items"])
+                                except:
+                                    post["likeCount"] = 0
+                                self.cache[uuid] = post
+
+                    except Exception as e:
+                        print(e)
+                        continue
+                
+                # Ctrl-Alt-Dft
+                elif strip_slash(details['host']) == HOSTS[3]:
                     try:
                         response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
                         if response.ok:
@@ -192,30 +260,7 @@ class PostCache(Cache):
                     except Exception as e:
                         print(e)
                         continue
-
-                # 404 Not Found
-                elif strip_slash(details['host']) == HOSTS[1]:
-                    try:
-                        response = requests.get(posts_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-                        if response.ok:
-                            posts = response.json()
-                            
-                            for post in posts:
-                                uuid = get_id_from_url(post["id"])
-                                try:
-                                    url = f"{post['id']}/likes/"
-                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-
-                                    if response.ok:
-                                        likes = response.json()
-                                        post["likeCount"] = len(likes)
-                                except:
-                                    post["likeCount"] = 0
-                                self.cache[uuid] = post
-
-                    except Exception as e:
-                        print(e)
-                        continue
+            
             except Exception as e:
                 print(e)
         

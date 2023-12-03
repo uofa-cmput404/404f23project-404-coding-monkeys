@@ -1,4 +1,5 @@
 import datetime
+import re
 from django.forms import model_to_dict
 import pytz
 from posts.models import Posts
@@ -85,12 +86,33 @@ def get_part_from_url(url, part):
         return url[index+1] if index < len(url) - 1 else ""
     return ""
 
-def time_since_posted(created_at):
+def time_since_posted(created_at, host_index):
     import humanize
     # Parse the created_at timestamp string into a datetime object
     timezone = pytz.timezone("America/Edmonton")
-    try: created_at_datetime = datetime.datetime.fromisoformat(created_at)
-    except: created_at_datetime = datetime.datetime.fromisoformat(created_at[:-1]).replace(tzinfo=timezone)
+
+    if host_index == 0:
+        created_at_datetime = datetime.datetime.fromisoformat(created_at)
+    # 404 Not Found
+    elif host_index == 1:
+        created_at_datetime = datetime.datetime.fromisoformat(created_at[:-1]).replace(tzinfo=timezone)
+    # Web Wizards
+    elif host_index == 2:
+        try:
+            created_at_datetime = datetime.datetime.fromisoformat(created_at)
+        except:
+            # add colon because they have timestamps without it :(
+            created_at = created_at[:-2] + ":" + created_at[-2:]
+            created_at_datetime = datetime.datetime.fromisoformat(created_at)
+    # Ctrl-alt-dft
+    elif host_index == 3:
+        datetime_obj = datetime.datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+
+        # convert to ISO 8601 format
+        iso_timestamp = datetime_obj.isoformat()
+        created_at_datetime = datetime.datetime.fromisoformat(iso_timestamp).replace(tzinfo=timezone)
+
+    
     # Get the current time
     current_time = datetime.datetime.now(tz=timezone)
 
