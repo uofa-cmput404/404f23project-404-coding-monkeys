@@ -283,7 +283,6 @@ def post_stream(request):
     posts = post_cache.values()
 
     for post in posts:
-        print(post)
         post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
         post["uuid"] = get_part_from_url(post["id"], "posts")
@@ -392,7 +391,6 @@ def open_comments_handler(request):
 
     #Get the post object from the front end
     post = json.loads(request.body).get('post', {})
-    print(json.dumps(post, indent=2))
 
     #gather the host of the post
     post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
@@ -425,10 +423,7 @@ def open_comments_handler(request):
     returned_comments = response.json()
 
     formatted = []
-    print("COMMENTS RETURNED FROM API:")
     for comment in returned_comments['comments']:
-        print(json.dumps(comment, indent=2))
-
         formatted.append(comment)
 
     return JsonResponse({'comments': json.dumps(formatted)})
@@ -517,7 +512,6 @@ def like_post_handler(request):
 
     #Get the post object from the front end
     post = json.loads(request.body).get('post', {})
-    print(f"Post:\n{json.dumps(post, indent=2)}")
 
     #gather the host of the post
     post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
@@ -549,7 +543,6 @@ def like_post_handler(request):
 
     if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
     returned_likes = response.json()
-    print(json.dumps(returned_likes, indent=2))
     
     #Determine if the current user has already liked the post
     post_already_liked = False
@@ -561,10 +554,8 @@ def like_post_handler(request):
     if post_already_liked:
         #dont do anything
         # return JsonResponse({'new_post_count': post['likeCount']}) #return existing post count
-        print("Post already liked")
         return JsonResponse({'new_post_count': post['likeCount']}) #return new post count
     else:
-        print("post not yet liked")
         #send like
         if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
             full_url = f"{post_host}/authors/{post['author_uuid']}/inbox/"
@@ -598,11 +589,8 @@ def like_post_handler(request):
                 "object": f"{post_host}/api/authors/{post['author_uuid']}/posts/{post['uuid']}"
             }
             body_json = json.dumps(body_dict)
-            print(f"\nAPI Call for Sending like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
+            # print(f"\nAPI Call for Sending like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
             response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
-            print(response)
-            print(response.text)
-            print(response.json())
 
         if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
         post_cache = PostCache()
