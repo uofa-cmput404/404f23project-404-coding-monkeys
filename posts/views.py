@@ -512,10 +512,12 @@ def like_post_handler(request):
 
     #Get the post object from the front end
     post = json.loads(request.body).get('post', {})
+    print(json.dumps(post))
 
     #gather the host of the post
     post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
+    print(f"Post Host: {post_host}")
 
     #Get current user info
     currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
@@ -539,6 +541,16 @@ def like_post_handler(request):
         }
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    
+    elif post_host == "https://webwizards-backend-952a98ea6ec2.herokuapp.com":
+        #API call for web wizards
+        full_url = f"{post_host}/api/authors/{currUser.uuid}/liked/"
+        headers = {
+            "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+            "accept": "application/json",
+        }
+        auth = nodes.get_auth_for_host(post_host)
+        # response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
     
 
     if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
