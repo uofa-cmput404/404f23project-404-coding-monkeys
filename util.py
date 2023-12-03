@@ -135,7 +135,7 @@ def format_local_post_from_db(post: Posts):
         "published": str(post.published),
         "author_uuid": post.author_uuid,
         "uuid": post.uuid,
-        "delta": time_since_posted(str(post.published))
+        "delta": time_since_posted(str(post.published),0)
     })
 
     for k in ("author_url", "author_local", "author_host", "sharedWith"):
