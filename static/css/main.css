@@ -356,6 +356,11 @@ a{
     color: white;
     cursor: pointer;
   }
+  .InboxNavbar_Link:hover {
+    background-color: #FFD553;
+    transition: all .4s ease 0s;
+    border-radius: 8px;
+  }
   .InboxNavbar .animation {
     position: absolute;
     height: 100%;

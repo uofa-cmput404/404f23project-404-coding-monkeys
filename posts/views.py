@@ -91,7 +91,7 @@ def update_or_create_post(request, post_uuid):
         unique_id = uuid.uuid4()
         author = get_author_info(request.user.id) # convert author object to dictionary
         post_url = f"{ENDPOINT}authors/{author['id']}/posts/{unique_id}"
-        post = Posts(uuid=unique_id, author_uuid=author["id"], source=post_url, origin=post_url, author_local=1, author_host=ENDPOINT, author_url=author["url"], count=0, comments="", unlisted=False)
+        post = Posts(uuid=unique_id, author_uuid=author["id"], source=post_url, origin=post_url, author_local=1, author_host=ENDPOINT, author_url=author["url"], count=0, comments="")
 
     unique_id_pic = str(unique_id) + "_pic"
 
@@ -100,7 +100,13 @@ def update_or_create_post(request, post_uuid):
     post.content = request.POST.get('content')
     post.categories = request.POST.get('categories') if request.POST.get('categories') != "" else []
     post.comments = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/comments"
-    post.visibility = request.POST.get('visibility')
+
+    if request.POST.get('visibility') == "UNLISTED":
+        post.visibility = "PUBLIC"
+        post.unlisted = True
+    else:
+        post.visibility = request.POST.get('visibility')
+        post.unlisted = False
 
     # strip html tags
     user_input = request.POST.get('content')
@@ -290,13 +296,15 @@ def post_stream(request):
 
         # filter out posts that shouldn't be shared with current user
         # if post["origin"] == strip_slash(ENDPOINT):
-        if post["id"] == strip_slash(ENDPOINT):
-            try: post = Posts.objects.get(uuid=post["uuid"])
-            except Posts.DoesNotExist: post = None
-            if post:
-                sharedIDs = [user["uuid"] for user in post.sharedWith]
+        if post.get("origin") and post.get("origin").startswith(strip_slash(ENDPOINT)):
+            try: post_obj = Posts.objects.get(uuid=post["uuid"])
+            except Posts.DoesNotExist: post_obj = None
+            if post_obj:
+                sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
                 # don't serve post if not shared with logged in author
-                if post.visibility != "PUBLIC" and request.user.uuid not in sharedIDs:
+                if post_obj.visibility != "PUBLIC" and request.user.uuid not in sharedIDs:
+                    continue
+                elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
                     continue
             # dont serve if post is deleted
             else:
