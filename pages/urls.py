@@ -58,5 +58,5 @@ urlpatterns = [
     path("deny_fq", views.deny_fq, name="deny_fq"), # dummy url for denying a friend request
     path("authors/<str:uuid>/unfollowed/<str:rq_uuid>/", views.unfollow_author, name="author_unfollow"), # dummy url for unfollowing an author
 
-    path('authors/<str:author_uuid>/posts/<str:post_uuid>', post_views.unlisted_post, name='single_post_view'),
+    path('authors/<str:author_uuid>/posts/<str:post_uuid>/unlisted', post_views.unlisted_post, name='single_post_view'),
 ]

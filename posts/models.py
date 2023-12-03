@@ -34,7 +34,7 @@ class Posts(models.Model):
     commentsSrc = models.JSONField(default=dict)
     published = models.DateTimeField(auto_now_add=True, null=True)
     # one of ["PUBLIC","FRIENDS"]
-    VISIBILITY_OPTIONS = [('PUBLIC', 'Public'), ('FRIENDS', 'Friends-Only'), ('PRIVATE', 'Private')]
+    VISIBILITY_OPTIONS = [('PUBLIC', 'Public'), ('FRIENDS', 'Friends-Only'), ('PRIVATE', 'Private'), ('UNLISTED', 'Unlisted')]
     visibility = models.CharField(max_length=10, choices=VISIBILITY_OPTIONS)
     # will contain author information for who its shared with if the visibility is PRIVATE, null otherwise
     sharedWith = models.JSONField(default=list, null=True)
