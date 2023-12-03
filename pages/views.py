@@ -172,7 +172,7 @@ def get_author_detail(request):
 
     host = request.POST.get("host")
     host = host[:-1] if host[-1] == "/" else host
-    index = HOSTS.index(host)
+    index = HOSTS.index(strip_slash(host))
 
     return HttpResponse(content=json.dumps({"host_index":index, "uuid": plain_id}))
 
