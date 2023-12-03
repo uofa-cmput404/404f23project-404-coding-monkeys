@@ -214,15 +214,18 @@
         });
 
         $(".share_button").click(function () {
-            console.log("share triggered") // zeus
-            //var author_uuid = 'a02e3525-bb5a-44eb-852d-0f93f63d1a22'; // TODO how to get user uuid like above?
+            //console.log("share triggered") // zeus
             var user_uuid = $(this).data("user-uuid")
+            var username = 'api_dev' 
+            var password = 'apiadminuser'
 
-            // TODO forced to log-in? //$("#share_modal .followers-list").empty()
             $.ajax({
-                    url: 'http://127.0.0.1:8000/authors/' + user_uuid + '/followers/', //TODO change from localhost to live
+                    url: '/authors/' + user_uuid + '/followers/', 
                     method: 'GET',
                     contentType: 'application/json',
+                    headers: {
+                      'Authorization': 'Basic ' + btoa(username + ':' + password)
+                    },
 
                     success: function (data) {
                         /* console.log("RETURNED DATA: ");
@@ -238,14 +241,21 @@
                             profile_picture = array_of_followers[i].profileImage
 
                             // Create HTML elements for follower info
-                            var followerElement = '<div class="follower-item">' +
+                            var followerElement = '<button type="button" class="follower-item">' +
                                 '<img src="' + profile_picture + '" class="follower-profile-picture" alt="Profile Picture">' +
                                 '<p class="follower-username">' + user_name + '</p>' +
-                                '</div>';
+                                '</button>';
 
                             // Append followerElement to the followers-list in share_modal
                             $("#share_modal .followers-list").append(followerElement);
                         } 
+
+                        // Attach click event handler to the clickable button
+                        $(".follower-item").on("click", function () {
+                            // Handle click event here, you can perform actions like opening a profile page or triggering a function
+                            var clickedUserName = $(this).find(".follower-username").text();
+                            alert("Clicked on follower: " + clickedUserName);
+                        });
                     
                     },
                     error: function (data) {
@@ -317,12 +327,12 @@
                     <div class="like-button-data" style="display: none;" data-already-pressed-this-session="false"></div>
                     <!-- comment button-->
                     <button style="padding-top: 10px;" type="button"class="comment-button"><i class="material-symbols-outlined">tooltip</i></button>
-                    {% if user.username == post.author.displayName %} <!-- only allow users to update their own profiles; current user username must match that of author-->
+                    {% if user.uuid == post.author_uuid and post.visibility != PRIVATE %} <!-- only allow users to update their own posts; current user username must match that of author-->
                         <div class="flex_grow"></div>
                         <div class="context_menu" id="context_menu">
                             <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author_uuid %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
                             <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
-                            <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> <!--dummy share button-->
+                            <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
                         </div>
                         <dialog class="modal" id="modal">
                             <div class="col-flex">
@@ -334,6 +344,24 @@
                         </dialog>
                         <dialog class="share_modal" id="share_modal"> <!--apollo-->
                             <div class="col-flex">
+                            {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
+                                <a href="{{post.url}}/unlisted"></a>
+                            {% endif %}
+                            <h1>Share with Followers</h1>
+                            <div class ="followers-list"></div>
+                            <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
+                        </dialog>
+                        <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
+                    {% elif user.uuid != post.author_uuid and post.visibility != PRIVATE %} <!--NOT the user's post, allow them to share only-->
+                        <div class="flex_grow"></div>
+                        <div class="context_menu" id="context_menu">
+                            <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
+                        </div>
+                        <dialog class="share_modal" id="share_modal"> 
+                            <div class="col-flex">
+                            {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
+                                <a href="{{post.url}}/unlisted"></a>
+                            {% endif %}
                             <h1>Share with Followers</h1>
                             <div class ="followers-list"></div>
                             <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
