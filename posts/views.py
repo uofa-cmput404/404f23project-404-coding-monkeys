@@ -37,6 +37,7 @@ import copy
 from requests.auth import HTTPBasicAuth
 from connections.caches import Nodes
 from util import time_since_posted, format_local_post_from_db, format_local_post, strip_slash
+import threading
 
 
 class PostCreate(CreateView):
@@ -49,13 +50,13 @@ class PostCreate(CreateView):
 
 def make_new_post(request, form=None, imageData=None):
     if request.method == 'GET':
-        author_cache = AuthorCache()
-        url = f"{ENDPOINT}/authors/{request.user.uuid}"
         authors = []
-        for author in author_cache.values():
-            if author["url"] != url:
-                author["uuid"] = get_id_from_url(author["id"])
-                authors.append(author)
+        author_cache = AuthorCache()
+        followers = get_follower_ids(request.user.uuid)
+
+        for follower in followers:
+            data = author_cache.get(follower)
+            authors.append({"uuid": follower, "displayName": data["displayName"]})
 
         if form:
             return render(request, 'posts/create.html', {'form': form, 'author_list':authors, 'imageData':imageData, 'imageRemoved': False})
@@ -77,6 +78,32 @@ def get_picture_info(picture):
     
     return image_base64, contentType_pic
 
+def send_to_inbox(post, recipients):
+    # send to inbox
+    
+    author_cache = AuthorCache()
+    nodes = Nodes()
+    
+    payload = format_local_post(post, author_details=author_cache.get(post.author_uuid))
+
+    for author_uuid in recipients:
+        try:
+            author = author_cache.get(author_uuid)
+            host = author.get("host")
+            inbox_url = f"{strip_slash(host)}/authors/{author_uuid}/inbox/"
+            auth = nodes.get_auth_for_host(host)
+            response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
+            with open("log.txt", "a") as f:
+                f.write(json.dumps(payload))
+            
+            if response.ok:
+                print("Sent to inbox")
+            else:
+                print(response.text)
+
+        except Exception as e:
+            print(e)
+
 def update_or_create_post(request, post_uuid):
     author_cache = AuthorCache()
 
@@ -95,6 +122,10 @@ def update_or_create_post(request, post_uuid):
         post = Posts(uuid=str(unique_id), author_uuid=author["id"], source=post_url, origin=post_url, author_local=1, author_host=ENDPOINT, author_url=author["url"], count=0, comments="")
 
     unique_id_pic = str(unique_id) + "_pic"
+    try:
+        post_pic = Posts.objects.get(uuid=unique_id_pic)
+    except Posts.DoesNotExist:
+        post_pic = None
 
     post.title = request.POST.get('title')
     post.description = request.POST.get('description')
@@ -125,7 +156,7 @@ def update_or_create_post(request, post_uuid):
         post.content = image_base64
 
     # add images and links to content
-    if cType != "Image" and request.FILES.get('picture') is not None or request.POST.get('imageRemoved') == "False":
+    if cType != "Image" and request.FILES.get('picture') is not None or post_pic and request.POST.get('imageRemoved') == "False":
         source = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/image"
         if post.contentType == "text/plain":
             image_tag = f"<img src=\"{source}\" alt=\"{post.title}\" />"
@@ -139,38 +170,14 @@ def update_or_create_post(request, post_uuid):
     post_cache = PostCache()
     post_cache.add(str(post.uuid), format_local_post(post))
 
-    if request.POST.get('author_list') and post.visibility == "PRIVATE":
-        selected_author_id = request.POST.get('author_list')
-        details = author_cache.get(selected_author_id)
-        ad = AuthorDetail()
-        ad.setMappingFromAPI(details)
-
-        # send to inbox
-        try:
-            post_url = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
-            response = requests.get(post_url)
-            if response.ok:
-                payload = response.json()
-                inbox_url = f"{ad.host}authors/{ad.uuid}/inbox"
-                response = requests.post(inbox_url, json=payload)
-        except Exception as e:
-            print(e)
+    if request.POST.get('sharedWith') and post.visibility == "PRIVATE":
+        selected_author_id = request.POST.get('sharedWith')
+        send_to_inbox(post, [selected_author_id])
 
     elif post.visibility == "FRIENDS":
-        friends = get_friends(request.user.id)
-        try:
-            post_url = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
-            response = requests.get(post_url)
-            if response.ok:
-                payload = response.json()
-        
-                for friend in friends:
-                    # send to inbox
-                    inbox_url = f"{friend['host']}authors/{friend['id']}/inbox"
-                    response = requests.post(inbox_url, json=payload)
-        except Exception as e:
-            print(e)
-
+        followers = get_follower_ids(request.user.uuid)
+        send_to_inbox(post, followers)
+    
     # deal with embedded pictures
     try:
         post = Posts.objects.get(uuid=unique_id_pic)
@@ -229,10 +236,11 @@ def edit_post(request, author_id, post_uuid):
                 'content': post.content,
                 'visibility': post.visibility,
                 'imageRemoved': "False",
+                'contentType': post.contentType
             }
 
             if post.visibility == "PRIVATE":
-                form_data['sharedWith'] = post.sharedWith['id']
+                form_data['sharedWith'] = post.sharedWith[-1]["uuid"] if len(post.sharedWith) > 0 else ""
 
             return make_new_post(request, PostForm(initial=form_data), post.picture)
         except Posts.DoesNotExist: 
@@ -285,7 +293,7 @@ def get_friends(author_id):
 
     for follower in current_followers:
         try:
-            request = f"{ENDPOINT}/authors/{author_id}/followers/{follower['uuid']}"
+            request = f"{ENDPOINT}/authors/{author_id}/followers/{follower['uuid']}/"
             response = requests.get(request)
             if response.ok:
                 friends.append(follower)
@@ -293,6 +301,15 @@ def get_friends(author_id):
             continue
 
     return friends
+
+def get_follower_ids(author_id):
+    # get all followers for current user
+    try:
+        row = Followers.objects.get(author_id=author_id)
+        current_followers = row.followers
+        return [follower['uuid'] for follower in current_followers]
+    except Followers.DoesNotExist:
+        return []
 
 def determine_if_friends(current_followers : list, user_id : str, post_author_id : str):
     try:
@@ -325,7 +342,7 @@ def post_stream(request):
             if post_obj:
                 sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
                 # don't serve post if not shared with logged in author
-                if post_obj.visibility != "PUBLIC" and request.user.uuid not in sharedIDs:
+                if post_obj.visibility != "PUBLIC" and request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
                     continue
                 elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
                     continue

@@ -138,6 +138,9 @@ class AuthorCache(Cache):
                             if not author["profileImage"]:
                                 author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
 
+                            if self.cache.get(uuid) and self.cache[uuid]["host"].startswith(strip_slash(host)):
+                                continue
+
                             self.cache[uuid] = author
                 else:
                     headers["Authorization"] = f"Token: {auth[1]}"
@@ -163,6 +166,8 @@ class AuthorCache(Cache):
             except Exception as e:
                 print(e)
                 continue
+        
+        print(self.cache)
 
 class PostCache(Cache):
     def __init__(self):

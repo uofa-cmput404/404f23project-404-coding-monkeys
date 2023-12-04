@@ -185,7 +185,9 @@ def get_liked_author(url):
     return {"displayName": "an unknown remote author", "profileImage": "https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg"}
 
 def gather_info_local(request, uuid):
-    author_object = AuthorUser.objects.get(uuid=uuid)
+    try: author_object = AuthorUser.objects.get(uuid=uuid)
+    except: return HttpResponse(content=f"Author not found: {uuid}", status=404)
+
     # author info
     author_cache = AuthorCache()
     author = author_cache.get(uuid)
@@ -246,11 +248,12 @@ def render_author_detail(request, host_id, uuid):
             headers["Authorization"] = "Token " + auth[1]
 
         path = url + "/authors/" + uuid + "/"
+        
         if host_id == 4:
             response = requests.get(path, headers=headers)
         else:
             response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-
+        
         if response.ok:
             author = response.json()
             # already validated from the originating view, so do not have to check for serialization

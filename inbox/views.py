@@ -1,7 +1,8 @@
+from django.forms import model_to_dict
 from django.shortcuts import render
 import requests
 from accounts.views import decode_cookie
-from connections.caches import AuthorCache, Nodes
+from connections.caches import AuthorCache, Nodes, PostCache
 from pages.seralizers import AuthorUserSerializerDB, CommentSerializer, FollowRequestsSerializer, LikeSerializer
 from util import AuthorDetail
 from posts.models import Comments, Likes, Posts
@@ -78,7 +79,18 @@ def inbox_post(request, author_id, inbox_index):
 
     
 def inbox_view(request):
-    return render(request, 'inbox.html', {})
+    # follow reqs
+    user = request.user # get db information of current user
+    follow_requests = FollowRequests.objects.filter(recipient_uuid=user.uuid) # get all friend requests where the user is the recipient
+
+    requests = []
+    author_cache = AuthorCache()
+    for frq in follow_requests:
+        requester = model_to_dict(frq)
+        requester["data"] = author_cache.get(frq.requester_uuid)
+        requests.append(requester)
+    
+    return render(request, 'inbox.html', {'requests_list': requests})
 
 
 # API
@@ -194,6 +206,8 @@ def api_inbox(request, uuid):
 
         if object_type == "post":
             
+            post_cache = PostCache()
+
             serializer = PostsSerializer(data=request.data)
             if not serializer.is_valid():
                 return Response(status=400, data=serializer.errors)
@@ -203,7 +217,7 @@ def api_inbox(request, uuid):
             post_data = dict(data)
             author = post_data.pop("author")
             post_data["author_uuid"] = get_id_from_url(author.get("id"))
-            post_data["author_local"] = author.get("host") == ENDPOINT
+            post_data["author_local"] = strip_slash(author.get("host")) == strip_slash(ENDPOINT)
             post_data["author_url"] = author.get("url")
             post_data["author_host"] = author.get("host")
 
@@ -212,6 +226,7 @@ def api_inbox(request, uuid):
                 author_cache.add(post_data["author_uuid"], author)
 
             post_data["uuid"] = get_part_from_url(post_data["id"], "posts")
+            print("UUID:", get_part_from_url(post_data["id"], "posts"))
 
             for extra in ("type","id"):
                 post_data.pop(extra)
@@ -222,20 +237,27 @@ def api_inbox(request, uuid):
                 shared_author = AuthorUser.objects.get(uuid=uuid)
                 ad = AuthorDetail(shared_author.uuid, shared_author.url, shared_author.host)
                 author_obj = ad.formMapping()
-                if author_obj not in post.sharedWith:
-                    post.sharedWith.append(author_obj)
-                    post.save()
+
+                try: post = Posts.objects.get(uuid=post_data["uuid"])
+                except: post = None
+                if post and author_obj not in post.sharedWith:
+                    post_data["sharedWith"] = post.sharedWith + [author_obj]
+                else:
+                    post_data["sharedWith"] = [author_obj]
             
             itemID = post_data["uuid"]
 
             try: post = Posts.objects.get(uuid=itemID)
-            except: post = None
+            except: post = Posts.objects.create()
 
+            post_cache.add(post_data["uuid"], dict(serializer.validated_data))
+                           
             if post:
                 post_data.pop("uuid")
-                Posts.objects.update(**post_data)
-            else:
-                Posts.objects.update_or_create(**post_data)
+
+            for key, value in post_data.items():
+                setattr(post, key, value)
+            post.save()
             
         
         elif object_type == "follow":
