@@ -333,6 +333,8 @@ def post_stream(request):
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"], post["author_index"])
 
+        if post['unlisted'] == True and post["author_uuid"] != request.user.uuid:
+            continue
 
         # filter out posts that shouldn't be shared with current user
         # if post["origin"] == strip_slash(ENDPOINT):
