@@ -298,6 +298,7 @@ def post_stream(request):
 
     post_cache = PostCache()
     posts = post_cache.values()
+    base_url = ENDPOINT
 
     for post in posts:
         post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
@@ -305,7 +306,6 @@ def post_stream(request):
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"], post["author_index"])
 
-        base_url = ENDPOINT
 
         # filter out posts that shouldn't be shared with current user
         # if post["origin"] == strip_slash(ENDPOINT):
