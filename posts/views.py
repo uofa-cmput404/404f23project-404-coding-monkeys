@@ -644,7 +644,19 @@ def like_post_handler(request):
             body_json = json.dumps(body_dict)
             # print(f"\nAPI Call for Sending like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
             response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
-
+        
+        elif HOSTS.index(post_host) == 3:
+            full_url = f"{post_host}/api/authors/{post['author_uuid']}/inbox/"
+            auth = nodes.get_auth_for_host(post_host)
+            body_dict = {
+                "type": "Like",
+                "author": currUser_API,
+                "object": f"{post_host}/api/authors/{post['author_uuid']}/posts/{post['uuid']}",
+                "summary": f"{currUser.username} Likes your post",
+            }
+            body_json = json.dumps(body_dict)
+            response = requests.post(full_url, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
+        
         if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
         post_cache = PostCache()
         post_cache.incrementLikeCount(post['uuid'])
