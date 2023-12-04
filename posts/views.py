@@ -443,7 +443,10 @@ def open_comments_handler(request):
     post = json.loads(request.body).get('post', {})
 
     #gather the host of the post
-    post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    try:
+        post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    except:
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
     comments = []
@@ -492,6 +495,10 @@ def open_comments_handler(request):
         returned_comments = response.json()
         for comment in returned_comments['items']:
             comments.append(comment)
+
+    else:
+        #unsupported host
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
     
     if response.ok:
         return JsonResponse({'comments': json.dumps(comments)}) #Let the frontend display comments
@@ -501,7 +508,10 @@ def submit_comment_handler(request):
 
     post = json.loads(request.body).get('post', {})
     #gather the host of the post
-    post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    try:
+        post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    except:
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
     commentText = json.loads(request.body).get('comment_text', {})
@@ -547,9 +557,13 @@ def submit_comment_handler(request):
         comment_details_json = json.dumps(comment_details)
         # print(f"\nAPI Call for Sending Comment Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(comment_details, indent=2)}") #Debug the API call
         response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=comment_details_json) #Send the like object to the posting author's inbox
+
+    else:
+        #unsupported host
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
     
-    if not response.ok: print(f"API error when adding new comment")
-    return JsonResponse({'comments': json.dumps([comment_details])})
+    if response.ok:
+        return JsonResponse({'comments': json.dumps([comment_details])})
 
 def get_object_type(url):
     sections = url.split("/")

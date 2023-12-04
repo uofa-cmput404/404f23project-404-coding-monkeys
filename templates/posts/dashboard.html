@@ -37,6 +37,13 @@
                         // Update the like count using the returned value (from the backend)
                         likeButtonData.data('already-pressed-this-session', 'true'); //log that the like button has already been pressed this session
                         $('#result-' + post.uuid).text(data.new_post_count); //Update the like count with whatever the backend returns
+                    },
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
             }
@@ -83,8 +90,12 @@
                         $("#comment-box-container-" + post.uuid).show();
                     
                     },
-                    error: function (data) {
-                        alert("Error fetching comments. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
         });
@@ -158,8 +169,12 @@
                         });
                         $("#comment-textbox-" + post.uuid).val(''); // Clear the contents of the textbox after successfully adding the comment
                     },
-                    error: function (data) {
-                        alert("Error submitting comment. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
             }
@@ -193,8 +208,12 @@
                     var uuid = json_data.uuid;
                     window.location.href = "/authors/" + index + "/" + uuid + "/";
                 },
-                error: function(data) {
-                    console.log("error");
+                error: function (xhr, status, error) {
+                    if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                        alert("The API being called for this request does not support this feauture.");
+                    } else {
+                        alert("An unknown error has occured. Please try again.");
+                    }
                 }
             });
 
@@ -213,8 +232,12 @@
                     location.reload();
                     $("#modal").hide();
                 },
-                error: function(data) {
-                    console.log("error");
+                error: function (xhr, status, error) {
+                    if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                        alert("The API being called for this request does not support this feauture.");
+                    } else {
+                        alert("An unknown error has occured. Please try again.");
+                    }
                 }
             });
             
@@ -265,8 +288,12 @@
                         });
                     
                     },
-                    error: function (data) {
-                        alert("Error fetching followers. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
         });
@@ -279,8 +306,12 @@
                         //console.log("close share triggered")
                         $("#share_modal .followers-list").empty()
                     },
-                    error: function (data) {
-                        alert("Error fetching followers. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
         });
