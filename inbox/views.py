@@ -45,9 +45,10 @@ def follow_request_handler(request):
     inbox_url = f'{recipient_data["url"]}/inbox/'
     safe_host = strip_slash(recipient_data["host"])
     auth = nodes.get_auth_for_host(safe_host)
-
+    print(auth)
     try: 
         response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
+        print(response.status_code)
         if response.ok:
             return JsonResponse({"status": "success"})
     except Exception as e: 
