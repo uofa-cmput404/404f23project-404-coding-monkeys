@@ -589,6 +589,10 @@ def like_post_handler(request):
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
     
+    elif HOSTS.index(post_host) == 3:
+        full_url = f"{post_host}/api/authors/{currUser.uuid}/liked/"
+        auth = nodes.get_auth_for_host(post_host)
+        response = requests.get(full_url, auth=HTTPBasicAuth(auth[0], auth[1]))
 
     if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
     returned_likes = response.json()
