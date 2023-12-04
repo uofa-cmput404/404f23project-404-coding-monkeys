@@ -590,7 +590,9 @@ def like_post_handler(request):
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
     
     elif HOSTS.index(post_host) == 3:
-        full_url = f"{post_host}/api/authors/{currUser.uuid}/liked/"
+        post_id = get_part_from_url(post['id'], "posts")
+        base_url = nodes.get_host_for_index(3)
+        full_url = f"{base_url}/authors/{currUser.uuid}/posts/{post_id}/likes/"
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, auth=HTTPBasicAuth(auth[0], auth[1]))
 
