@@ -309,7 +309,9 @@
                 <p style="align-self: end;">{{ post.delta }}</p>
             </section>
             <section id="post_body">
-                <h1>{{ post.title }}</h1>
+                <h1 style="margin-left: 5px;">{{ post.title }}</h1>
+                <hr style="border: 1px solid white; margin:5px;">
+                <br>
                 {% if post.contentType == "text/plain" or post.contentType == "text/markdown" %}
                     {{ post.content|safe }}
                 {% endif %}
@@ -319,7 +321,7 @@
                     <img class="postImage" src="data:{{ post.contentType }},{{ post.content }}" alt="Image for {{ post.title }}" />
                 </div>
             {% endif %}
-            <div class="flex_grow"></div>
+            <div class="flex_grow" style="background-color: #2a2a2a;"></div>
             <div class="footer">
                 <!-- Post like button -->
                 <!-- Old -->
