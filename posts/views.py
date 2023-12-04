@@ -417,6 +417,7 @@ def open_comments_handler(request):
     post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
+    comments = []
     if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
         #API call for calling code Monkeys
         full_url = f"{post['origin']}/comments/"
@@ -429,6 +430,10 @@ def open_comments_handler(request):
         }
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), params=params)
+        returned_comments = response.json()
+        for comment in returned_comments['comments']:
+            comments.append(comment)
+
     elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
         #API call for 404 Team not found
         full_url = f"{post['origin']}/comments/"
@@ -438,16 +443,29 @@ def open_comments_handler(request):
         }
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+        returned_comments = response.json()
+        for comment in returned_comments['comments']:
+            comments.append(comment)
 
-
-    if not response.ok: print(f"API error when gathering comments for post with UUID: {post['uuid']}")
-    returned_comments = response.json()
-
-    formatted = []
-    for comment in returned_comments['comments']:
-        formatted.append(comment)
-
-    return JsonResponse({'comments': json.dumps(formatted)})
+    elif post_host == "https://cmput404-ctrl-alt-defeat-api-12dfa609f364.herokuapp.com":
+        #API Call for ctrl alt delete
+        full_url = f"{post['origin']}/comments"
+        headers = {
+            "accept": "application/json",
+        }
+        params = {
+            "page": 1,
+            "size": 10
+        }
+        auth = nodes.get_auth_for_host(post_host)
+        # print(f"\nAPI Call for opening comments:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(params, indent=2)}") #Debug the API call
+        response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+        returned_comments = response.json()
+        for comment in returned_comments['items']:
+            comments.append(comment)
+    
+    if response.ok:
+        return JsonResponse({'comments': json.dumps(comments)}) #Let the frontend display comments
 
 def submit_comment_handler(request):
     nodes = Nodes()
