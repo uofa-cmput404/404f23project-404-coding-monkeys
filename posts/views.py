@@ -683,7 +683,7 @@ def like_post_handler(request):
             response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
         
         elif HOSTS.index(post_host) == 3:
-            full_url = f"{post_host}/api/authors/{post['author_uuid']}/inbox/"
+            full_url = f"{post_host}/api/authors/{post['author_uuid']}/inbox"
             auth = nodes.get_auth_for_host(post_host)
             body_dict = {
                 "type": "Like",
