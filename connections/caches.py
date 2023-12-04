@@ -138,6 +138,9 @@ class AuthorCache(Cache):
                             if not author["profileImage"]:
                                 author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
 
+                            if self.cache.get(uuid) and not self.cache[uuid]["host"].startswith(host):
+                                continue
+
                             self.cache[uuid] = author
                 else:
                     headers["Authorization"] = f"Token: {auth[1]}"
