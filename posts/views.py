@@ -294,6 +294,8 @@ def post_stream(request):
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"], post["author_index"])
 
+        base_url = ENDPOINT
+
         # filter out posts that shouldn't be shared with current user
         # if post["origin"] == strip_slash(ENDPOINT):
         if post.get("origin") and post.get("origin").startswith(strip_slash(ENDPOINT)):
@@ -321,7 +323,7 @@ def post_stream(request):
         toReturn.append(post)
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
 
-    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts})
+    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts, 'base_url': base_url})
 
 def update_post_with_like_count_from_API(post):
     #Takes a post object and updates the like count property based on the number of likes returned by the API
