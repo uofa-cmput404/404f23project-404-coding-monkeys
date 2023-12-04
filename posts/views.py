@@ -327,7 +327,7 @@ def post_stream(request):
         if post[contentType] == "text/markdown":
             post["content"] = commonmark.commonmark(post["content"])
         # custom logic for 404 not found's group
-        elif post["content"] and post["id"].startswith(HOSTS[1]) and post[contentType] not in ("text/plain", "text/markdown"):
+        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post[contentType] not in ("text/plain", "text/markdown"):
             post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
