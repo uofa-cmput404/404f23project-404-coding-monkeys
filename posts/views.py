@@ -636,7 +636,7 @@ def like_post_handler(request):
             body_dict = {
                 "context": "https://www.w3.org/ns/activitystreams",
                 "summary": f"{currUser.username} Likes your post",
-                "type": "Like",
+                "type": "Like", 
                 "author": currUser_API,
                 "object": f"{post_host}/service/authors/{post['author_uuid']}/posts/{post['uuid']}"
             }
