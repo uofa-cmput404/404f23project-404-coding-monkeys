@@ -166,8 +166,6 @@ class AuthorCache(Cache):
             except Exception as e:
                 print(e)
                 continue
-        
-        print(self.cache)
 
 class PostCache(Cache):
     def __init__(self):
