@@ -1,6 +1,6 @@
 # static vars used throughout project
-ENDPOINT = "http://localhost:8000/"
-HOSTS = ["http://localhost:8000", 
+ENDPOINT = "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/"
+HOSTS = ["https://chimp-chat-1e0cca1cc8ce.herokuapp.com", 
         # 404 Not Found
         "https://distributed-network-37d054f03cf4.herokuapp.com", 
         # Web Wizards
