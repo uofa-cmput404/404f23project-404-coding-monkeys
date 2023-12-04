@@ -594,8 +594,10 @@ def like_post_handler(request):
         author_id = get_part_from_url(post['author']['id'], "authors")
         base_url = nodes.get_host_for_index(3)
         full_url = f"{base_url}/authors/{author_id}/posts/{post_id}/likes/"
+        print(full_url)
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, auth=HTTPBasicAuth(auth[0], auth[1]))
+        print(response)
 
     print(response)
     if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
