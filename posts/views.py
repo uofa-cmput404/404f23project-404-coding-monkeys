@@ -328,7 +328,8 @@ def post_stream(request):
     base_url = ENDPOINT
 
     for post in posts:
-        post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
+        try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
+        except: post["author_index"] = 0
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"], post["author_index"])
@@ -611,7 +612,7 @@ def like_post_handler(request):
         auth = nodes.get_auth_for_host(post_host)
         # print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
-    
+
     elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
         #API call for 404 Team not found
         full_url = f"{post_host}/api/authors/{currUser.uuid}/liked/"
@@ -622,6 +623,13 @@ def like_post_handler(request):
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
     
+    elif HOSTS.index(post_host) == 3:
+        post_id = get_part_from_url(post['id'], "posts")
+        author_id = get_part_from_url(post['author']['id'], "authors")
+        base_url = nodes.get_host_for_index(3)
+        full_url = f"{base_url}/authors/{author_id}/posts/{post_id}/likes"
+        auth = nodes.get_auth_for_host(post_host)
+        response = requests.get(full_url, auth=HTTPBasicAuth(auth[0], auth[1]))
 
     if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
     returned_likes = response.json()
@@ -673,12 +681,24 @@ def like_post_handler(request):
             body_json = json.dumps(body_dict)
             # print(f"\nAPI Call for Sending like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
             response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
-
+        
+        elif HOSTS.index(post_host) == 3:
+            full_url = f"{post_host}/api/authors/{post['author_uuid']}/inbox/"
+            auth = nodes.get_auth_for_host(post_host)
+            body_dict = {
+                "type": "Like",
+                "author": currUser_API,
+                "object": f"{post_host}/api/authors/{post['author_uuid']}/posts/{post['uuid']}",
+                "summary": f"{currUser.username} Likes your post",
+            }
+            body_json = json.dumps(body_dict)
+            response = requests.post(full_url, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
+        
         if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
         post_cache = PostCache()
         post_cache.incrementLikeCount(post['uuid'])
 
-        return JsonResponse({'new_post_count': post['likeCount'] +1 }) #return new post count
+        return JsonResponse({'new_post_count': post.get('likeCount', 0) +1 }) #return new post count
     
 def like_comment_handler(request):
     #Gather info from frontend:
