@@ -106,7 +106,7 @@ def time_since_posted(created_at, host_index):
             created_at_datetime = datetime.datetime.fromisoformat(created_at)
     # Ctrl-alt-dft
     elif host_index == 3:
-        created_at_datetime = datetime.datetime.fromisoformat(created_at)
+        created_at_datetime = datetime.datetime.fromisoformat(created_at).replace(tzinfo=timezone)
     elif host_index == 4:
         created_at_datetime = datetime.datetime.fromisoformat(created_at[:-1]).replace(tzinfo=timezone)
 
