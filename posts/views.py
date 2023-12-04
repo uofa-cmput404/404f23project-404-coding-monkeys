@@ -578,7 +578,8 @@ def like_post_handler(request):
         auth = nodes.get_auth_for_host(post_host)
         # print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
-    
+        print(response)
+        
     elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
         #API call for 404 Team not found
         full_url = f"{post_host}/api/authors/{currUser.uuid}/liked/"
