@@ -311,7 +311,9 @@
             <section id="post_body">
                 <h1>{{ post.title }}</h1>
                 {% if post.contentType == "text/plain" or post.contentType == "text/markdown" %}
+                    <div class="flex_grow">
                     {{ post.content|safe }}
+                    </div>
                 {% endif %}
             </section>
             {% if post.contentType == "application/base64" or post.contentType == "image/jpeg;base64" or post.contentType == "image/png;base64" %}
@@ -319,7 +321,6 @@
                     <img class="postImage" src="data:{{ post.contentType }},{{ post.content }}" alt="Image for {{ post.title }}" />
                 </div>
             {% endif %}
-            <div class="flex_grow" style="margin:0; padding:0; background-color: #2a2a2a"></div>
             <div class="footer">
                 <!-- Post like button -->
                 <!-- Old -->
