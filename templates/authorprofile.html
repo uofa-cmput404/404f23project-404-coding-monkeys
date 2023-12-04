@@ -53,7 +53,7 @@
   <div style="background-color:#1C1A19; min-height:430px; border-radius:11px; padding-bottom:25px;">
 
     {% if author.index == 0 %}
-    <div style="background: conic-gradient( #FFD553 0deg 90deg, #1C1A19 90deg 270deg, #FFD553 270deg 360deg); 
+    <div style="background: conic-gradient( hsl(45, 100%, 66%) 0deg 90deg, #1C1A19 90deg 270deg, #FFD553 270deg 360deg); 
      border-top-left-radius:11px; border-top-right-radius:11px; height:210px;">
     {% elif author.index == 1 %}
     <div style="background: conic-gradient( #34bdeb 0deg 90deg, #1C1A19 90deg 270deg, #34bdeb 270deg 360deg); 
@@ -63,6 +63,9 @@
      border-top-left-radius:11px; border-top-right-radius:11px; height:210px;">
     {% elif author.index == 3 %}
     <div style="background: conic-gradient( #fc4c4c 0deg 90deg, #1C1A19 90deg 270deg, #fc4c4c 270deg 360deg); 
+     border-top-left-radius:11px; border-top-right-radius:11px; height:210px;">
+    {% elif author.index == 4 %}
+    <div style="background: conic-gradient( #73fc03 0deg 90deg, #1C1A19 90deg 270deg, #73fc03 270deg 360deg); 
      border-top-left-radius:11px; border-top-right-radius:11px; height:210px;">
     {% endif %}
 

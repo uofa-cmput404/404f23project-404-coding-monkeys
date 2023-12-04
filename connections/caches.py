@@ -125,19 +125,40 @@ class AuthorCache(Cache):
                 print(authors_url)
 
                 headers={"Accept": "application/json"}
-                if i == 1:
+                if i < 4:
                     headers["Referer"] = node_singleton.get_host_for_index(0)
-                    
-                response = requests.get(authors_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                    response = requests.get(authors_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
 
-                if response.ok:
-                    authors = response.json()
+                    if response.ok:
+                        authors = response.json()
 
-                    for author in authors["items"]:
-                        uuid = get_id_from_url(author["id"])
-                        if not author["profileImage"]:
-                            author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
-                        self.cache[uuid] = author
+                        for author in authors["items"]:
+                            uuid = get_id_from_url(author["id"])
+                            
+                            if not author["profileImage"]:
+                                author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
+
+                            self.cache[uuid] = author
+                else:
+                    headers["Authorization"] = f"Token: {auth[1]}"
+                    response = requests.get(authors_url, headers=headers)
+
+                    if response.ok:
+                        authors = response.json()["results"]
+
+                        for author in authors["items"]:
+                            uuid = author["id"]
+                            
+                            author["profileImage"] = author.pop("profilePicture")
+
+                            for k in ("is_active", "created", "updated", "followed", "following"):
+                                try: author.pop(k)
+                                except: continue
+                            
+                            if not author["profileImage"]:
+                                author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
+                            
+                            self.cache[uuid] = author
             
             except Exception as e:
                 print(e)
@@ -258,6 +279,34 @@ class PostCache(Cache):
                                         post["likeCount"] = len(likes["items"])
                                 except:
                                     post["likeCount"] = 0
+                                self.cache[uuid] = post
+
+                    except Exception as e:
+                        print(e)
+                        continue
+            
+                # C404
+                elif strip_slash(details['host']) == HOSTS[4]:
+                    try:
+                        headers = {"Authorization": f"Token {auth[1]}"}
+                        response = requests.get(posts_url, headers=headers)
+
+                        if response.ok:
+                            posts = response.json()["results"]
+                            posts = posts["items"]
+                            
+                            for post in posts:
+                                uuid = get_id_from_url(post["id"])
+                                try:
+                                    url = f"{post['id']}/likes/"
+                                    response = requests.get(url, headers=headers)
+
+                                    if response.ok:
+                                        likes = response.json()
+                                        post["likeCount"] = len(likes["items"])
+                                except:
+                                    post["likeCount"] = 0
+                                
                                 self.cache[uuid] = post
 
                     except Exception as e:
