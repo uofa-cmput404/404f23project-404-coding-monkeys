@@ -50,7 +50,7 @@ class PostCreate(CreateView):
 def make_new_post(request, form=None):
     if request.method == 'GET':
         author_cache = AuthorCache()
-        url = f"{ENDPOINT}/authors/{request.user.id}"
+        url = f"{ENDPOINT}/authors/{request.user.uuid}"
         authors = []
         for author in author_cache.values():
             if author["url"] != url:
@@ -58,6 +58,7 @@ def make_new_post(request, form=None):
                 authors.append(author)
 
         if form:
+            print(form)
             return render(request, 'posts/create.html', {'form': form, 'author_list':authors})
         else:
             return render(request, 'posts/create.html', {'form': PostForm(), 'author_list':authors})
@@ -98,7 +99,7 @@ def update_or_create_post(request, post_uuid):
     post.title = request.POST.get('title')
     post.description = request.POST.get('description')
     post.content = request.POST.get('content')
-    post.categories = request.POST.get('categories') if request.POST.get('categories') != "" else []
+    post.categories = request.POST.get('categories').split(",") if request.POST.get('categories') != "" else []
     post.comments = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/comments"
 
     if request.POST.get('visibility') == "UNLISTED":
@@ -191,7 +192,6 @@ def edit_post(request, author_id, post_uuid):
         #read the post (whose like button the user clicked) object from db
         try:
             post = Posts.objects.get(uuid=post_uuid)
-
             # try:
             #     pic_post = Posts.objects.get(uuid=f'{post_uuid}_pic')
             #     image_data = base64.b64decode(pic_post.content)
@@ -200,14 +200,25 @@ def edit_post(request, author_id, post_uuid):
             # except Posts.DoesNotExist:
             #     image = None
 
+            if post.unlisted == True:
+                post.visibility = "UNLISTED"
+            
+            if post.contentType == "text/plain":
+                post.contentType = "Text"
+            elif post.contentType == "text/markdown":
+                post.contentType = "Markdown"
+            elif post.contentType == "image/png;base64" or post.contentType == "image/jpeg;base64":
+                post.contentType = "Image"
+            
             form_data = {
                 'uuid': post_uuid,
                 'title': post.title,
                 'description': post.description,
-                'categories': post.categories,
+                'categories': ",".join(post.categories),
                 'content': post.content,
                 'visibility': post.visibility,
-                'picture': ''
+                'picture': '',
+                'contentType': post.contentType
             }
 
             if post.visibility == "PRIVATE":
