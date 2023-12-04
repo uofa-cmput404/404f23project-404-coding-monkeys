@@ -46,6 +46,7 @@ def follow_request_handler(request):
     safe_host = strip_slash(recipient_data["host"])
     auth = nodes.get_auth_for_host(safe_host)
 
+    print(payload)
     try: 
         response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
         if response.ok:
