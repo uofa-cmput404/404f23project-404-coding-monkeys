@@ -328,7 +328,8 @@ def post_stream(request):
     base_url = ENDPOINT
 
     for post in posts:
-        post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
+        try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
+        except: post["author_index"] = 0
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"], post["author_index"])
