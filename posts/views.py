@@ -47,6 +47,10 @@ class PostCreate(CreateView):
     def get_success_url(self): # gpt
         return reverse('all')
 
+class FeatureNotSupportedException(Exception):
+    #Throw this exception if the feature is not supported for a certain post host
+    pass
+
 def make_new_post(request, form=None):
     if request.method == 'GET':
         author_cache = AuthorCache()
@@ -623,6 +627,8 @@ def like_comment_handler(request):
     # #TODO: WE NEED TO SEND THIS TO THE COMMENT AUTHOR's INBOX
 
     print("Entered like comment handler!")
+    return JsonResponse({'error': 'feature-not-supported'}, status=501)
+
     # nodes = Nodes()
 
     # post = json.loads(request.body).get('post', {})

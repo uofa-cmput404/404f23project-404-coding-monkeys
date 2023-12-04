@@ -99,7 +99,6 @@
             var post = JSON.parse(post_json); //parse the json into an object
             var comment_uuid = $(this).data("comment-uuid");
             var author_inbox = $(this).closest('.comment').data('author-inbox');
-            console.log(author_inbox);
 
             // Use ajax to get backend to send a like to a comment
             $.ajax({
@@ -113,8 +112,12 @@
 
                     
                     },
-                    error: function (data) {
-                        alert("Error liking comment. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("This post's host does not support this feature.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
 
