@@ -646,8 +646,6 @@ def like_comment_handler(request):
 
     #Gather preliminary information
     nodes = Nodes()
-    # post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
-    # if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
     comment_author_host = f"{urlparse(comment_author_inbox).scheme}://{urlparse(comment_author_inbox).netloc}"
     currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
     currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
@@ -666,7 +664,6 @@ def like_comment_handler(request):
             "object": f"{post['comments']}/{comment_uuid}"
         }
         like_details_json = json.dumps(like_details)
-        # print(f"\nAPI Call for Sending comment like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(like_details, indent=2)}") #Debug the API call
         if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
         response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=like_details_json) #Send the like object to the posting author's inbox
 
@@ -680,15 +677,11 @@ def like_comment_handler(request):
         }
         auth = nodes.get_auth_for_host(comment_author_host)
         like_details = {
-            # "context": "https://www.w3.org/ns/activitystreams",
-            # "summary": f"{currUser.username} Likes your comment",
             "type": "Like",
             "author": currUser_API,
             "object": f"{post['comments']}/{comment_uuid}"
         }
         like_details_json = json.dumps(like_details)
-        # print(f"\nAPI Call for Sending Comment Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(like_details, indent=2)}") #Debug the API call
-        if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
         response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=like_details_json) #Send the like object to the posting author's inbox
 
     else:
