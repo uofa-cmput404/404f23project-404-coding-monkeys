@@ -8,7 +8,6 @@
 <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-
 {% endblock css %}
 
 {% block content %}
@@ -21,7 +20,12 @@
         const sharedWith = document.getElementById("{{ form.sharedWith.id_for_label }}");
 
         sharedWith.style.display = "none";
-        document.getElementById("{{ form.contentType.id_for_label }}").value = "Text";
+        
+        if (document.getElementById("{{ form.contentType.id_for_label }}").value.length == 0) {
+            document.getElementById("{{ form.contentType.id_for_label }}").value = "Text";
+        } else {
+            document.getElementById("contentTypeButton").textContent = document.getElementById("{{ form.contentType.id_for_label }}").value;
+        }
 
         // Check the initial value
         if (visibilityField.value === "PRIVATE") {
@@ -62,6 +66,61 @@
 
             this.textContent = document.getElementById("{{ form.contentType.id_for_label }}").value;
         });
+
+        document.querySelector(".categoryAdd").addEventListener("click", function() {
+            const categoryInput = document.querySelector(".categoryInput");
+
+            if (categoryInput.value == "" || document.getElementById("{{ form.categories.id_for_label }}").value.split(',').includes(categoryInput.value)) {
+                return;
+            }
+
+            const categoryList = document.querySelector(".categoryList");
+            const category = document.createElement("div");
+            category.classList.add("category-box");
+
+            category.innerHTML = `<p style="margin-top: 7.5px; color:#FFD553">${categoryInput.value}</p><button style="margin-top: 5px;" type="button"><i class="categoryRemove material-symbols-outlined">close</i></button>`;
+            categoryList.appendChild(category);
+            categoryInput.value = "";
+
+            document.getElementById("{{ form.categories.id_for_label }}").value = Array.from(document.querySelectorAll(".category-box p")).map(function(category) {
+                return category.textContent;
+            });
+            console.log(document.getElementById("{{ form.categories.id_for_label }}").value);
+        });
+
+        document.addEventListener("click", function(event) {
+            const clickedElement = event.target;
+            console.log(event.target);
+            if (clickedElement.classList.contains("categoryRemove")) {
+                const categoryBox = clickedElement.closest(".category-box");
+
+                if (categoryBox) {
+                    const categoryTextElement = categoryBox.querySelector("p");
+                    const categoryInput = categoryTextElement.textContent;
+
+                    document.getElementById("{{ form.categories.id_for_label }}").value = document.getElementById("{{ form.categories.id_for_label }}").value.split(',').filter(function(category) {
+                        return category != categoryInput;
+                    });
+                    console.log(document.getElementById("{{ form.categories.id_for_label }}").value);
+                    categoryBox.remove();
+                }
+            }
+        });
+
+        // Categories
+        console.log(document.getElementById("id_categories").value);
+        if (document.getElementById("id_categories").value.length > 0) {
+            const cat = document.getElementById("id_categories").value;
+            const categories = cat.split(',');
+            categories.forEach(function(category) {
+                const categoryList = document.querySelector(".categoryList");
+                const categoryBox = document.createElement("div");
+                categoryBox.classList.add("category-box");
+
+                categoryBox.innerHTML = `<p style="margin-top: 7.5px; color:#FFD553">${category}</p><button style="margin-top: 5px;" type="button"><i class="categoryRemove material-symbols-outlined">close</i></button>`;
+                categoryList.appendChild(categoryBox);
+            });
+        }
     });
 </script>
 
@@ -90,6 +149,7 @@
 
             <div style="display:none;">
                 {{ form.contentType }}
+                {{ form.categories }}
             </div>
             
             <!-- <div class="grow-flex"></div>
@@ -98,14 +158,19 @@
         <div class="row-flex" style="margin-top:15px;">
             <div class="col-flex" style="width:30%;">
                 <p class="form_input">Title:</p>
-                <p class="form_input">Short Description:</p>
-                <p class="form_input">Categories:</p>
+                <p class="form_input" style="margin-top:10px">Short Description:</p>
+                <p class="form_input" style="margin-top:10px">Categories:</p>
             </div>
             <div class="col-flex" style="width:70%;">
                 {{ form.title }}
                 {{ form.description }}
-                {{ form.categories }}
+                <div class="row-flex" style="height:30px; margin:0; padding:0">
+                    <input type="text" class="categoryInput" style="max-height:30px; max-width:150px;">
+                    <button class="categoryAdd" type="button"><i class="material-symbols-outlined" style="margin-top:5px">add_circle</i></button>
+                </div>
             </div>
+        </div>
+        <div class="categoryList" style="margin-top:20px;">
         </div>
         <div class="row-flex" style="margin-top:15px; height: 100%;">{{ form.content }}</div>
         <div class="row-flex" style="margin-top:15px;">
