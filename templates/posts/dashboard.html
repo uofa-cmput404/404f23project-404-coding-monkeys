@@ -355,31 +355,13 @@
                             <button class="delete-confirm" data-post-uuid="{{ post.uuid }}" data-author-uuid="{{ post.author_uuid }}">Confirm</button>
                         </div>
                     </dialog>
-                    <dialog class="share_modal" id="share_modal"> <!--apollo-->
-                        <div class="col-flex">
-                        {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
-                            <a href="{{post.url}}/unlisted"></a>
-                        {% endif %}
-                        <h1>Share with Followers</h1>
-                        <div class ="followers-list"></div>
-                        <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
-                    </dialog>
-                    <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
+                    {% include 'share_modal.html' %}
                 {% elif user.uuid != post.author_uuid and post.visibility != PRIVATE %} <!--NOT the user's post, allow them to share only-->
                     <div class="flex_grow"></div>
                     <div class="context_menu" id="context_menu">
                         <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
                     </div>
-                    <dialog class="share_modal" id="share_modal"> 
-                        <div class="col-flex">
-                        {% if post.visibility == UNLISTED %} <!--TODO properly configure and test-->
-                            <a href="{{post.url}}/unlisted"></a>
-                        {% endif %}
-                        <h1>Share with Followers</h1>
-                        <div class ="followers-list"></div>
-                        <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
-                    </dialog>
-                    <button style="padding-top: 10px;" id="context_opener" class="context_button"><i class="material-symbols-outlined" style="color:white">more_vert</i></button>
+                    {% include 'share_modal.html' %}
                 {% endif %}
         </div>
     </div>
@@ -471,6 +453,22 @@
             var colorIndex = authorIndex % colors.length;
             profilePicture.style.borderColor = colors[colorIndex];
         });
+
+        function myFunction() {
+        // Get the text field
+        var copyText = document.getElementById("myInput");
+
+        // Select the text field
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the text inside the text field
+        navigator.clipboard.writeText(copyText.value);
+        
+        // Alert the copied text
+        alert("Copied the text: " + copyText.value);
+}
+</script>
 </script>
 
 {% endblock content %}
