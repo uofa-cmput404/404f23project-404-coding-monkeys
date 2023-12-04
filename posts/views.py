@@ -637,7 +637,7 @@ def like_comment_handler(request):
 
     if comment_author_host == "http://127.0.0.1:8000" or comment_author_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or comment_author_host == "http://localhost:8000":
         #send like object to chimp-chat server
-        full_url = comment_author_inbox
+        full_url = f"{comment_author_inbox}/"
         headers = {"Content-Type": "application/json"}
         auth = nodes.get_auth_for_host(comment_author_host)
         like_details = {
@@ -659,7 +659,7 @@ def like_comment_handler(request):
         return JsonResponse({'error': 'feature-not-supported'}, status=501) #This does not work with their API yet, they return a 500 code
         
         #send comment to T404 server
-        full_url = comment_author_inbox + "/"
+        full_url = f"{comment_author_inbox}/"
         headers = {
             "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
             "accept": "application/json",
