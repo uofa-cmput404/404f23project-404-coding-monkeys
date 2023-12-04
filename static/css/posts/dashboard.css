@@ -6,11 +6,9 @@ h1 {
     font-size: 36px;
 }
 
-p {
+p, textarea {
     color: white;
 }
-
-
 
 
 /* Works on Firefox */
@@ -39,7 +37,10 @@ p {
 
 
 
-
+p img {
+    max-width: 100%;
+    height: auto;
+}
 
 .postImage{
     height:100%;
@@ -288,7 +289,6 @@ p {
     display: flex;
     flex-direction: column;
     background-color: #2a2a2a;
-    margin-bottom: 2px;
     padding: 10px;
 }
 
@@ -319,7 +319,7 @@ p {
     display: flex;
     flex-direction: row;
     padding: 10px;
-    background-color: #2a2a2a;
+    background-color: #4a4441;
     border-radius: 8px;
 }
 
