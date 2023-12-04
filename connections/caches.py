@@ -1,6 +1,5 @@
 import requests
 from cryptography.fernet import Fernet
-from accounts.models import ForeignAuthor
 from django_project import settings
 from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
@@ -116,49 +115,39 @@ class AuthorCache(Cache):
             self.cache[str(f.uuid)] = f.author_json
 
         for i in range(len(HOSTS)):
-            host = HOSTS[i]
+            
+            if i == 0:
+                authors = AuthorUser.objects.all()
+                for auth in authors:
+                    obj = {"id": f"{ENDPOINT}authors/{auth.uuid}/",
+                    "host": auth.host,
+                    "url": auth.url,
+                    "github": auth.github,
+                    "displayName": auth.username,
+                    "profileImage": auth.profile_image}
+
+                    self.cache[auth.uuid] = obj
+            
+            else:
+                host = HOSTS[i]
 
             auth = node_singleton.get_auth_for_host(host)
             url = node_singleton.get_host_for_index(i)
+
             try:
                 authors_url = f"{url}/authors/"
-                print(authors_url)
 
                 headers={"Accept": "application/json"}
-                if i < 4:
+                if i == 1:
                     headers["Referer"] = node_singleton.get_host_for_index(0)
-                    response = requests.get(authors_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+                    
+                response = requests.get(authors_url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
 
-                    if response.ok:
-                        authors = response.json()
-
-                        for author in authors["items"]:
-                            uuid = get_id_from_url(author["id"])
-                            
-                            if not author["profileImage"]:
-                                author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
-
-                            self.cache[uuid] = author
-                else:
-                    headers["Authorization"] = f"Token: {auth[1]}"
-                    response = requests.get(authors_url, headers=headers)
-
-                    if response.ok:
-                        authors = response.json()["results"]
-
-                        for author in authors["items"]:
-                            uuid = author["id"]
-                            
-                            author["profileImage"] = author.pop("profilePicture")
-
-                            for k in ("is_active", "created", "updated", "followed", "following"):
-                                try: author.pop(k)
-                                except: continue
-                            
-                            if not author["profileImage"]:
-                                author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
-                            
-                            self.cache[uuid] = author
+                if response.ok:
+                    authors = response.json()
+                    for author in authors["items"]:
+                        uuid = get_id_from_url(author["id"])
+                        self.cache[uuid] = author
             
             except Exception as e:
                 print(e)
@@ -195,17 +184,18 @@ class PostCache(Cache):
         
         for author, details in author_cache.items():
             try:
-                # skip local posts
-                if details['host'] == node_singleton.get_host_for_index(0):
+                if details['host'] in (ENDPOINT, f"{node_singleton.get_host_for_index(3)}/"):
                     continue
-                
-                index = HOSTS.index(strip_slash(details['host']))
-                endpoint = node_singleton.get_host_for_index(index)
-                auth = node_singleton.get_auth_for_host(details["host"])
-                headers = {"Accept": "application/json"}
-                posts_url = f"{endpoint}/authors/{author}/posts/"
+                    
+                elif strip_slash(details['host']) == HOSTS[1]:
+                    index = HOSTS.index(strip_slash(details['host']))
 
-                print(posts_url)
+                    endpoint = node_singleton.get_host_for_index(index)
+                    auth = node_singleton.get_auth_for_host(details["host"])
+                    print(endpoint)
+                    headers = {"Accept": "application/json", "Referer": node_singleton.get_host_for_index(0)}
+                    posts_url = f"{endpoint}/authors/{author}/posts/"
+                    print(posts_url)
 
                 # 404 Not Found
                 if strip_slash(details['host']) == HOSTS[1]:
