@@ -111,6 +111,8 @@ def time_since_posted(created_at, host_index):
         # convert to ISO 8601 format
         iso_timestamp = datetime_obj.isoformat()
         created_at_datetime = datetime.datetime.fromisoformat(iso_timestamp).replace(tzinfo=timezone)
+    elif host_index == 4:
+        created_at_datetime = datetime.datetime.fromisoformat(created_at[:-1]).replace(tzinfo=timezone)
 
     
     # Get the current time

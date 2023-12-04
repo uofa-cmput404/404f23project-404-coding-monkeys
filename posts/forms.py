@@ -24,7 +24,6 @@ class PostForm(forms.ModelForm):
 
     sharedWith = forms.CharField(required=False)
 
-    # this will eventually become a popup where users can add categories
     categories = forms.CharField(required=False)
 
     contentType = forms.CharField(required=False)
