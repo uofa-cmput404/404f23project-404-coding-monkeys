@@ -664,7 +664,7 @@ def like_post_handler(request):
         post_cache = PostCache()
         post_cache.incrementLikeCount(post['uuid'])
 
-        return JsonResponse({'new_post_count': post['likeCount'] +1 }) #return new post count
+        return JsonResponse({'new_post_count': post.get('likeCount', 0) +1 }) #return new post count
     
 def like_comment_handler(request):
     # #TODO: WE NEED TO SEND THIS TO THE COMMENT AUTHOR's INBOX
