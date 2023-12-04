@@ -654,7 +654,7 @@ def like_comment_handler(request):
 
 
     if comment_author_host == "http://127.0.0.1:8000" or comment_author_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or comment_author_host == "http://localhost:8000":
-        #send like object to chimp-chat server
+        #send comment like to chimp-chat server
         full_url = f"{comment_author_inbox}/"
         headers = {"Content-Type": "application/json"}
         auth = nodes.get_auth_for_host(comment_author_host)
@@ -666,17 +666,12 @@ def like_comment_handler(request):
             "object": f"{post['comments']}/{comment_uuid}"
         }
         like_details_json = json.dumps(like_details)
-        print(f"Comment author host: {comment_author_host}")
-        print(f"\nAPI Call for Sending comment like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(like_details, indent=2)}") #Debug the API call
+        # print(f"\nAPI Call for Sending comment like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(like_details, indent=2)}") #Debug the API call
         if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
         response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=like_details_json) #Send the like object to the posting author's inbox
-        print(response)
-        print(response.text)
 
-    elif comment_author_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
-        return JsonResponse({'error': 'feature-not-supported'}, status=501) #This does not work with their API yet, they return a 500 code
-        
-        #send comment to T404 server
+    elif comment_author_host == "https://distributed-network-37d054f03cf4.herokuapp.com":        
+        #send comment like to T404 server
         full_url = f"{comment_author_inbox}/"
         headers = {
             "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
@@ -692,11 +687,9 @@ def like_comment_handler(request):
             "object": f"{post['comments']}/{comment_uuid}"
         }
         like_details_json = json.dumps(like_details)
-        print(f"\nAPI Call for Sending Comment Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(like_details, indent=2)}") #Debug the API call
+        # print(f"\nAPI Call for Sending Comment Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(like_details, indent=2)}") #Debug the API call
         if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
-        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=like_details_json) #Send the like object to the posting author's inbox
-        print(response)
-        print(response.text)
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=like_details_json) #Send the like object to the posting author's inbox
 
     else:
         #Otherwise we dont support liking comments for this host
