@@ -248,7 +248,7 @@ def api_inbox(request, uuid):
             itemID = post_data["uuid"]
 
             try: post = Posts.objects.get(uuid=itemID)
-            except: post = Posts.objects.create()
+            except: post = Posts(uuid=itemID)
 
             post_cache.add(post_data["uuid"], dict(serializer.validated_data))
                            
