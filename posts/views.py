@@ -674,7 +674,7 @@ def unlisted_post(request, author_uuid, post_uuid):
     try: post = Posts.objects.get(uuid=post_uuid)
     except: post = None
 
-    if post and post.visibility == "UNLISTED":
+    if post and post.unlisted == True:
         post_data = format_local_post_from_db(post)
         return render(request, 'single_unlisted_post.html', {"post": post_data})
     
