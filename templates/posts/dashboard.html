@@ -68,7 +68,8 @@
                             }
                             comment_uuid = comment_uuid.substring(comment_uuid.lastIndexOf("/") + 1);
 
-                            var commentElement = '<div class="comment">' +
+                            var author_inbox = comment.author.id.replace(/\/$/, "") + "/inbox"; // Extract author_inbox URL
+                            var commentElement = '<div class="comment" data-author-inbox="' + author_inbox + '">' + //add author_inbox as field of comment
                                 '<img src="' + comment.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
                                 '<div class="comment-details">' +
                                     '<p class="comment-username">' + comment.author.displayName + '</p>' +
@@ -97,6 +98,8 @@
             var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
             var post = JSON.parse(post_json); //parse the json into an object
             var comment_uuid = $(this).data("comment-uuid");
+            var author_inbox = $(this).closest('.comment').data('author-inbox');
+            console.log(author_inbox);
 
             // Use ajax to get backend to send a like to a comment
             $.ajax({
@@ -139,7 +142,8 @@
                         var comments = JSON.parse(data.comments);
                         // Add the comment element to the page
                         comments.forEach(function (comment) {
-                            var commentElement = '<div class="comment">' +
+                            var author_inbox = comment.author.id.replace(/\/$/, "") + "/inbox"; // Extract author_inbox URL
+                            var commentElement = '<div class="comment" data-author-inbox="' + author_inbox + '">' + //add author_inbox as field of comment
                                 '<img src="' + comment.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
                                 '<div class="comment-details">' +
                                     '<p class="comment-username">' + comment.author.displayName + '</p>' +

@@ -622,7 +622,7 @@ def like_post_handler(request):
 def like_comment_handler(request):
     # #TODO: WE NEED TO SEND THIS TO THE COMMENT AUTHOR's INBOX
 
-    # print("Entered like comment handler!")
+    print("Entered like comment handler!")
     # nodes = Nodes()
 
     # post = json.loads(request.body).get('post', {})
