@@ -27,3 +27,5 @@ class PostForm(forms.ModelForm):
     categories = forms.CharField(required=False)
 
     contentType = forms.CharField(required=False)
+
+    imageRemoved = forms.CharField(required=False)

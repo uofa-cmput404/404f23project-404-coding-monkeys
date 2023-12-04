@@ -47,7 +47,7 @@ class PostCreate(CreateView):
     def get_success_url(self): # gpt
         return reverse('all')
 
-def make_new_post(request, form=None):
+def make_new_post(request, form=None, imageData=None):
     if request.method == 'GET':
         author_cache = AuthorCache()
         url = f"{ENDPOINT}/authors/{request.user.uuid}"
@@ -58,8 +58,7 @@ def make_new_post(request, form=None):
                 authors.append(author)
 
         if form:
-            print(form)
-            return render(request, 'posts/create.html', {'form': form, 'author_list':authors})
+            return render(request, 'posts/create.html', {'form': form, 'author_list':authors, 'imageData':imageData, 'imageRemoved': False})
         else:
             return render(request, 'posts/create.html', {'form': PostForm(), 'author_list':authors})
     elif request.method == 'POST':
@@ -82,6 +81,7 @@ def update_or_create_post(request, post_uuid):
     author_cache = AuthorCache()
 
     # create or grab post first
+    unique_id = post_uuid
     try:
         if post_uuid:
             post = Posts.objects.get(uuid=post_uuid)
@@ -92,7 +92,7 @@ def update_or_create_post(request, post_uuid):
         unique_id = uuid.uuid4()
         author = get_author_info(request.user.id) # convert author object to dictionary
         post_url = f"{ENDPOINT}authors/{author['id']}/posts/{unique_id}"
-        post = Posts(uuid=unique_id, author_uuid=author["id"], source=post_url, origin=post_url, author_local=1, author_host=ENDPOINT, author_url=author["url"], count=0, comments="")
+        post = Posts(uuid=str(unique_id), author_uuid=author["id"], source=post_url, origin=post_url, author_local=1, author_host=ENDPOINT, author_url=author["url"], count=0, comments="")
 
     unique_id_pic = str(unique_id) + "_pic"
 
@@ -125,7 +125,7 @@ def update_or_create_post(request, post_uuid):
         post.content = image_base64
 
     # add images and links to content
-    if request.FILES.get('picture') is not None:
+    if cType != "Image" and request.FILES.get('picture') is not None or request.POST.get('imageRemoved') == "False":
         source = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/image"
         if post.contentType == "text/plain":
             image_tag = f"<img src=\"{source}\" alt=\"{post.title}\" />"
@@ -175,8 +175,12 @@ def update_or_create_post(request, post_uuid):
     try:
         post = Posts.objects.get(uuid=unique_id_pic)
     except Posts.DoesNotExist:
+        print(unique_id_pic)
         post.uuid = unique_id_pic
         post.unlisted = True
+
+    if request.POST.get('imageRemoved') == "False":
+        post.delete()
 
     # update existing pic post
     if cType != "Image" and request.FILES.get('picture') is not None:
@@ -192,13 +196,20 @@ def edit_post(request, author_id, post_uuid):
         #read the post (whose like button the user clicked) object from db
         try:
             post = Posts.objects.get(uuid=post_uuid)
-            # try:
-            #     pic_post = Posts.objects.get(uuid=f'{post_uuid}_pic')
-            #     image_data = base64.b64decode(pic_post.content)
-            #     image_file = ContentFile(image_data)
-            #     image = Image.open(image_file)
-            # except Posts.DoesNotExist:
-            #     image = None
+
+            try:
+                pic_post = Posts.objects.get(uuid=f'{post_uuid}_pic')
+            except Posts.DoesNotExist:
+                pic_post = None
+
+            if pic_post:
+                post.picture = f"data:{pic_post.contentType},{pic_post.content}"
+
+                if post.contentType in ("text/plain", "text/markdown"):
+                    split = post.content.split("\n")
+                    post.content = "\n".join(split[:-1])
+            else:
+                post.picture = ""
 
             if post.unlisted == True:
                 post.visibility = "UNLISTED"
@@ -217,14 +228,13 @@ def edit_post(request, author_id, post_uuid):
                 'categories': ",".join(post.categories),
                 'content': post.content,
                 'visibility': post.visibility,
-                'picture': '',
-                'contentType': post.contentType
+                'imageRemoved': "False",
             }
 
             if post.visibility == "PRIVATE":
                 form_data['sharedWith'] = post.sharedWith['id']
 
-            return make_new_post(request, PostForm(initial=form_data))
+            return make_new_post(request, PostForm(initial=form_data), post.picture)
         except Posts.DoesNotExist: 
             return redirect('stream')
         
@@ -298,6 +308,7 @@ def post_stream(request):
 
     post_cache = PostCache()
     posts = post_cache.values()
+    base_url = ENDPOINT
 
     for post in posts:
         post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
@@ -305,7 +316,6 @@ def post_stream(request):
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"], post["author_index"])
 
-        base_url = ENDPOINT
 
         # filter out posts that shouldn't be shared with current user
         # if post["origin"] == strip_slash(ENDPOINT):
