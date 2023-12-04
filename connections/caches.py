@@ -174,7 +174,9 @@ class PostCache(Cache):
     def incrementLikeCount(self, post_id):
         self.initialize()
         post = self.cache.get(post_id)
-        if post and post.get("likeCount"):
+        if post and not post.get("likeCount"):
+            self.cache[post_id]["likeCount"] = 1
+        elif post:
             post["likeCount"] += 1
             self.cache[post_id] = post
 

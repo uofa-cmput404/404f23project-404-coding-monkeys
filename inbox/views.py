@@ -14,7 +14,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from accounts.models import AuthorUser, FollowRequests, ForeignAuthor
-from static.vars import ENDPOINT
+from static.vars import ENDPOINT, HOSTS
 from .models import Inbox
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -46,7 +46,10 @@ def follow_request_handler(request):
     safe_host = strip_slash(recipient_data["host"])
     auth = nodes.get_auth_for_host(safe_host)
     print(auth)
-    try: 
+    try:
+        if safe_host == HOSTS[3]:
+            inbox_url = strip_slash(inbox_url)
+            
         response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
         print(response.status_code)
         if response.ok:
