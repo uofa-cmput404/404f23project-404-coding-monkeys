@@ -574,13 +574,10 @@ def like_post_handler(request):
     if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
         #API call for calling code Monkeys
         full_url = f"{post_host}/authors/{currUser.uuid}/liked/"
-        print(full_url)
         headers = {"accept": "application/json"}
         auth = nodes.get_auth_for_host(post_host)
-        print(auth)
         # print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
-        print(response)
 
     elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
         #API call for 404 Team not found
@@ -597,6 +594,7 @@ def like_post_handler(request):
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, auth=HTTPBasicAuth(auth[0], auth[1]))
 
+    print(response)
     if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
     returned_likes = response.json()
     
