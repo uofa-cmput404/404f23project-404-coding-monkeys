@@ -547,7 +547,15 @@ def like_post_handler(request):
         }
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
-    
+    elif post_host =="https://c404-5f70eb0b3255.herokuapp.com":
+        #API call for ATeam
+        full_url=f"{post_host}/api/author/{currUser.uuid}/liked/"
+        headers = {
+            "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+            "accept": "application/json",
+        }
+        auth = nodes.get_auth_for_host(post_host)
+        response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
 
     if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
     returned_likes = response.json()
@@ -595,6 +603,26 @@ def like_post_handler(request):
                 "type": "Like",
                 "author": currUser_API,
                 "object": f"{post_host}/api/authors/{post['author_uuid']}/posts/{post['uuid']}"
+            }
+            body_json = json.dumps(body_dict)
+            # print(f"\nAPI Call for Sending like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
+            response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
+
+        elif post_host =="https://c404-5f70eb0b3255.herokuapp.com":
+            #send comment
+            full_url = f"{post_host}/api/author/{post['author_uuid']}/inbox/"
+            headers = {
+                "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+                "accept": "application/json",
+                'Content-Type': 'application/json'
+            }
+            auth = nodes.get_auth_for_host(post_host)
+            body_dict = {
+                # "context": "https://www.w3.org/ns/activitystreams",
+                # "summary": f"{currUser.username} Likes your post",
+                "type": "Like",
+                "author": currUser_API,
+                "object": f"{post_host}/api/author/{post['author_uuid']}/posts/{post['uuid']}"
             }
             body_json = json.dumps(body_dict)
             # print(f"\nAPI Call for Sending like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nData:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
