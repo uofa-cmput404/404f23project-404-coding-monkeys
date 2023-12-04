@@ -242,15 +242,23 @@ def render_author_detail(request, host_id, uuid):
     try:
         if host_id == 1:
             headers["Referer"] = nodes.get_host_for_index(0)
+        elif host_id == 4:
+            headers["Authorization"] = "Token " + auth[1]
 
         path = url + "/authors/" + uuid + "/"
-        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+        if host_id == 4:
+            response = requests.get(path, headers=headers)
+        else:
+            response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
 
         if response.ok:
             author = response.json()
             # already validated from the originating view, so do not have to check for serialization
             author["uuid"] = uuid
             author["index"] = host_id
+
+            if host_id == 4:
+                author["profileImage"] = author.pop("profilePicture")
         else:
             # TODO render and error page
             return HttpResponse(content="Author not found", status=response.status_code)
@@ -262,10 +270,18 @@ def render_author_detail(request, host_id, uuid):
     all_followers = []
 
     try:
-        path = url + "/authors/" + uuid + "/followers/"     
-        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers, timeout=3)
+        path = url + "/authors/" + uuid + "/followers/"
+        if host_id == 4:
+            response = requests.get(path, headers=headers, timeout=3)
+        else:
+            response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers, timeout=3)
+        
         if response.ok:
             followers = response.json()
+
+            if host_id == 4:
+                followers = followers["results"]
+
             for follower in followers["items"]:
                 try:
                     # serialize to check if everything is in expected format
@@ -290,8 +306,12 @@ def render_author_detail(request, host_id, uuid):
     try:
         path = url + "/authors/" + uuid + "/followers/" + request.user.uuid + "/"
         
-        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-        if host_id == 0 and response.ok:
+        if host_id == 4:
+            response = requests.get(path, headers=headers)
+        else:
+            response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+        if host_id in (0,4) and response.ok:
             following = True
         elif host_id == 1 and response.ok:
             following = response.json()["is_follower"]
@@ -300,35 +320,39 @@ def render_author_detail(request, host_id, uuid):
         gathered_all_info = False                   
 
     # gather liked items - might make this load as it's being queried instead of passed into the view
-    try:
-        path = url +"/authors/" + uuid + "/liked/"
-
-        response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
-        if response.ok:
-            liked_items = response.json()["items"]
-        else:
-            raise Exception("Could not get liked items")
-    except:
+    if host_id == 4:
         liked_items = []
+        formatted_liked = []
+    else:
+        try:
+            path = url +"/authors/" + uuid + "/liked/"
 
-    formatted_liked = []
-    for like in liked_items:
-        stripped = strip_slash(like["object"])
-        split = stripped.split("/")
-        likedType = split[-2][:-1]
+            response = requests.get(path, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+            if response.ok:
+                liked_items = response.json()["items"]
+            else:
+                raise Exception("Could not get liked items")
+        except:
+            liked_items = []
 
-        author_uuid = get_part_from_url(like["author"]["url"], "authors")
-        context = like.get("@context") if like.get("@context") else like.get("context")
+        formatted_liked = []
+        for like in liked_items:
+            stripped = strip_slash(like["object"])
+            split = stripped.split("/")
+            likedType = split[-2][:-1]
 
-        formatted_liked.append({
-                "type": "like",
-                "likedObject": likedType,
-                "contentAuthor": get_liked_author(like["object"]),
-                "context": context,
-                "summary": like["summary"],
-                "author": author_cache.get(author_uuid),
-                "object": like["object"],
-            })
+            author_uuid = get_part_from_url(like["author"]["url"], "authors")
+            context = like.get("@context") if like.get("@context") else like.get("context")
+
+            formatted_liked.append({
+                    "type": "like",
+                    "likedObject": likedType,
+                    "contentAuthor": get_liked_author(like["object"]),
+                    "context": context,
+                    "summary": like["summary"],
+                    "author": author_cache.get(author_uuid),
+                    "object": like["object"],
+                })
 
     # check if we have a request for the user in view
     follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)

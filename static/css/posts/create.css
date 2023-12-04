@@ -90,8 +90,6 @@ p {
 }
 
 
-
-
 .container_flex {
     display: flex;
     flex-direction: column;
@@ -100,7 +98,7 @@ p {
     padding: 20px;
 
     width: 140vh;
-    height: 70vh;
+    height: 80vh;
 
     background-color: #4a4444;
     border-color: white;
@@ -148,6 +146,18 @@ select, input[type=text], input, textarea {
     font-family: 'Lalezar', sans-serif;
 
 
+}
+
+.category-box {
+    display: inline-flex;
+    flex-direction: row;
+    border-radius: 10px;
+    border-style: none;
+    background-color: #6e6767;
+    color: white;
+    padding: 5px;
+    font-family: 'Lalezar', sans-serif;
+    margin-right: 5px;
 }
 
 select {

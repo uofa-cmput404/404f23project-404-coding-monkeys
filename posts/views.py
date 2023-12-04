@@ -50,7 +50,7 @@ class PostCreate(CreateView):
 def make_new_post(request, form=None):
     if request.method == 'GET':
         author_cache = AuthorCache()
-        url = f"{ENDPOINT}/authors/{request.user.id}"
+        url = f"{ENDPOINT}/authors/{request.user.uuid}"
         authors = []
         for author in author_cache.values():
             if author["url"] != url:
@@ -58,6 +58,7 @@ def make_new_post(request, form=None):
                 authors.append(author)
 
         if form:
+            print(form)
             return render(request, 'posts/create.html', {'form': form, 'author_list':authors})
         else:
             return render(request, 'posts/create.html', {'form': PostForm(), 'author_list':authors})
@@ -98,7 +99,7 @@ def update_or_create_post(request, post_uuid):
     post.title = request.POST.get('title')
     post.description = request.POST.get('description')
     post.content = request.POST.get('content')
-    post.categories = request.POST.get('categories') if request.POST.get('categories') != "" else []
+    post.categories = request.POST.get('categories').split(",") if request.POST.get('categories') != "" else []
     post.comments = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/comments"
 
     if request.POST.get('visibility') == "UNLISTED":
@@ -191,7 +192,6 @@ def edit_post(request, author_id, post_uuid):
         #read the post (whose like button the user clicked) object from db
         try:
             post = Posts.objects.get(uuid=post_uuid)
-
             # try:
             #     pic_post = Posts.objects.get(uuid=f'{post_uuid}_pic')
             #     image_data = base64.b64decode(pic_post.content)
@@ -200,14 +200,25 @@ def edit_post(request, author_id, post_uuid):
             # except Posts.DoesNotExist:
             #     image = None
 
+            if post.unlisted == True:
+                post.visibility = "UNLISTED"
+            
+            if post.contentType == "text/plain":
+                post.contentType = "Text"
+            elif post.contentType == "text/markdown":
+                post.contentType = "Markdown"
+            elif post.contentType == "image/png;base64" or post.contentType == "image/jpeg;base64":
+                post.contentType = "Image"
+            
             form_data = {
                 'uuid': post_uuid,
                 'title': post.title,
                 'description': post.description,
-                'categories': post.categories,
+                'categories': ",".join(post.categories),
                 'content': post.content,
                 'visibility': post.visibility,
-                'picture': ''
+                'picture': '',
+                'contentType': post.contentType
             }
 
             if post.visibility == "PRIVATE":
@@ -294,6 +305,8 @@ def post_stream(request):
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"], post["author_index"])
 
+        base_url = ENDPOINT
+
         # filter out posts that shouldn't be shared with current user
         # if post["origin"] == strip_slash(ENDPOINT):
         if post.get("origin") and post.get("origin").startswith(strip_slash(ENDPOINT)):
@@ -316,12 +329,12 @@ def post_stream(request):
         if post[contentType] == "text/markdown":
             post["content"] = commonmark.commonmark(post["content"])
         # custom logic for 404 not found's group
-        elif post["content"] and post["id"].startswith(HOSTS[1]) and post[contentType] not in ("text/plain", "text/markdown"):
+        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post[contentType] not in ("text/plain", "text/markdown"):
             post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
 
-    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts})
+    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts, 'base_url': base_url})
 
 def update_post_with_like_count_from_API(post):
     #Takes a post object and updates the like count property based on the number of likes returned by the API
@@ -702,7 +715,7 @@ def unlisted_post(request, author_uuid, post_uuid):
     try: post = Posts.objects.get(uuid=post_uuid)
     except: post = None
 
-    if post and post.visibility == "UNLISTED":
+    if post and post.unlisted == True:
         post_data = format_local_post_from_db(post)
         return render(request, 'single_unlisted_post.html', {"post": post_data})
     
