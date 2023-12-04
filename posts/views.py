@@ -669,7 +669,7 @@ def like_comment_handler(request):
     post = json.loads(request.body).get('post', {})
     comment_uuid = json.loads(request.body).get('comment_uuid', {})
     comment_author_inbox = json.loads(request.body).get('author_inbox', {})
-    print(f"RECIEVED DATA FROM LIKE COMMENT HANDLER:\nPOST:\n{json.dumps(post, indent=2)}\nCOMMENT UUID: {comment_uuid}\nCOMMENT AUTHOR INBOX: {comment_author_inbox}") #debug
+    # print(f"RECIEVED DATA FROM LIKE COMMENT HANDLER:\nPOST:\n{json.dumps(post, indent=2)}\nCOMMENT UUID: {comment_uuid}\nCOMMENT AUTHOR INBOX: {comment_author_inbox}") #debug
 
     #Gather preliminary information
     nodes = Nodes()
