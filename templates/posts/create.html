@@ -12,12 +12,49 @@
 
 {% block content %}
 <script>
+
     document.addEventListener("DOMContentLoaded", function () {
         // https://stackoverflow.com/questions/18437761/how-to-make-text-appear-when-you-choose-a-certain-option
         const visibilityField = document.getElementById("{{ form.visibility.id_for_label }}");
         const authorList = document.getElementById("author_list");
         const authorDropdown = document.getElementById("author_dropdown");
         const sharedWith = document.getElementById("{{ form.sharedWith.id_for_label }}");
+        const imageRemoved = document.getElementById("{{ form.imageRemoved.id_for_label }}");
+        const fileInput = document.getElementById("{{ form.picture.id_for_label }}");
+        const deleteImage = document.querySelector(".delete-image");
+        fileInput.style.marginTop = "10px";
+        fileInput.addEventListener("change", function() {
+            const uploadedImage = document.getElementById('uploadedImage');
+            imageRemoved.value = "False";
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    uploadedImage.src = e.target.result;
+                    document.querySelector(".image-container").style.display = "block";
+                    document.querySelector(".delete-image").style.display = "block";
+                    console.log(e.target.result)
+                };
+
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        });
+
+        deleteImage.addEventListener("click", function() {
+            imageRemoved.value = "True";
+            document.querySelector(".image-container").style.display = "none";
+            document.querySelector(".delete-image").style.display = "none";
+        });
+        
+        const imageData = "{{ imageData }}";
+        if (imageData == "") {
+            document.querySelector(".image-container").style.display = "none";
+            document.querySelector(".delete-image").style.display = "none";
+        } else {
+            const uploadedImage = document.getElementById('uploadedImage');
+            uploadedImage.src = imageData;
+        }
 
         sharedWith.style.display = "none";
         
@@ -30,6 +67,7 @@
         // Check the initial value
         if (visibilityField.value === "PRIVATE") {
             authorList.style.display = "flex";
+            console.log(sharedWith.value);
             authorDropdown.value = sharedWith.value;
         } else {
             authorList.style.display = "none";
@@ -45,7 +83,9 @@
         });
 
         document.getElementById("author_dropdown").addEventListener("change", function() {
-            document.getElementById("{{ form.sharedWith.id_for_label }}").value = this.value;
+            console.log(this.value);
+            const selectedIndex = this.options.selectedIndex;
+            sharedWith.value = this.value;
         });
 
         document.getElementById("contentTypeButton").addEventListener("click", function() {
@@ -90,7 +130,7 @@
 
         document.addEventListener("click", function(event) {
             const clickedElement = event.target;
-            console.log(event.target);
+
             if (clickedElement.classList.contains("categoryRemove")) {
                 const categoryBox = clickedElement.closest(".category-box");
 
@@ -150,6 +190,7 @@
             <div style="display:none;">
                 {{ form.contentType }}
                 {{ form.categories }}
+                {{ form.imageRemoved }}
             </div>
             
             <!-- <div class="grow-flex"></div>
@@ -174,9 +215,11 @@
         </div>
         <div class="row-flex" style="margin-top:15px; height: 100%;">{{ form.content }}</div>
         <div class="row-flex" style="margin-top:15px;">
-            <div class="custom-file-upload">
-                {{ form.picture }}
+            <div class="image-container">
+                <img id="uploadedImage" class="uploaded-image" src="#" alt="Uploaded Image">
             </div>
+            <button style="margin-right:2em;" class="delete-image" type="button"><span class="material-symbols-outlined">close</span></button>
+            {{ form.picture }}
             <div class="grow-flex"></div>
             <button class="post_button" type="submit">Post</button>
         </div>

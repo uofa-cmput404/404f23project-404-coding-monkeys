@@ -153,7 +153,7 @@ def format_local_post(post, author_details=None):
     else:
         post_data["author"] = author_details
 
-    for key in ("author_uuid", "author_local", "author_url", "author_host"):
+    for key in ("author_uuid", "author_local", "author_url", "author_host", "sharedWith"):
         post_data.pop(key)
     
     return post_data
