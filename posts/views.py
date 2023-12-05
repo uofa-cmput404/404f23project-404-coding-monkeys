@@ -553,7 +553,7 @@ def submit_comment_handler(request):
 
     if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
         #send comment
-        full_url = f"{post['origin']}/comments/"
+        full_url = f"{strip_slash(post['author']['url'])}/inbox/"
         headers = {"Content-Type": "application/json"}
         auth = nodes.get_auth_for_host(post_host)
         comment_details = {
