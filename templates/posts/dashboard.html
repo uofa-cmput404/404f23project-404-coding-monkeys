@@ -260,8 +260,12 @@
                     headers: { 'X-CSRFToken': csrfToken }, //include authentication token
                     success: function (data) {
                         console.log("returned from share post handler")
-
-                    
+                        var closeButton = document.querySelector('.share-close-button');
+                        if (closeButton) {
+                            closeButton.click();
+                        } else {
+                            console.error('Close button not found.');
+                        }
                     },
                     error: function (xhr, status, error) {
                         if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
