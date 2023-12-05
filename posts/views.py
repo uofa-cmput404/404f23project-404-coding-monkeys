@@ -817,6 +817,14 @@ def share_post_handler(request):
         full_url = f"{follower_inbox}/"
         headers = {"Content-Type": "application/json"}
         auth = nodes.get_auth_for_host(follower_host)
+
+        #fix some common description faults
+        try:
+            description = post['description']
+        except:
+            description = ""
+        if not description: description = ""
+
         try:
             post_details = {
                 "type": "post",
@@ -824,14 +832,13 @@ def share_post_handler(request):
                 "id": post['id'],
                 "source": post['source'],
                 "origin": post['origin'],
-                "description": post['description'],
+                "description": description,
                 "contentType": post['contentType'],
                 "content": post['content'],
                 "author": post['author'],
-                "categories": post['categories'],
+                "categories": [],
                 "count": post['count'],
                 "comments": post['comments'],
-                # "commentsSrc": post['commentsSrc'],
                 "commentsSrc": "",
                 "published": post['published'],
                 "visibility": post['visibility'],
