@@ -243,8 +243,43 @@
             
         });
 
+        $(document).on('click', '.follower-item', function () {
+            console.log("entered handler")
+            var post_json = $(this).closest('.post-container').find(".share-post-data").text();
+            console.log(post_json)
+            var post = JSON.parse(post_json); //parse the json into an object
+            var follower_inbox = $(this).closest('.follower-item').data('follower-inbox');
+
+            console.log(post);
+            console.log(follower_inbox);
+
+            // Use ajax to get backend to send a like to a comment
+            // $.ajax({
+            //         url: '{% url "like_comment" %}',
+            //         method: 'POST',
+            //         contentType: 'application/json',
+            //         data: JSON.stringify({ post: post, comment_uuid: comment_uuid, author_inbox: author_inbox}),
+            //         headers: { 'X-CSRFToken': csrfToken }, //include authentication token
+            //         success: function (data) {
+            //             console.log("returned from like comment handler")
+
+                    
+            //         },
+            //         error: function (xhr, status, error) {
+            //             if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+            //                 alert("The API being called for this request does not support this feauture.");
+            //             } else {
+            //                 alert("An unknown error has occured. Please try again.");
+            //             }
+            //         }
+            //     });
+
+        });
+
         $(".share_button").click(function () {
             //console.log("share triggered") // zeus
+            var post_json = $(this).closest('.post-container').find(".share-post-data").text();
+            console.log(post_json)
             var user_uuid = $(this).data("user-uuid")
             var username = 'api_dev' 
             var password = 'apiadminuser'
@@ -265,13 +300,16 @@
                         console.log("List of Followers:")
                         var array_of_followers = data.items
                         for (let i = 0; i < array_of_followers.length; i++) {
+                            if (i === 4) {break;} // limit max users displayed to 5
+
                             //console.log("User: " + array_of_followers[i].displayName)
                             //console.log("PFP: " + array_of_followers[i].profileImage)
                             user_name = array_of_followers[i].displayName
                             profile_picture = array_of_followers[i].profileImage
+                            var follower_inbox = array_of_followers[i].id.replace(/\/$/, "") + "/inbox"; // Extract follower_inbox URL
 
                             // Create HTML elements for follower info
-                            var followerElement = '<button type="button" class="follower-item">' +
+                            var followerElement = '<button type="button" class="follower-item" data-follower-inbox="' + follower_inbox + '">' +
                                 '<img src="' + profile_picture + '" class="follower-profile-picture" alt="Profile Picture">' +
                                 '<p class="follower-username">' + user_name + '</p>' +
                                 '</button>';
@@ -280,12 +318,12 @@
                             $("#share_modal .followers-list").append(followerElement);
                         } 
 
-                        // Attach click event handler to the clickable button
-                        $(".follower-item").on("click", function () {
-                            // Handle click event here, you can perform actions like opening a profile page or triggering a function
-                            var clickedUserName = $(this).find(".follower-username").text();
-                            alert("Clicked on follower: " + clickedUserName);
-                        });
+                        // // Attach click event handler to the clickable button
+                        // $(".follower-item").on("click", function () {
+                        //     // Handle click event here, you can perform actions like opening a profile page or triggering a function
+                        //     var clickedUserName = $(this).find(".follower-username").text();
+                        //     alert("Clicked on follower: " + clickedUserName);
+                        // });
                     
                     },
                     error: function (xhr, status, error) {
@@ -399,7 +437,8 @@
                 {% elif user.uuid != post.author_uuid and post.visibility != 'PRIVATE'%} <!--NOT the user's post, allow them to share only (and only if it's not a private post)-->
                     <div class="flex_grow"></div>
                     <div class="context_menu" id="context_menu">
-                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
+                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div>
+                        <div class="share-post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the submit comment button -->
                     </div>
                     {% include 'share_modal.html' %}
                 {% endif %}
