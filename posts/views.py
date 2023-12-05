@@ -627,7 +627,10 @@ def like_post_handler(request):
     post = json.loads(request.body).get('post', {})
 
     #gather the host of the post
-    post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    try:
+        post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    except:
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
     #Get current user info
@@ -653,7 +656,8 @@ def like_post_handler(request):
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
     
-    elif HOSTS.index(post_host) == 3:
+    elif post_host == "https://cmput404-ctrl-alt-defeat-api-12dfa609f364.herokuapp.com":
+        #API Call for CTRL ALT Defeat
         post_id = get_part_from_url(post['id'], "posts")
         author_id = get_part_from_url(post['author']['id'], "authors")
         base_url = nodes.get_host_for_index(3)
@@ -661,7 +665,14 @@ def like_post_handler(request):
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, auth=HTTPBasicAuth(auth[0], auth[1]))
 
-    if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
+    else:
+        #unsupported host
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
+
+    if not response.ok: 
+        print(f"API error when gathering list of likes for user {currUser.username}")
+        return JsonResponse({'error': ''}, status=501)
+    
     returned_likes = response.json()
     
     #Determine if the current user has already liked the post
@@ -724,11 +735,14 @@ def like_post_handler(request):
             body_json = json.dumps(body_dict)
             response = requests.post(full_url, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
         
-        if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
-        post_cache = PostCache()
-        post_cache.incrementLikeCount(post['uuid'])
-
-        return JsonResponse({'new_post_count': post.get('likeCount', 0) +1 }) #return new post count
+        else:
+            #unsupported host
+            return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        
+        if response.ok:
+            post_cache = PostCache()
+            post_cache.incrementLikeCount(post['uuid'])
+            return JsonResponse({'new_post_count': post.get('likeCount', 0) +1 }) #return new post count
     
 def like_comment_handler(request):
     #Gather info from frontend:
