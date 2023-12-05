@@ -351,9 +351,7 @@
                 <hr style="border: 1px solid white; margin:5px;">
                 <br>
                 {% if post.contentType == "text/plain" or post.contentType == "text/markdown" %}
-                    <div class="flex_grow">
                     {{ post.content|safe }}
-                    </div>
                 {% endif %}
             </section>
             {% if post.contentType == "application/base64" or post.contentType == "image/jpeg;base64" or post.contentType == "image/png;base64" %}
