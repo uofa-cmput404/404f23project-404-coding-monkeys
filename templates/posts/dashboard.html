@@ -277,8 +277,7 @@
         });
 
         $(".share_button").click(function () {
-            //console.log("share triggered") // zeus
-            var post_json = $(this).closest('.post-container').find(".share-post-data").text();
+            var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
             console.log(post_json)
             var user_uuid = $(this).data("user-uuid")
             var username = 'api_dev' 
