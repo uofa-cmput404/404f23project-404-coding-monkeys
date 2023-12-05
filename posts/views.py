@@ -858,21 +858,52 @@ def share_post_handler(request):
 
     elif follower_host == "https://distributed-network-37d054f03cf4.herokuapp.com":        
         #send comment like to T404 server
-        full_url = f"{follower_host}/"
+        full_url = f"{follower_inbox}/"
         headers = {
             "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
             "accept": "application/json",
             'Content-Type': 'application/json'
         }
         auth = nodes.get_auth_for_host(follower_host)
-        like_details = {
-            "type": "Like",
-            "author": currUser_API,
-            "object": f"{post['comments']}/{comment_uuid}"
-        }
-        like_details_json = json.dumps(like_details)
-        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=like_details_json) #Send the like object to the posting author's inbox
 
+        #fix some common description faults
+        try:
+            description = post['description']
+        except:
+            description = ""
+        if not description: description = ""
+
+        try:
+            post_details = {
+                "type": "post",
+                "title": post['title'],
+                "id": post['id'],
+                "source": post['source'],
+                "origin": post['origin'],
+                "description": description,
+                "contentType": post['contentType'],
+                "content": post['content'],
+                "author": post['author'],
+                "categories": [],
+                "count": post['count'],
+                "comments": post['comments'],
+                "commentsSrc": "",
+                "published": post['published'],
+                "visibility": post['visibility'],
+                "unlisted": post['unlisted'],
+                "updatedAt": None
+            }
+        except Exception as e:
+            print(e)
+            return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        
+        post_details_json = json.dumps(post_details)
+        if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=post_details_json) #Send the post object to the posting author's inbox
+        print(response)
+        print(response.text)
+        print(response.json())
+        
     else:
         #Otherwise we dont support liking comments for this host
         return JsonResponse({'error': 'feature-not-supported'}, status=501)
