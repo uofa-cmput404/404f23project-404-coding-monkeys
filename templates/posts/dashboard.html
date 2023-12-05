@@ -318,6 +318,22 @@
 
     });
 
+    const pageAccessedByReload = ( // https://stackoverflow.com/a/53307588
+        (window.performance.navigation && window.performance.navigation.type === 1) ||
+            window.performance
+            .getEntriesByType('navigation')
+            .map((nav) => nav.type)
+            .includes('reload')
+            
+        );
+
+
+    if (pageAccessedByReload == true) {
+        console.log("The page was reloaded")
+    } else {
+        console.log("Did not reload; came from somewhere else")
+    }
+
 </script>
 <!-- <script src="{% static '/js/like_button.js' %}"></script> -->
 
