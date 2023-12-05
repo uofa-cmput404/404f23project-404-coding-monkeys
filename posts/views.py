@@ -151,9 +151,19 @@ def update_or_create_post(request, post_uuid):
     elif cType == "Markdown":
         post.contentType = "text/markdown"
     elif cType == "Image":
-        image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
-        post.contentType = contentType_pic
-        post.content = image_base64
+        if request.FILES.get('picture'):
+            image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
+            post.contentType = contentType_pic
+            post.content = image_base64
+        elif post_pic:
+            post.contentType = post_pic.contentType
+            post.content = post_pic.content
+            post_pic.delete()
+        elif request.POST.get('imageRemoved') == "True":
+            post.contentType = ""
+            post.content = ""
+        elif request.POST.get('imageRemoved') == "False":
+            return redirect('stream')
 
     # add images and links to content
     if cType != "Image" and request.FILES.get('picture') is not None or post_pic and request.POST.get('imageRemoved') == "False":
@@ -179,22 +189,26 @@ def update_or_create_post(request, post_uuid):
         send_to_inbox(post, followers)
     
     # deal with embedded pictures
-    try:
-        post = Posts.objects.get(uuid=unique_id_pic)
-    except Posts.DoesNotExist:
-        print(unique_id_pic)
-        post.uuid = unique_id_pic
-        post.unlisted = True
+    # we already dealt with post if post is an image
+    if cType != "Image":
+        # delete existing
+        if post_pic and request.POST.get('imageRemoved') == "True":
+            post_pic.delete()
+        
+        # update existing or make new
+        elif request.FILES.get('picture'):
+            image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
+            
+            if not post_pic:
+                post_pic = Posts()
+                post_pic.uuid = unique_id_pic
 
-    if request.POST.get('imageRemoved') == "False":
-        post.delete()
-
-    # update existing pic post
-    if cType != "Image" and request.FILES.get('picture') is not None:
-        image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
-        post.content = image_base64
-        post.contentType = contentType_pic
-        post.save()
+            post_pic.unlisted = True
+            post_pic.contentType = contentType_pic
+            post_pic.content = image_base64
+            post_pic.visibility = post.visibility
+            post_pic.author_uuid = post.author_uuid
+            post_pic.save()
 
     return redirect('stream')
 
@@ -225,8 +239,10 @@ def edit_post(request, author_id, post_uuid):
                 post.contentType = "Text"
             elif post.contentType == "text/markdown":
                 post.contentType = "Markdown"
-            elif post.contentType == "image/png;base64" or post.contentType == "image/jpeg;base64":
+            elif post.contentType == "application/base64" or post.contentType == "image/png;base64" or post.contentType == "image/jpeg;base64":
+                post.picture = f"data:{post.contentType},{post.content}"
                 post.contentType = "Image"
+                post.content = ""
             
             form_data = {
                 'uuid': post_uuid,
