@@ -180,8 +180,12 @@ class PostCache(Cache):
             post["likeCount"] += 1
             self.cache[post_id] = post
 
-    # TODO grab all local then mess with remotes
     def update(self):
+        thread = threading.Thread(target=self.pull_authors)
+        thread.start()
+
+    # TODO grab all local then mess with remotes
+    def pull_authors(self):
         author_cache = AuthorCache()
         node_singleton = Nodes()
 
