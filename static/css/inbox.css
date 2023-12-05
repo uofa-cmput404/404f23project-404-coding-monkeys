@@ -1,0 +1,34 @@
+.row-flex-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: stretch;
+}
+
+.inbox-container {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+
+    padding: 20px;
+
+    width: 140vh;
+    height: 80vh;
+
+    background-color: #4a4444;
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    
+    margin: auto;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+.inbox-container h1 {
+    font-size: 32px;
+    margin: 0;
+    padding: 0;
+}

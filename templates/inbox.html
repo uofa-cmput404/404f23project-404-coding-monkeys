@@ -10,6 +10,7 @@
 <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/main.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/inbox.css' %} ">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock css %}
@@ -26,69 +27,76 @@
     <button id="posts" class="InboxNavbar_Link">Posts</button>
 </nav>
 
-<div id="fq-div">
-<h1 style="margin-left: 60px;">Follow Requests</h1>
-<ul>
-{% for request in requests_list %}
-    <div class="itemBacking">  
-        <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ request.data.profileImage }}">
-        <h3>{{request.data.displayName}} wants to follow you.</h3>
-        <button class="accept-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
-            <span class="material-symbols-outlined">done</span>
-        </button>
-        <button class="deny-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
-            <span class="material-symbols-outlined">close</span>
-        </button>
-    </div>
-{% empty %}
-    <li style="margin-left: 40px;">No friend requests yet.</li>
-{% endfor %}
-</ul>
-</div>
+<div class="row-flex-container">
 
-<div id="likes-div">
-<h1 style="margin-left: 60px;">Likes</h1>
-<ul>
-{% for like in likes_list %}
-    <div class="itemBacking">  
-        <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ like.data.profileImage }}">
-        <h3>{{like.data.displayName}} liked your post.</h3>
-        <a href="{% url 'post' like.post_uuid %}">View Post</a>
+    <!-- FOLLOW REQUESTS -->
+    <div id="follow-rq-box" class="inbox-container">
+        <ul>
+            {% for request in requests_list %}
+                <div class="itemBacking">  
+                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ request.data.profileImage }}">
+                    <h3>{{request.data.displayName}} wants to follow you.</h3>
+                    <button class="accept-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+                        <span class="material-symbols-outlined">done</span>
+                    </button>
+                    <button class="deny-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+            {% empty %}
+                <li style="margin-left: 40px;">No friend requests yet.</li>
+            {% endfor %}
+        </ul>
     </div>
-{% empty %}
-    <li style="margin-left: 40px;">No likes yet.</li>
-{% endfor %}
-</ul>
-</div>
 
-<div id="comments-div">
-<h1 style="margin-left: 60px;">Comments</h1>
-<ul>
-{% for comment in comments_list %}
-    <div class="itemBacking">  
-        <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ comment.data.profileImage }}">
-        <h3>{{comment.data.displayName}} commented on your post.</h3>
-        <a href="{% url 'post' comment.post_uuid %}">View Post</a>
-    </div>
-{% empty %}
-    <li style="margin-left: 40px;">No comments yet.</li>
-{% endfor %}
-</ul>
-</div>
 
-<div id="posts-div">
-<h1 style="margin-left: 60px;">Posts</h1>
-<ul>
-{% for post in posts_list %}
-    <div class="itemBacking">  
-        <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ post.data.profileImage }}">
-        <h3>{{post.data.displayName}} posted.</h3>
-        <a href="{% url 'post' post.post_uuid %}">View Post</a>
+    <!-- LIKES -->
+    <div id="like-box" class="inbox-container">
+        <ul>
+            {% for like in likes %}
+                <div class="itemBacking">  
+                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ like.data.profileImage }}">
+                    <h3>{{like.data.displayName}} liked your post.</h3>
+                    <a href="{% url 'inbox_post_view' author_id=request.user.uuid inbox_index=like.index %}">View Post</a>
+                </div>
+            {% empty %}
+                <li style="margin-left: 40px;">No likes yet.</li>
+            {% endfor %}
+            </ul>
     </div>
-{% empty %}
-    <li style="margin-left: 40px;">No posts yet.</li>
-{% endfor %}
-</ul>
+
+
+    <!-- COMMENTS -->
+    <div id="comment-box" class="inbox-container">
+        <ul>
+            {% for comment in comments %}
+                <div class="itemBacking">  
+                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ comment.data.profileImage }}">
+                    <h3>{{comment.data.displayName}} commented on your post.</h3>
+                    <a href="{% url 'inbox_post_view' author_id=request.user.uuid inbox_index=comment.index %}">View Post</a>
+                </div>
+            {% empty %}
+                <li style="margin-left: 40px;">No comments yet.</li>
+            {% endfor %}
+            </ul>
+    </div>
+
+
+    <!-- POSTS -->
+    <div id="post-box" class="inbox-container">
+        <ul>
+            {% for post in posts %}
+                <div class="itemBacking">  
+                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ post.data.profileImage }}">
+                    <h3>{{post.data.displayName}} posted.</h3>
+                    <a href="{% url 'inbox_post_view' author_id=request.user.uuid inbox_index=post.index %}">View Post</a>
+                </div>
+            {% empty %}
+                <li style="margin-left: 40px;">No posts yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
 </div>
 
 <script>

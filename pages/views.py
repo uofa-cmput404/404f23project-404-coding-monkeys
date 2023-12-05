@@ -17,6 +17,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from connections.caches import AuthorCache, Nodes, PostCache
+from inbox.models import Inbox
 from posts.models import Likes, Posts
 from posts.views import get_public_likes
 from util import strip_slash
@@ -462,6 +463,7 @@ def accept_fq(request): # add requester to user's followers and delete friend re
         return HttpResponseForbidden("You do not have permission to access this page.")
 
     fq = FollowRequests.objects.get(requester_uuid=requester_uuid, recipient_uuid=recipient_uuid) # get friend request instance from db
+    fq_id = fq.id
     author = AuthorUser.objects.get(uuid=recipient_uuid)
 
     ad = AuthorDetail(fq.requester_uuid, fq.requester_url, fq.requester_host) # create AuthorDetail object from requester information
@@ -479,6 +481,22 @@ def accept_fq(request): # add requester to user's followers and delete friend re
         obj.save()                                  # while a user is in an author's followers list. So it should be impossible for them to send another request.
         
     fq.delete()
+
+    try:
+        inbox = Inbox.objects.get(author=author)
+
+        index = -1
+        for i in range(len(inbox.items)):
+            item = inbox.items[i]
+            if item["type"] == "follow" and item["id"] == fq_id:
+                index = i
+                break
+        
+        if index != -1:
+            inbox.items.pop(index)
+            inbox.save()
+    except:
+        print("Error removing follow request from inbox")
 
     return JsonResponse({"status":"success"})
 
