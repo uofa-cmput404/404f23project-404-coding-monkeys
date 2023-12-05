@@ -329,19 +329,19 @@
 
 
     if (pageAccessedByReload == true) {
-        console.log("The page was reloaded.")
+        //console.log("The page was reloaded.")
         $.ajax({
                 url: "/connections/refresh-cache?type=posts",
                 method: 'GET',
                 success: function(data) {
-                    console.log("Sent GET request to /connections/refresh-cache?type=posts");
+                    //console.log("Sent GET request to /connections/refresh-cache?type=posts");
                 },
                 error: function(data) {
-                    console.log("Error sending request.");
+                    //console.log("Error sending request.");
                 }
         });   
     } else {
-        console.log("Did not reload; came from somewhere else or initial visit to dashboard.")
+        //console.log("Did not reload; came from somewhere else or initial visit to dashboard.")
     }
 
 </script>
