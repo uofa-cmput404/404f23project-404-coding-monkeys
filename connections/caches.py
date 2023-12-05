@@ -205,7 +205,6 @@ class PostCache(Cache):
                     continue
                 
                 index = HOSTS.index(strip_slash(details['host']))
-                print(index)
                 endpoint = node_singleton.get_host_for_index(index)
                 auth = node_singleton.get_auth_for_host(details["host"])
                 headers = {"Accept": "application/json"}
