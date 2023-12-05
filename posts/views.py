@@ -1,5 +1,6 @@
 import datetime
 import json
+import pickle
 from urllib.parse import urlparse
 import bleach
 import commonmark
@@ -355,9 +356,14 @@ def post_stream(request):
 
     post_cache = PostCache()
     posts = post_cache.values()
+
+    post_list = list(posts)
+    pickled = pickle.dumps(post_list)
+    fixed_posts = pickle.loads(pickled)
+
     base_url = ENDPOINT
 
-    for post in posts:
+    for post in fixed_posts:
         try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
         except: post["author_index"] = 0
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
