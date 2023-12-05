@@ -652,6 +652,15 @@ def like_post_handler(request):
         }
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+    elif post_host == "https://cmput404-ctrl-alt-defeat-api-12dfa609f364.herokuapp.com":
+        #API Call for ctrl alt delete
+        full_url = f"{post_host}/api/authors/{currUser.uuid}/liked"
+        headers = {
+            "refer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+            "accept": "application/json",
+        }
+        auth = nodes.get_auth_for_host(post_host)
+        response = requests.get(full_url, auth=HTTPBasicAuth(auth[0], auth[1]))
     
     elif HOSTS.index(post_host) == 3:
         post_id = get_part_from_url(post['id'], "posts")
