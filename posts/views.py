@@ -127,15 +127,6 @@ def update_or_create_post(request, post_uuid):
     except Posts.DoesNotExist:
         post_pic = None
 
-    if post.contentType not in ("text/plain", "text/markdown"):
-        # save old picture post if it exists
-        oldUuid = post.uuid
-        post.uuid = oldUuid + "_pic"
-        post.save()
-
-        post_pic = post
-        post.uuid = oldUuid
-
     post.title = request.POST.get('title')
     post.description = request.POST.get('description')
     post.content = request.POST.get('content')
@@ -174,6 +165,17 @@ def update_or_create_post(request, post_uuid):
         elif request.POST.get('imageRemoved') == "False":
             return redirect('stream')
 
+    if post.contentType not in ("text/plain", "text/markdown"):
+        # save old picture post if it exists
+        oldUuid = post.uuid
+        post.uuid = oldUuid + "_pic"
+        post.save()
+
+        post_pic = post
+        post.uuid = oldUuid
+    elif post.uuid.endswith("_pic"):
+        post.uuid = post.uuid[:-4]
+
     # add images and links to content
     if cType != "Image" and request.FILES.get('picture') is not None or post_pic and request.POST.get('imageRemoved') == "False":
         source = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/image"
@@ -206,6 +208,7 @@ def update_or_create_post(request, post_uuid):
         
         # update existing or make new
         elif request.FILES.get('picture'):
+            print("here")
             image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
             
             if not post_pic:
@@ -217,6 +220,7 @@ def update_or_create_post(request, post_uuid):
             post_pic.content = image_base64
             post_pic.visibility = post.visibility
             post_pic.author_uuid = post.author_uuid
+            print(post_pic.content)
             post_pic.save()
 
     return redirect('stream')
@@ -233,6 +237,7 @@ def edit_post(request, author_id, post_uuid):
                 pic_post = None
 
             if pic_post:
+                print("pic post found")
                 post.picture = f"data:{pic_post.contentType},{pic_post.content}"
 
                 if post.contentType in ("text/plain", "text/markdown"):
