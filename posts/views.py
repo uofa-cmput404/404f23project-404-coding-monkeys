@@ -643,8 +643,10 @@ def like_post_handler(request):
         full_url = f"{post_host}/authors/{currUser.uuid}/liked/"
         headers = {"accept": "application/json"}
         auth = nodes.get_auth_for_host(post_host)
-        # print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
+        print(f"\nAPI Call for Getting Likes:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}") #Debug the API call
+        print("alive1")
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
+        print("alive2")
 
     elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
         #API call for 404 Team not found
@@ -672,7 +674,7 @@ def like_post_handler(request):
     if not response.ok: 
         print(f"API error when gathering list of likes for user {currUser.username}")
         return JsonResponse({'error': ''}, status=501)
-    
+    print("alive3")
     returned_likes = response.json()
     
     #Determine if the current user has already liked the post
@@ -686,12 +688,16 @@ def like_post_handler(request):
         #dont do anything
         # return JsonResponse({'new_post_count': post['likeCount']}) #return existing post count
         return JsonResponse({'new_post_count': post['likeCount']}) #return new post count
+    
     else:
+        print("alive4")
         #send like
         if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
             full_url = f"{post_host}/authors/{post['author_uuid']}/inbox/"
             headers = {"Content-Type": "application/json"}
+            print("alive5")
             auth = nodes.get_auth_for_host(post_host)
+            print("alive6")
             body_dict = {
                 "context": "https://www.w3.org/ns/activitystreams",
                 "summary": f"{currUser.username} Likes your post",
@@ -699,10 +705,13 @@ def like_post_handler(request):
                 "author": currUser_API,
                 "object": f"{post_host}/authors/{post['author_uuid']}/posts/{post['uuid']}"
             }
+            print("alive7")
             body_json = json.dumps(body_dict)
+            print("alive8")
             # print(f"\nAPI Call for Sending Like Obj:\nURL: {full_url}\nHeaders: {headers}\nAuth: {auth}\nBody:\n{json.dumps(body_dict, indent=2)}") #Debug the API call
             response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=body_json) #Send the like object to the posting author's inbox
-        
+            print("alive9")
+
         elif post_host == "https://distributed-network-37d054f03cf4.herokuapp.com":
             #send comment
             full_url = f"{post_host}/api/authors/{post['author_uuid']}/inbox/"
@@ -740,8 +749,11 @@ def like_post_handler(request):
             return JsonResponse({'error': 'feature-not-supported'}, status=501)
         
         if response.ok:
+            print("alive10")
             post_cache = PostCache()
+            print("alive11")
             post_cache.incrementLikeCount(post['uuid'])
+            print("alive12")
             return JsonResponse({'new_post_count': post.get('likeCount', 0) +1 }) #return new post count
     
 def like_comment_handler(request):
@@ -1423,15 +1435,21 @@ def api_comment_likes(request, uuid, post_id, comment_id):
 # LIKED
 # =====================
 def get_public_likes(uuid):
+    print("alive-a")
     nodes = Nodes()
+    ("alive-b")
     post_cache = PostCache()
+    ("alive-c")
 
     liked_items = []
     associated_posts = []
     for item in Likes.objects.filter(author_uuid=uuid):
+        ("alive-d")
         post_id = get_part_from_url(item.liked_object, "posts")
+        ("alive-e")
         try: post = Posts.objects.get(uuid=post_id)
         except Posts.DoesNotExist: post = None
+        ("alive-f")
 
         if post and post.visibility == "PUBLIC":
             associated_posts.append(post)
@@ -1440,18 +1458,19 @@ def get_public_likes(uuid):
         if not post and post_cache.get(post_id):
             associated_posts.append(post_cache.get(post_id))
             liked_items.append(item)
-        
+        ("alive-g")
         if not post:
             origin = None
             for host in HOSTS:
                 if item.liked_object.startswith(host):
                     origin = host
                     break
-            
+            ("alive-h")
             if origin:
                 try:
                     auth = nodes.get_auth_for_host(origin)
                     headers = {"Accept": "application/json"}
+                    ("alive-i")
 
                     if origin == HOSTS[1]:
                         headers["Referer"] = nodes.get_host_for_index(0)
@@ -1459,9 +1478,11 @@ def get_public_likes(uuid):
                     response = requests.get(item.liked_object, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
                     # we can assume that if we get a 2XX response, the post is public
                     if response.ok:
+                        ("alive-k")
                         post = response.json()
                         associated_posts.append(post)
                         liked_items.append(item)
+                        ("alive-l")
                 except:
                     continue
 
