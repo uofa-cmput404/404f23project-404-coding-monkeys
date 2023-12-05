@@ -804,6 +804,7 @@ def share_post_handler(request):
     #Gather info from frontend:
     post = json.loads(request.body).get('post', {})
     follower_inbox = json.loads(request.body).get('follower_inbox', {})
+    print(json.dumps(post, indent=2))
 
     #Gather preliminary information
     nodes = Nodes()
@@ -816,27 +817,37 @@ def share_post_handler(request):
         full_url = f"{follower_inbox}/"
         headers = {"Content-Type": "application/json"}
         auth = nodes.get_auth_for_host(follower_host)
-        post_details = {
-            "type": "post",
-            "title": post['title'],
-            "id": post['id'],
-            "source": post['source'],
-            "origin": post['origin'],
-            "description": post['description'],
-            "contentType": post['contentType'],
-            "content": post['content'],
-            "author": post['author'],
-            "categories": post['categories'],
-            "count": post['count'],
-            "comments": post['comments'],
-            "commentsSrc": post['commentsSrc'],
-            "published": post['published'],
-            "visibility": post['visibility'],
-            "unlisted": post['unlisted']
-        }
+        try:
+            post_details = {
+                "type": "post",
+                "title": post['title'],
+                "id": post['id'],
+                "source": post['source'],
+                "origin": post['origin'],
+                "description": post['description'],
+                "contentType": post['contentType'],
+                "content": post['content'],
+                "author": post['author'],
+                "categories": post['categories'],
+                "count": post['count'],
+                "comments": post['comments'],
+                # "commentsSrc": post['commentsSrc'],
+                "commentsSrc": "",
+                "published": post['published'],
+                "visibility": post['visibility'],
+                "unlisted": post['unlisted']
+            }
+        except Exception as e:
+            print(e)
+            return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        
         post_details_json = json.dumps(post_details)
         if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
         response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=post_details_json) #Send the post object to the posting author's inbox
+        print(response)
+        print(response.text)
+        print(response.json())
+
 
     elif follower_host == "https://distributed-network-37d054f03cf4.herokuapp.com":        
         #send comment like to T404 server
