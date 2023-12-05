@@ -59,6 +59,31 @@
             profilePicture.style.borderColor = colors[colorIndex];
         });
     });
+
+    const pageAccessedByReload = ( // https://stackoverflow.com/a/53307588
+        (window.performance.navigation && window.performance.navigation.type === 1) ||
+            window.performance
+            .getEntriesByType('navigation')
+            .map((nav) => nav.type)
+            .includes('reload')
+            
+        );
+
+    if (pageAccessedByReload == true) {
+        //console.log("The page was reloaded.")
+        $.ajax({
+                url: "/connections/refresh-cache?type=authors",
+                method: 'GET',
+                success: function(data) {
+                    console.log("Sent GET request to /connections/refresh-cache?type=authors");
+                },
+                error: function(data) {
+                    console.log("Error sending request.");
+                }
+        });   
+    } else {
+        //console.log("Did not reload; came from somewhere else or initial visit to profiles list.")
+    }
 </script>
 
 
