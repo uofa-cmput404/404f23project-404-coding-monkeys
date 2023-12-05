@@ -245,10 +245,13 @@
 
         $(document).on('click', '.follower-item', function () {
             console.log("entered handler")
-            var post_json = $(this).closest('.post-container').find(".share-post-data").text();
+            // var post_json = $(this).closest('.post-container').find(".share-post-data").text();
+            // console.log(post_json)
+            var follower_inbox = $(this).closest('.follower-item').data('follower-inbox');
+            var post_json = decodeURIComponent($(this).closest('.follower-item').data('post-json'));
+            console.log(follower_inbox);
             console.log(post_json)
             var post = JSON.parse(post_json); //parse the json into an object
-            var follower_inbox = $(this).closest('.follower-item').data('follower-inbox');
 
             console.log(post);
             console.log(follower_inbox);
@@ -278,7 +281,7 @@
 
         $(".share_button").click(function () {
             var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
-            console.log(post_json)
+            post_json = encodeURIComponent(post_json)
             var user_uuid = $(this).data("user-uuid")
             var username = 'api_dev' 
             var password = 'apiadminuser'
@@ -308,7 +311,7 @@
                             var follower_inbox = array_of_followers[i].id.replace(/\/$/, "") + "/inbox"; // Extract follower_inbox URL
 
                             // Create HTML elements for follower info
-                            var followerElement = '<button type="button" class="follower-item" data-follower-inbox="' + follower_inbox + '">' +
+                            var followerElement = '<button type="button" class="follower-item" data-follower-inbox="' + follower_inbox + '"  data-post-json="' + post_json + '"  >' +
                                 '<img src="' + profile_picture + '" class="follower-profile-picture" alt="Profile Picture">' +
                                 '<p class="follower-username">' + user_name + '</p>' +
                                 '</button>';
