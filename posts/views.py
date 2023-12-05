@@ -798,6 +798,11 @@ def like_comment_handler(request):
     if response.ok:
         return JsonResponse({}) #Allow the dashboard.html js to display the new comment
 
+def share_post_handler(request):
+    print("Entered share post handler!")
+
+    return JsonResponse({})
+
 def test(request):
     return render(request, 'posts/test.html')
 

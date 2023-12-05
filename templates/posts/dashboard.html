@@ -252,26 +252,26 @@
             var post_json = decodeURIComponent($(this).closest('.follower-item').data('post-json'));
             var post = JSON.parse(post_json); //parse the json into an object
 
-            // Use ajax to get backend to send a like to a comment
-            // $.ajax({
-            //         url: '{% url "like_comment" %}',
-            //         method: 'POST',
-            //         contentType: 'application/json',
-            //         data: JSON.stringify({ post: post, comment_uuid: comment_uuid, author_inbox: author_inbox}),
-            //         headers: { 'X-CSRFToken': csrfToken }, //include authentication token
-            //         success: function (data) {
-            //             console.log("returned from like comment handler")
+            // Use ajax to get backend to send a post to a user's inbox
+            $.ajax({
+                    url: '{% url "share_post" %}',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ post: post, user_username: user_username, follower_inbox: follower_inbox}),
+                    headers: { 'X-CSRFToken': csrfToken }, //include authentication token
+                    success: function (data) {
+                        console.log("returned from share post handler")
 
                     
-            //         },
-            //         error: function (xhr, status, error) {
-            //             if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
-            //                 alert("The API being called for this request does not support this feauture.");
-            //             } else {
-            //                 alert("An unknown error has occured. Please try again.");
-            //             }
-            //         }
-            //     });
+                    },
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
+                    }
+                });
 
         });
 
