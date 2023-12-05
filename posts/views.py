@@ -804,9 +804,6 @@ def share_post_handler(request):
     #Gather info from frontend:
     post = json.loads(request.body).get('post', {})
     follower_inbox = json.loads(request.body).get('follower_inbox', {})
-    print(json.dumps(post, indent=2))
-    print(follower_inbox)
-
 
     #Gather preliminary information
     nodes = Nodes()
@@ -814,11 +811,60 @@ def share_post_handler(request):
     currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
     currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
 
-    print(follower_host)
-    print(json.dumps(currUser_API, indent=2))
+    if follower_host == "http://127.0.0.1:8000" or follower_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or follower_host == "http://localhost:8000":
+        #send comment like to chimp-chat server
+        full_url = f"{follower_inbox}/"
+        headers = {"Content-Type": "application/json"}
+        auth = nodes.get_auth_for_host(follower_host)
+        post_details = {
+            "type": "post",
+            "title": post['title'],
+            "id": post['id'],
+            "source": post['source'],
+            "origin": post['origin'],
+            "description": post['description'],
+            "contentType": post['contentType'],
+            "content": post['content'],
+            "author": post['author'],
+            "categories": post['categories'],
+            "count": post['count'],
+            "comments": post['comments'],
+            "commentsSrc": post['commentsSrc'],
+            "published": post['published'],
+            "visibility": post['visibility'],
+            "unlisted": post['unlisted']
+        }
+        post_details_json = json.dumps(post_details)
+        if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=post_details_json) #Send the post object to the posting author's inbox
 
+    elif follower_host == "https://distributed-network-37d054f03cf4.herokuapp.com":        
+        #send comment like to T404 server
+        full_url = f"{follower_host}/"
+        headers = {
+            "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+            "accept": "application/json",
+            'Content-Type': 'application/json'
+        }
+        auth = nodes.get_auth_for_host(follower_host)
+        like_details = {
+            "type": "Like",
+            "author": currUser_API,
+            "object": f"{post['comments']}/{comment_uuid}"
+        }
+        like_details_json = json.dumps(like_details)
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=like_details_json) #Send the like object to the posting author's inbox
+
+    else:
+        #Otherwise we dont support liking comments for this host
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
     
-    return JsonResponse({})
+    if response.ok:
+        return JsonResponse({})
+    else:
+        print(f"API error when sharing post.")
+        return JsonResponse({'error': ''}, status=501)
+        
 
 def test(request):
     return render(request, 'posts/test.html')
