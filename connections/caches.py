@@ -201,7 +201,7 @@ class PostCache(Cache):
         for author, details in author_cache.items():
             try:
                 # skip local posts
-                if details['host'] == node_singleton.get_host_for_index(0):
+                if strip_slash(details['host']) == strip_slash(HOSTS[0]):
                     continue
                 
                 index = HOSTS.index(strip_slash(details['host']))

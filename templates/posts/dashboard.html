@@ -349,6 +349,32 @@
 
     });
 
+    const pageAccessedByReload = ( // https://stackoverflow.com/a/53307588
+        (window.performance.navigation && window.performance.navigation.type === 1) ||
+            window.performance
+            .getEntriesByType('navigation')
+            .map((nav) => nav.type)
+            .includes('reload')
+            
+        );
+
+
+    if (pageAccessedByReload == true) {
+        //console.log("The page was reloaded.")
+        $.ajax({
+                url: "/connections/refresh-cache?type=posts",
+                method: 'GET',
+                success: function(data) {
+                    //console.log("Sent GET request to /connections/refresh-cache?type=posts");
+                },
+                error: function(data) {
+                    //console.log("Error sending request.");
+                }
+        });   
+    } else {
+        //console.log("Did not reload; came from somewhere else or initial visit to dashboard.")
+    }
+
 </script>
 <!-- <script src="{% static '/js/like_button.js' %}"></script> -->
 
@@ -376,6 +402,23 @@
                 </div>
                 <div class="flex_grow"></div>
                 <p style="align-self: end;">{{ post.delta }}</p>
+
+
+                {% if post.visibility == 'PUBLIC'%}
+                <span title="{{ post.count}} people commented on this" class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Public</span>
+            
+                {%elif post.visibility == 'FRIENDS'%}
+                    <span title="{{ post.count}} people commented on this" class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Group</span>
+                
+
+                {%elif post.visibility == 'UNLISTED'%}
+                    <span title="{{ post.count}} people commented on this" class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Lock_Open</span>
+                
+
+                {%elif post.visibility == 'PRIVATE'%}
+                    <span title="{{ post.count}} people commented on this" class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Lock</span>
+                {%endif%}
+
             </section>
             <section id="post_body">
                 <h1 style="margin-left: 5px;">{{ post.title }}</h1>

@@ -15,6 +15,14 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from util import get_id_from_url, get_part_from_url
 import uuid
+from django.shortcuts import render#for Error_Return and errorPage.html
+
+def Error_Return(request):
+
+    my_error="Error 404 - Page Not Found"
+    return render(request, 'errorPage.html', {'errorCode':my_error})
+                  
+
 
 
 class SignUpView(CreateView):
