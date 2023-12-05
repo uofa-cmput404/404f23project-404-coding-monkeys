@@ -518,12 +518,12 @@ def deny_fq(request): # delete friend request; remove the request from FriendReq
 def unfollow_author(request, uuid, rq_uuid): # unfollow an author (where uuid is the author to unfollow, and rq_uuid is the uuid of the requester to unfollow)
     followers_instance = Followers.objects.get(author=uuid) # get followers instance of author
     for follower in followers_instance.followers:
-        if (follower['id'] == rq_uuid): # if the id of the follower matches that of the requester, delete this follower
+        if (follower['uuid'] == rq_uuid): # if the id of the follower matches that of the requester, delete this follower
             followers_instance.followers.remove(follower)
             followers_instance.save()
             break # finished
     
-    return redirect('author_profile', uuid=uuid) # redirect back to author's profile page when finished
+    return JsonResponse({"status":"success"}) # redirect back to author's profile page when finished
 
 
 

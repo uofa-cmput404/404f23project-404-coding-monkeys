@@ -9,13 +9,11 @@
 {% block css %}
 <link rel="stylesheet" type="text/css" href=" {% static '/css/flex.css' %} ">
 <link rel="stylesheet" type="text/css" href=" {% static '/css/posts/create.css' %} ">
-<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/main.css' %} ">
-<link rel="stylesheet" type="text/css" href=" {% static '/css/posts/inbox.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/main.css' %} ">
+<link rel="stylesheet" type="text/css" href=" {% static '/css/inbox.css' %} ">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock css %}
-
-
 
 {% block content %}
 <h1 style="padding-left:35px; margin-top:20px;"><u>Inbox</u></h1>
@@ -31,20 +29,21 @@
 
     <!-- FOLLOW REQUESTS -->
     <div id="follow-rq-box" class="inbox-container">
+        <div class="number-display">{{ requests_list|length }}</div>
         <ul>
             {% for request in requests_list %}
                 <div class="itemBacking">  
-                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ request.data.profileImage }}">
-                    <h3>{{request.data.displayName}} wants to follow you.</h3>
-                    <button class="accept-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ request.author.profileImage }}">
+                    <h3>{{request.author.displayName}} wants to follow you.</h3>
+                    <button class="accept-follow" style="margin-left:1em; margin-top: 10px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
                         <span class="material-symbols-outlined">done</span>
                     </button>
-                    <button class="deny-follow" style="margin-left:1em; margin-top: 15px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
+                    <button class="deny-follow" style="margin-left:1em; margin-top: 10px; width:40px; height:40px;" data-recipient-uuid="{{ request.recipient_uuid }}" data-requester-uuid="{{ request.requester_uuid }}">
                         <span class="material-symbols-outlined">close</span>
                     </button>
                 </div>
             {% empty %}
-                <li style="margin-left: 40px;">No friend requests yet.</li>
+                <li style="margin-left: 40px;">No new friend requests.</li>
             {% endfor %}
         </ul>
     </div>
@@ -52,15 +51,21 @@
 
     <!-- LIKES -->
     <div id="like-box" class="inbox-container">
+        <div class="number-display">{{ likes|length }}</div>
         <ul>
             {% for like in likes %}
-                <div class="itemBacking">  
-                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ like.data.profileImage }}">
-                    <h3>{{like.data.displayName}} liked your post.</h3>
-                    <a href="{% url 'inbox_post_view' author_id=request.user.uuid inbox_index=like.index %}">View Post</a>
+                <div style="margin-top: 15px;" class="itemBacking">
+                    <span style="width:30px; height:30px; margin-right: 5px" class="material-symbols-outlined">
+                        thumb_up
+                        </span>
+                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 5px;" src="{{ like.author.profileImage }}">
+                    <h2 style="color: #FFD553;">{{like.author.displayName}}</h2>
+                    <h2>liked your post.</h2>
+                    <div class="grow-flex"></div>
+                    <a style="margin-left: 5px;" href="{% url 'inbox_post_view' author_id=request.user.uuid inbox_index=like.index %}">View Post</a>
                 </div>
             {% empty %}
-                <li style="margin-left: 40px;">No likes yet.</li>
+                <li style="margin-left: 40px;">No new likes.</li>
             {% endfor %}
             </ul>
     </div>
@@ -68,15 +73,21 @@
 
     <!-- COMMENTS -->
     <div id="comment-box" class="inbox-container">
+        <div class="number-display">{{ comments|length }}</div>
         <ul>
             {% for comment in comments %}
-                <div class="itemBacking">  
-                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ comment.data.profileImage }}">
-                    <h3>{{comment.data.displayName}} commented on your post.</h3>
-                    <a href="{% url 'inbox_post_view' author_id=request.user.uuid inbox_index=comment.index %}">View Post</a>
+                <div style="margin-top: 15px;" class="itemBacking">
+                    <span style="width:30px; height:30px; margin-right: 5px" class="material-symbols-outlined">
+                        chat
+                        </span>
+                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 5px;" src="{{ comment.author.profileImage }}">
+                    <h2 style="color: #FFD553;">{{comment.author.displayName}}</h2>
+                    <h2>commented on your post.</h2>
+                    <div class="grow-flex"></div>
+                    <a style="margin-left: 5px;" href="{% url 'inbox_post_view' author_id=request.user.uuid inbox_index=comment.index %}">View Post</a>
                 </div>
             {% empty %}
-                <li style="margin-left: 40px;">No comments yet.</li>
+                <li style="margin-left: 40px;">No new comments.</li>
             {% endfor %}
             </ul>
     </div>
@@ -84,15 +95,21 @@
 
     <!-- POSTS -->
     <div id="post-box" class="inbox-container">
+        <div class="number-display">{{ posts|length }}</div>
         <ul>
             {% for post in posts %}
                 <div class="itemBacking">  
-                    <img class="user_icon" style="width: 50px; height:50px; margin-right: 1em;" src="{{ post.data.profileImage }}">
-                    <h3>{{post.data.displayName}} posted.</h3>
-                    <a href="{% url 'inbox_post_view' author_id=request.user.uuid inbox_index=post.index %}">View Post</a>
+                    <span class="material-symbols-outlined">
+                        share
+                    </span>
+                    <h2>{{post.author.displayName}}'s post</h2> 
+                    <h2 style="color: #FFD553;">{{ post.title }}</h2>
+                    <h2> has been shared with you</h2>
+                    <div class="grow-flex"></div>
+                    <a style="margin-left: 5px;" href="{% url 'inbox_post_view' author_id=request.user.uuid inbox_index=post.index %}">View Post</a>
                 </div>
             {% empty %}
-                <li style="margin-left: 40px;">No posts yet.</li>
+                <li style="margin-left: 40px;">No new shared posts.</li>
             {% endfor %}
         </ul>
     </div>
@@ -136,7 +153,39 @@
                 }
             });
         });
+        
+        switchField("fq")
+
+        function switchField(id) {
+            var headerList = ["fq", "likes", "comments", "posts"];
+            var boxList = ["follow-rq-box", "like-box", "comment-box", "post-box"];
+            for (var i = 0; i < headerList.length; i++) {
+                $("#" + boxList[i]).hide();
+                $("#" + headerList[i]).css("background-color", "#2a2a2a");
+                if (headerList[i] == id) {
+                    $("#" + boxList[i]).show();
+                    $("#" + headerList[i]).css("background-color", "#FFD553");
+                }
+            }
+        }
+
+        $("#fq").click(function () {
+            switchField("fq");
+        });
+
+        $("#likes").click(function () {
+            switchField("likes");
+        });
+
+        $("#comments").click(function () {
+            switchField("comments");
+        });
+
+        $("#posts").click(function () {
+            switchField("posts");
+        });
     });
+
 </script>
 
 {% endblock content %}

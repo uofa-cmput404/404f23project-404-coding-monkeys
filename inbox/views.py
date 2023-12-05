@@ -48,7 +48,7 @@ def follow_request_handler(request):
     auth = nodes.get_auth_for_host(safe_host)
 
     try:
-        if safe_host == HOSTS[3]:
+        if len(HOSTS) >= 4 and safe_host == HOSTS[3]:
             inbox_url = strip_slash(inbox_url)
             
         response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
@@ -96,7 +96,7 @@ def inbox_post(request, author_id, inbox_index):
 
     elif item_type == "like":
         try: 
-            like = Likes.objects.get(uuid=inbox_item["id"])
+            like = Likes.objects.get(id=inbox_item["id"])
         except: 
             print("Like not found")
             raise Http404
@@ -122,24 +122,58 @@ def inbox_view(request):
     try: inbox = Inbox.objects.get(author=author)
     except: return Response(status=404)
 
-    posts = likes = comments = requests = []
+    posts = []
+    likes = []
+    comments = []
+    requests = []
+
     index = 0
+
     for item in inbox.items:
-        item["index"] = index
+        print(item)
+        
+        data = None
+        if item.get("sender"):
+            data = author_cache.get(item["sender"]["uuid"])
+
+        if not data:
+            data = {"displayName": "An Unknown Remote Author", 
+                    "profileImage": "https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg"}
+            
         if item["type"] == "post":
-            posts.append(item)
+            try: post = Posts.objects.get(uuid=item["id"])
+            except: continue
+
+            post_data = format_local_post_from_db(post)
+            post_data["index"] = index
+            post_data["author"] = data
+            posts.append(post_data)
+
         elif item["type"] == "like":
-            likes.append(item)
+            try: like = Likes.objects.get(id=item["id"])
+            except: continue
+
+            like_data = model_to_dict(like)
+            like_data["index"] = index
+            like_data["author"] = data
+            likes.append(like_data)
+
         elif item["type"] == "comment":
-            comments.append(item)
+            try: comment = Comments.objects.get(uuid=item["id"])
+            except: continue
+
+            comment_data = model_to_dict(comment)
+            comment_data["index"] = index
+            comment_data["author"] = data
+            comments.append(comment_data)
+
         elif item["type"] == "follow":
             try: fq = FollowRequests.objects.get(id=item["id"])
             except: continue
 
             requester = model_to_dict(fq)
-            requester["data"] = author_cache.get(fq.requester_uuid)
+            requester["author"] = data
             requests.append(requester)
-        
         index += 1
     
     return render(request, 'inbox.html', {'requests_list': requests, 'posts': posts, 'likes': likes, 'comments': comments})
