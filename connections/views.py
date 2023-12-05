@@ -26,7 +26,7 @@ def extra_docs_viewer(request):
 
 @api_view(['GET'])
 def refreshCache(request):
-    print("---REFRESH TRIGGERED---")
+    #print("---REFRESH TRIGGERED---")
 
     t = request.GET.get('type')
 
