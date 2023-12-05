@@ -37,6 +37,13 @@
                         // Update the like count using the returned value (from the backend)
                         likeButtonData.data('already-pressed-this-session', 'true'); //log that the like button has already been pressed this session
                         $('#result-' + post.uuid).text(data.new_post_count); //Update the like count with whatever the backend returns
+                    },
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
             }
@@ -68,7 +75,8 @@
                             }
                             comment_uuid = comment_uuid.substring(comment_uuid.lastIndexOf("/") + 1);
 
-                            var commentElement = '<div class="comment">' +
+                            var author_inbox = comment.author.id.replace(/\/$/, "") + "/inbox"; // Extract author_inbox URL
+                            var commentElement = '<div class="comment" data-author-inbox="' + author_inbox + '">' + //add author_inbox as field of comment
                                 '<img src="' + comment.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
                                 '<div class="comment-details">' +
                                     '<p class="comment-username">' + comment.author.displayName + '</p>' +
@@ -82,8 +90,12 @@
                         $("#comment-box-container-" + post.uuid).show();
                     
                     },
-                    error: function (data) {
-                        alert("Error fetching comments. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
         });
@@ -97,21 +109,26 @@
             var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
             var post = JSON.parse(post_json); //parse the json into an object
             var comment_uuid = $(this).data("comment-uuid");
+            var author_inbox = $(this).closest('.comment').data('author-inbox');
 
             // Use ajax to get backend to send a like to a comment
             $.ajax({
                     url: '{% url "like_comment" %}',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ post: post, comment_uuid: comment_uuid }),
+                    data: JSON.stringify({ post: post, comment_uuid: comment_uuid, author_inbox: author_inbox}),
                     headers: { 'X-CSRFToken': csrfToken }, //include authentication token
                     success: function (data) {
                         console.log("returned from like comment handler")
 
                     
                     },
-                    error: function (data) {
-                        alert("Error liking comment. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
 
@@ -139,7 +156,8 @@
                         var comments = JSON.parse(data.comments);
                         // Add the comment element to the page
                         comments.forEach(function (comment) {
-                            var commentElement = '<div class="comment">' +
+                            var author_inbox = comment.author.id.replace(/\/$/, "") + "/inbox"; // Extract author_inbox URL
+                            var commentElement = '<div class="comment" data-author-inbox="' + author_inbox + '">' + //add author_inbox as field of comment
                                 '<img src="' + comment.author.profileImage + '" class="comment-profile-picture" alt="Profile Picture">' +
                                 '<div class="comment-details">' +
                                     '<p class="comment-username">' + comment.author.displayName + '</p>' +
@@ -151,8 +169,12 @@
                         });
                         $("#comment-textbox-" + post.uuid).val(''); // Clear the contents of the textbox after successfully adding the comment
                     },
-                    error: function (data) {
-                        alert("Error submitting comment. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
             }
@@ -186,8 +208,12 @@
                     var uuid = json_data.uuid;
                     window.location.href = "/authors/" + index + "/" + uuid + "/";
                 },
-                error: function(data) {
-                    console.log("error");
+                error: function (xhr, status, error) {
+                    if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                        alert("The API being called for this request does not support this feauture.");
+                    } else {
+                        alert("An unknown error has occured. Please try again.");
+                    }
                 }
             });
 
@@ -206,8 +232,12 @@
                     location.reload();
                     $("#modal").hide();
                 },
-                error: function(data) {
-                    console.log("error");
+                error: function (xhr, status, error) {
+                    if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                        alert("The API being called for this request does not support this feauture.");
+                    } else {
+                        alert("An unknown error has occured. Please try again.");
+                    }
                 }
             });
             
@@ -258,8 +288,12 @@
                         });
                     
                     },
-                    error: function (data) {
-                        alert("Error fetching followers. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
         });
@@ -272,8 +306,12 @@
                         //console.log("close share triggered")
                         $("#share_modal .followers-list").empty()
                     },
-                    error: function (data) {
-                        alert("Error fetching followers. Please try again.");
+                    error: function (xhr, status, error) {
+                        if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
+                            alert("The API being called for this request does not support this feauture.");
+                        } else {
+                            alert("An unknown error has occured. Please try again.");
+                        }
                     }
                 });
         });
@@ -313,7 +351,9 @@
                 <hr style="border: 1px solid white; margin:5px;">
                 <br>
                 {% if post.contentType == "text/plain" or post.contentType == "text/markdown" %}
+                    <div class="flex_grow">
                     {{ post.content|safe }}
+                    </div>
                 {% endif %}
             </section>
             {% if post.contentType == "application/base64" or post.contentType == "image/jpeg;base64" or post.contentType == "image/png;base64" %}
@@ -340,12 +380,14 @@
                 <a class="button-icon-link comment-button" style="margin-left: 10px;">
                     <span title="{{ post.count}} people commented on this" class="material-symbols-outlined button-icon" style="margin:0;">tooltip</span>
                 </a>
-                {% if user.uuid == post.author_uuid and post.visibility != PRIVATE %} <!-- only allow users to update their own posts; current user username must match that of author-->
+                {% if user.uuid == post.author_uuid %} <!-- only allow users to update their own posts; current user username must match that of author-->
                     <div class="flex_grow"></div>
                     <div class="context_menu" id="context_menu">
                         <div class="context_menu_item"><a href="{% url 'edit_post' post_uuid=post.uuid author_id=post.author_uuid %}"><i style="margin-right:5px;" class="material-symbols-outlined">edit</i>Edit</a></div>
                         <div class="context_menu_item"><i class="material-symbols-outlined">delete</i><button class="delete_button" id="delete-button" type="button">Delete</button></div>
-                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
+                        {% if post.visibility != 'PRIVATE' %} <!--don't allow sharing if private post-->
+                            <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 
+                        {% endif %}
                     </div>
                     <dialog class="modal" id="modal">
                         <div class="col-flex">
@@ -356,7 +398,7 @@
                         </div>
                     </dialog>
                     {% include 'share_modal.html' %}
-                {% elif user.uuid != post.author_uuid and post.visibility != PRIVATE %} <!--NOT the user's post, allow them to share only-->
+                {% elif user.uuid != post.author_uuid and post.visibility != 'PRIVATE'%} <!--NOT the user's post, allow them to share only (and only if it's not a private post)-->
                     <div class="flex_grow"></div>
                     <div class="context_menu" id="context_menu">
                         <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div> 

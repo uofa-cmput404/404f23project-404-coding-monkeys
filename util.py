@@ -99,18 +99,14 @@ def time_since_posted(created_at, host_index):
     # Web Wizards
     elif host_index == 2:
         try:
-            created_at_datetime = datetime.datetime.fromisoformat(created_at)
+            created_at_datetime = datetime.datetime.fromisoformat(created_at).replace(tzinfo=timezone)
         except:
             # add colon because they have timestamps without it :(
             created_at = created_at[:-2] + ":" + created_at[-2:]
-            created_at_datetime = datetime.datetime.fromisoformat(created_at)
+            created_at_datetime = datetime.datetime.fromisoformat(created_at).replace(tzinfo=timezone)
     # Ctrl-alt-dft
     elif host_index == 3:
-        datetime_obj = datetime.datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
-
-        # convert to ISO 8601 format
-        iso_timestamp = datetime_obj.isoformat()
-        created_at_datetime = datetime.datetime.fromisoformat(iso_timestamp).replace(tzinfo=timezone)
+        created_at_datetime = datetime.datetime.fromisoformat(created_at).replace(tzinfo=datetime.timezone.utc)
     elif host_index == 4:
         created_at_datetime = datetime.datetime.fromisoformat(created_at[:-1]).replace(tzinfo=timezone)
 
