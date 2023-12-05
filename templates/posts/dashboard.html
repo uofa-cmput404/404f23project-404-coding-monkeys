@@ -248,13 +248,9 @@
             // var post_json = $(this).closest('.post-container').find(".share-post-data").text();
             // console.log(post_json)
             var follower_inbox = $(this).closest('.follower-item').data('follower-inbox');
+            var user_username = $(this).closest('.follower-item').data('user-username');
             var post_json = decodeURIComponent($(this).closest('.follower-item').data('post-json'));
-            console.log(follower_inbox);
-            console.log(post_json)
             var post = JSON.parse(post_json); //parse the json into an object
-
-            console.log(post);
-            console.log(follower_inbox);
 
             // Use ajax to get backend to send a like to a comment
             // $.ajax({
@@ -283,6 +279,7 @@
             var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
             post_json = encodeURIComponent(post_json)
             var user_uuid = $(this).data("user-uuid")
+            var user_username = $(this).data("user-username")
             var username = 'api_dev' 
             var password = 'apiadminuser'
 
@@ -311,7 +308,7 @@
                             var follower_inbox = array_of_followers[i].id.replace(/\/$/, "") + "/inbox"; // Extract follower_inbox URL
 
                             // Create HTML elements for follower info
-                            var followerElement = '<button type="button" class="follower-item" data-follower-inbox="' + follower_inbox + '"  data-post-json="' + post_json + '"  >' +
+                            var followerElement = '<button type="button" class="follower-item" data-follower-inbox="' + follower_inbox + '"  data-post-json="' + post_json + '"    data-user-username="' + user_username + '"     >' +
                                 '<img src="' + profile_picture + '" class="follower-profile-picture" alt="Profile Picture">' +
                                 '<p class="follower-username">' + user_name + '</p>' +
                                 '</button>';
@@ -439,7 +436,7 @@
                 {% elif user.uuid != post.author_uuid and post.visibility != 'PRIVATE'%} <!--NOT the user's post, allow them to share only (and only if it's not a private post)-->
                     <div class="flex_grow"></div>
                     <div class="context_menu" id="context_menu">
-                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" id="share-button" type="button">Share</button></div>
+                        <div class="context_menu_item"><i class="material-symbols-outlined">share</i><button class="share_button" data-user-uuid="{{user.uuid}}" data-user-username="{{user.username}}" id="share-button" type="button">Share</button></div>
                         <div class="share-post-data" style="display: none;">{{ post|json_script }}</div> <!-- create a hidden html element that contains the post data in json format. We will read this in our ajax handler for the submit comment button -->
                     </div>
                     {% include 'share_modal.html' %}
