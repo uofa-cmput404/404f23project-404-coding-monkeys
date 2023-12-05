@@ -799,18 +799,14 @@ def like_comment_handler(request):
         return JsonResponse({}) #Allow the dashboard.html js to display the new comment
 
 def share_post_handler(request):
-    print("Entered share post handler!")
-
     #Gather info from frontend:
     post = json.loads(request.body).get('post', {})
     follower_inbox = json.loads(request.body).get('follower_inbox', {})
-    print(json.dumps(post, indent=2))
 
     #Gather preliminary information
     nodes = Nodes()
     follower_host = f"{urlparse(follower_inbox).scheme}://{urlparse(follower_inbox).netloc}"
     currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
-    currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
 
     if follower_host == "http://127.0.0.1:8000" or follower_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or follower_host == "http://localhost:8000":
         #send comment like to chimp-chat server
@@ -851,13 +847,14 @@ def share_post_handler(request):
         post_details_json = json.dumps(post_details)
         if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
         response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=post_details_json) #Send the post object to the posting author's inbox
-        print(response)
-        print(response.text)
-        print(response.json())
 
 
     elif follower_host == "https://distributed-network-37d054f03cf4.herokuapp.com":        
         #send comment like to T404 server
+        if "https://c404-5f70eb0b3255.herokuapp.com" in post['id']:
+            #T404 does not support TeamA posts
+            return JsonResponse({'error': 'feature-not-supported'}, status=501)
+
         full_url = f"{follower_inbox}/"
         headers = {
             "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
@@ -900,9 +897,6 @@ def share_post_handler(request):
         post_details_json = json.dumps(post_details)
         if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
         response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=post_details_json) #Send the post object to the posting author's inbox
-        print(response)
-        print(response.text)
-        print(response.json())
         
     else:
         #Otherwise we dont support liking comments for this host

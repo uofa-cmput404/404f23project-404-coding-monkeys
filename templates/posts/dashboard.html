@@ -314,14 +314,6 @@
                             // Append followerElement to the followers-list in share_modal
                             $("#share_modal .followers-list").append(followerElement);
                         } 
-
-                        // // Attach click event handler to the clickable button
-                        // $(".follower-item").on("click", function () {
-                        //     // Handle click event here, you can perform actions like opening a profile page or triggering a function
-                        //     var clickedUserName = $(this).find(".follower-username").text();
-                        //     alert("Clicked on follower: " + clickedUserName);
-                        // });
-                    
                     },
                     error: function (xhr, status, error) {
                         if (xhr.responseJSON && xhr.responseJSON.error === 'feature-not-supported') {
