@@ -127,6 +127,15 @@ def update_or_create_post(request, post_uuid):
     except Posts.DoesNotExist:
         post_pic = None
 
+    if post.contentType not in ("text/plain", "text/markdown"):
+        # save old picture post if it exists
+        oldUuid = post.uuid
+        post.uuid = oldUuid + "_pic"
+        post.save()
+
+        post_pic = post
+        post.uuid = oldUuid
+
     post.title = request.POST.get('title')
     post.description = request.POST.get('description')
     post.content = request.POST.get('content')
@@ -283,7 +292,7 @@ def delete_post(request, post_uuid):
         except Posts.DoesNotExist: 
             return redirect('stream')
         
-        return redirect('stream')
+    return redirect('stream')
 
 def get_author_info(author_id):
     author_obj = get_object_or_404(AuthorUser, id=author_id) # get db information of author to follow
