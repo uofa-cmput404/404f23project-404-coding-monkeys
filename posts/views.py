@@ -801,6 +801,23 @@ def like_comment_handler(request):
 def share_post_handler(request):
     print("Entered share post handler!")
 
+    #Gather info from frontend:
+    post = json.loads(request.body).get('post', {})
+    follower_inbox = json.loads(request.body).get('follower_inbox', {})
+    print(json.dumps(post, indent=2))
+    print(follower_inbox)
+
+
+    #Gather preliminary information
+    nodes = Nodes()
+    follower_host = f"{urlparse(follower_inbox).scheme}://{urlparse(follower_inbox).netloc}"
+    currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
+    currUser_API = get_API_formatted_author_dict_from_author_obj(currUser) #format user details for API usage
+
+    print(follower_host)
+    print(json.dumps(currUser_API, indent=2))
+
+    
     return JsonResponse({})
 
 def test(request):
