@@ -21,6 +21,7 @@ from drf_yasg import openapi
 from util import get_id_from_url, get_part_from_url, strip_slash
 from requests.auth import HTTPBasicAuth
 from django.http import HttpResponse, JsonResponse
+from django.http import Http404
 
 # VIEW LOGIC FUNCTIONS
 # ============================================================================================================================================================
@@ -45,9 +46,9 @@ def follow_request_handler(request):
     inbox_url = f'{recipient_data["url"]}/inbox/'
     safe_host = strip_slash(recipient_data["host"])
     auth = nodes.get_auth_for_host(safe_host)
-    print(auth)
+
     try:
-        if safe_host == HOSTS[3]:
+        if len(HOSTS) >= 4 and safe_host == HOSTS[3]:
             inbox_url = strip_slash(inbox_url)
             
         response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
@@ -61,40 +62,121 @@ def follow_request_handler(request):
 
 def inbox_post(request, author_id, inbox_index):
     # will be used to display post related to inbox item
-    try: author = AuthorUser.objects.get(uuid=author_id)
-    except: return Response(status=404)
+    try: 
+        author = AuthorUser.objects.get(uuid=author_id)
+    except: 
+        print("Author not found")
+        raise Http404
     
-    try: inbox = Inbox.items.get(author=author)
-    except: return Response(status=404)
+    try: 
+        inbox = Inbox.objects.get(author=author)
+    except: 
+        print("Inbox not found")
+        raise Http404
     
-    if inbox_index > (len(inbox.items) - 1):
-        return Response(status=404)
+    
+    if inbox_index not in range(len(inbox.items)):
+        print("Inbox index out of range")
+        raise Http404
 
     inbox_item = inbox.items[inbox_index]
 
     item_type = inbox_item["type"]
     if item_type == "post":
-        
-        format_local_post_from_db()
+        post_id = inbox_item["id"]
+
     elif item_type == "comment":
-        pass
+        try: 
+            comment = Comments.objects.get(uuid=inbox_item["id"])
+        except: 
+            print("Comment not found")
+            raise Http404
+
+        post_id = comment.post_id
+
     elif item_type == "like":
-        pass
+        try: 
+            like = Likes.objects.get(id=inbox_item["id"])
+        except: 
+            print("Like not found")
+            raise Http404
+
+        post_id = get_part_from_url(like.liked_object, "posts")
+
+    try: 
+        post = Posts.objects.get(uuid=post_id)
+    except: 
+        print("Post not found")
+        raise Http404
+
+    return render(request, 'single_unlisted_post.html', {'post': format_local_post_from_db(post)})
 
     
 def inbox_view(request):
-    # follow reqs
-    user = request.user # get db information of current user
-    follow_requests = FollowRequests.objects.filter(recipient_uuid=user.uuid) # get all friend requests where the user is the recipient
-
-    requests = []
+    # inbox
     author_cache = AuthorCache()
-    for frq in follow_requests:
-        requester = model_to_dict(frq)
-        requester["data"] = author_cache.get(frq.requester_uuid)
-        requests.append(requester)
+
+    try: author = AuthorUser.objects.get(uuid=request.user.uuid)
+    except: return Response(status=404)
     
-    return render(request, 'inbox.html', {'requests_list': requests})
+    try: inbox = Inbox.objects.get(author=author)
+    except: return Response(status=404)
+
+    posts = []
+    likes = []
+    comments = []
+    requests = []
+
+    index = 0
+
+    for item in inbox.items:
+        print(item)
+        
+        data = None
+        if item.get("sender"):
+            data = author_cache.get(item["sender"]["uuid"])
+
+        if not data:
+            data = {"displayName": "An Unknown Remote Author", 
+                    "profileImage": "https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg"}
+            
+        if item["type"] == "post":
+            try: post = Posts.objects.get(uuid=item["id"])
+            except: continue
+
+            post_data = format_local_post_from_db(post)
+            post_data["index"] = index
+            post_data["author"] = data
+            posts.append(post_data)
+
+        elif item["type"] == "like":
+            try: like = Likes.objects.get(id=item["id"])
+            except: continue
+
+            like_data = model_to_dict(like)
+            like_data["index"] = index
+            like_data["author"] = data
+            likes.append(like_data)
+
+        elif item["type"] == "comment":
+            try: comment = Comments.objects.get(uuid=item["id"])
+            except: continue
+
+            comment_data = model_to_dict(comment)
+            comment_data["index"] = index
+            comment_data["author"] = data
+            comments.append(comment_data)
+
+        elif item["type"] == "follow":
+            try: fq = FollowRequests.objects.get(id=item["id"])
+            except: continue
+
+            requester = model_to_dict(fq)
+            requester["author"] = data
+            requests.append(requester)
+        index += 1
+    
+    return render(request, 'inbox.html', {'requests_list': requests, 'posts': posts, 'likes': likes, 'comments': comments})
 
 
 # API

@@ -1,0 +1,77 @@
+.row-flex-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: stretch;
+}
+
+.inbox-container {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    vertical-align: center;
+
+    padding: 20px;
+
+    width: 140vh;
+    height: 60vh;
+    overflow-y: scroll;
+
+    background-color: #302e2e;
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    
+    margin: auto;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+.inbox-container h1 {
+    font-size: 32px;
+    margin: 0;
+    padding: 0;
+}
+
+h2 {
+    font-weight: lighter;
+    font-size: 20px;
+    margin: 0;
+    padding: 0;
+    color: white;
+    margin-left: 5px;
+}
+
+.number-display {
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding:0; 
+    margin: 0; 
+    height: 30px; 
+    width:30px; 
+    border-radius: 50%; 
+    border: 2px solid #FFD553; 
+    background-color: #1C1A19;
+}
+
+.itemBacking {
+    display: flex;
+    align-items: center;
+}
+
+.deny-follow, .accept-follow {
+    background-color: transparent;
+    color: white;
+    border-style: none;
+}
+
+.deny-follow:hover, .accept-follow:hover {
+    margin:0;
+    padding:0;
+    margin-bottom: 10px;
+    background-color: #363232;
+    border-radius: 15px;
+}

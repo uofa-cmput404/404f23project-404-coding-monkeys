@@ -14,4 +14,5 @@ urlpatterns = [
     path('submit_comment/', views.submit_comment_handler, name='submit_comment'),
     path('open_comments/', views.open_comments_handler, name='open_comments'),
     path('like_comment/', views.like_comment_handler, name='like_comment'),
+    path('share_post/', views.share_post_handler, name='share_post'),
 ]

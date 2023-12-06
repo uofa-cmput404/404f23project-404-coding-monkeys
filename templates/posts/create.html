@@ -22,6 +22,7 @@
         const imageRemoved = document.getElementById("{{ form.imageRemoved.id_for_label }}");
         const fileInput = document.getElementById("{{ form.picture.id_for_label }}");
         const deleteImage = document.querySelector(".delete-image");
+        
         fileInput.style.marginTop = "10px";
         fileInput.addEventListener("change", function() {
             const uploadedImage = document.getElementById('uploadedImage');
@@ -45,6 +46,7 @@
             imageRemoved.value = "True";
             document.querySelector(".image-container").style.display = "none";
             document.querySelector(".delete-image").style.display = "none";
+            setRequired();
         });
         
         const imageData = "{{ imageData }}";
@@ -103,9 +105,30 @@
             } else {
                 document.getElementById("{{ form.content.id_for_label }}").style.visibility = "visible"
             }
-
+            
+            setRequired();
             this.textContent = document.getElementById("{{ form.contentType.id_for_label }}").value;
         });
+        
+        function setRequired() {
+            if (document.getElementById("{{ form.contentType.id_for_label }}").value == "Image") {
+                document.getElementById("{{ form.content.id_for_label }}").style.visibility = "hidden";
+
+                if (document.querySelector(".image-container").style.display == "none") {
+                    document.getElementById("{{ form.picture.id_for_label }}").setAttribute("required", "required");
+                } else {
+                    document.getElementById("{{ form.picture.id_for_label }}").removeAttribute("required");
+                }
+            } else {
+                document.getElementById("{{ form.content.id_for_label }}").style.visibility = "visible";
+
+                if (document.querySelector(".image-container").style.display == "none") {
+                    document.getElementById("{{ form.picture.id_for_label }}").removeAttribute("required");
+                }
+            }
+        }
+
+        setRequired()
 
         document.querySelector(".categoryAdd").addEventListener("click", function() {
             const categoryInput = document.querySelector(".categoryInput");

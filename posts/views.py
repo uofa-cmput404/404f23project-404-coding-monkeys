@@ -1,5 +1,6 @@
 import datetime
 import json
+import pickle
 from urllib.parse import urlparse
 import bleach
 import commonmark
@@ -151,9 +152,30 @@ def update_or_create_post(request, post_uuid):
     elif cType == "Markdown":
         post.contentType = "text/markdown"
     elif cType == "Image":
-        image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
-        post.contentType = contentType_pic
-        post.content = image_base64
+        if request.FILES.get('picture'):
+            image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
+            post.contentType = contentType_pic
+            post.content = image_base64
+        elif post_pic:
+            post.contentType = post_pic.contentType
+            post.content = post_pic.content
+            post_pic.delete()
+        elif request.POST.get('imageRemoved') == "True":
+            post.contentType = ""
+            post.content = ""
+        elif request.POST.get('imageRemoved') == "False":
+            return redirect('stream')
+
+    if post.contentType not in ("text/plain", "text/markdown"):
+        # save old picture post if it exists
+        oldUuid = post.uuid
+        post.uuid = oldUuid + "_pic"
+        post.save()
+
+        post_pic = post
+        post.uuid = oldUuid
+    elif post.uuid.endswith("_pic"):
+        post.uuid = post.uuid[:-4]
 
     # add images and links to content
     if cType != "Image" and request.FILES.get('picture') is not None or post_pic and request.POST.get('imageRemoved') == "False":
@@ -179,22 +201,28 @@ def update_or_create_post(request, post_uuid):
         send_to_inbox(post, followers)
     
     # deal with embedded pictures
-    try:
-        post = Posts.objects.get(uuid=unique_id_pic)
-    except Posts.DoesNotExist:
-        print(unique_id_pic)
-        post.uuid = unique_id_pic
-        post.unlisted = True
+    # we already dealt with post if post is an image
+    if cType != "Image":
+        # delete existing
+        if post_pic and request.POST.get('imageRemoved') == "True":
+            post_pic.delete()
+        
+        # update existing or make new
+        elif request.FILES.get('picture'):
+            print("here")
+            image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
+            
+            if not post_pic:
+                post_pic = Posts()
+                post_pic.uuid = unique_id_pic
 
-    if request.POST.get('imageRemoved') == "False":
-        post.delete()
-
-    # update existing pic post
-    if cType != "Image" and request.FILES.get('picture') is not None:
-        image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
-        post.content = image_base64
-        post.contentType = contentType_pic
-        post.save()
+            post_pic.unlisted = True
+            post_pic.contentType = contentType_pic
+            post_pic.content = image_base64
+            post_pic.visibility = post.visibility
+            post_pic.author_uuid = post.author_uuid
+            print(post_pic.content)
+            post_pic.save()
 
     return redirect('stream')
 
@@ -210,6 +238,7 @@ def edit_post(request, author_id, post_uuid):
                 pic_post = None
 
             if pic_post:
+                print("pic post found")
                 post.picture = f"data:{pic_post.contentType},{pic_post.content}"
 
                 if post.contentType in ("text/plain", "text/markdown"):
@@ -225,8 +254,10 @@ def edit_post(request, author_id, post_uuid):
                 post.contentType = "Text"
             elif post.contentType == "text/markdown":
                 post.contentType = "Markdown"
-            elif post.contentType == "image/png;base64" or post.contentType == "image/jpeg;base64":
+            elif post.contentType == "application/base64" or post.contentType == "image/png;base64" or post.contentType == "image/jpeg;base64":
+                post.picture = f"data:{post.contentType},{post.content}"
                 post.contentType = "Image"
+                post.content = ""
             
             form_data = {
                 'uuid': post_uuid,
@@ -267,7 +298,7 @@ def delete_post(request, post_uuid):
         except Posts.DoesNotExist: 
             return redirect('stream')
         
-        return redirect('stream')
+    return redirect('stream')
 
 def get_author_info(author_id):
     author_obj = get_object_or_404(AuthorUser, id=author_id) # get db information of author to follow
@@ -325,9 +356,14 @@ def post_stream(request):
 
     post_cache = PostCache()
     posts = post_cache.values()
+
+    post_list = list(posts)
+    pickled = pickle.dumps(post_list)
+    fixed_posts = pickle.loads(pickled)
+
     base_url = ENDPOINT
 
-    for post in posts:
+    for post in fixed_posts:
         try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
         except: post["author_index"] = 0
         post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
@@ -523,7 +559,7 @@ def submit_comment_handler(request):
 
     if post_host == "http://127.0.0.1:8000" or post_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or post_host == "http://localhost:8000":
         #send comment
-        full_url = f"{post['origin']}/comments/"
+        full_url = f"{strip_slash(post['author']['url'])}/inbox/"
         headers = {"Content-Type": "application/json"}
         auth = nodes.get_auth_for_host(post_host)
         comment_details = {
@@ -597,7 +633,10 @@ def like_post_handler(request):
     post = json.loads(request.body).get('post', {})
 
     #gather the host of the post
-    post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    try:
+        post_host = f"{urlparse(post['origin']).scheme}://{urlparse(post['origin']).netloc}" #get the post host from the origin
+    except:
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
     if post_host.endswith('/'): post_host = post_host[:-1] #Safety for trailing /
 
     #Get current user info
@@ -623,7 +662,8 @@ def like_post_handler(request):
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]))
     
-    elif HOSTS.index(post_host) == 3:
+    elif post_host == "https://cmput404-ctrl-alt-defeat-api-12dfa609f364.herokuapp.com":
+        #API Call for CTRL ALT Defeat
         post_id = get_part_from_url(post['id'], "posts")
         author_id = get_part_from_url(post['author']['id'], "authors")
         base_url = nodes.get_host_for_index(3)
@@ -631,7 +671,14 @@ def like_post_handler(request):
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, auth=HTTPBasicAuth(auth[0], auth[1]))
 
-    if not response.ok: print(f"API error when gathering list of likes for user {currUser.username}")
+    else:
+        #unsupported host
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
+
+    if not response.ok: 
+        print(f"API error when gathering list of likes for user {currUser.username}")
+        return JsonResponse({'error': ''}, status=501)
+    
     returned_likes = response.json()
     
     #Determine if the current user has already liked the post
@@ -694,11 +741,14 @@ def like_post_handler(request):
             body_json = json.dumps(body_dict)
             response = requests.post(full_url, auth=HTTPBasicAuth(auth[0], auth[1]), json=body_dict) #Send the like object to the posting author's inbox
         
-        if not response.ok: print(f"API error when sending like object to {post['author']['displayName']}'s inbox")
-        post_cache = PostCache()
-        post_cache.incrementLikeCount(post['uuid'])
-
-        return JsonResponse({'new_post_count': post.get('likeCount', 0) +1 }) #return new post count
+        else:
+            #unsupported host
+            return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        
+        if response.ok:
+            post_cache = PostCache()
+            post_cache.incrementLikeCount(post['uuid'])
+            return JsonResponse({'new_post_count': post.get('likeCount', 0) +1 }) #return new post count
     
 def like_comment_handler(request):
     #Gather info from frontend:
@@ -753,6 +803,117 @@ def like_comment_handler(request):
     
     if response.ok:
         return JsonResponse({}) #Allow the dashboard.html js to display the new comment
+
+def share_post_handler(request):
+    #Gather info from frontend:
+    post = json.loads(request.body).get('post', {})
+    follower_inbox = json.loads(request.body).get('follower_inbox', {})
+
+    #Gather preliminary information
+    nodes = Nodes()
+    follower_host = f"{urlparse(follower_inbox).scheme}://{urlparse(follower_inbox).netloc}"
+    currUser = AuthorUser.objects.get(uuid=request.user.uuid) #get the current user
+
+    if follower_host == "http://127.0.0.1:8000" or follower_host == "https://chimp-chat-1e0cca1cc8ce.herokuapp.com" or follower_host == "http://localhost:8000":
+        #send comment like to chimp-chat server
+        full_url = f"{follower_inbox}/"
+        headers = {"Content-Type": "application/json"}
+        auth = nodes.get_auth_for_host(follower_host)
+
+        #fix some common description faults
+        try:
+            description = post['description']
+        except:
+            description = ""
+        if not description: description = ""
+
+        try:
+            post_details = {
+                "type": "post",
+                "title": post['title'],
+                "id": post['id'],
+                "source": post['source'],
+                "origin": post['origin'],
+                "description": description,
+                "contentType": post['contentType'],
+                "content": post['content'],
+                "author": post['author'],
+                "categories": [],
+                "count": post['count'],
+                "comments": post['comments'],
+                "commentsSrc": "",
+                "published": post['published'],
+                "visibility": post['visibility'],
+                "unlisted": post['unlisted']
+            }
+        except Exception as e:
+            print(e)
+            return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        
+        post_details_json = json.dumps(post_details)
+        if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=post_details_json) #Send the post object to the posting author's inbox
+
+
+    elif follower_host == "https://distributed-network-37d054f03cf4.herokuapp.com":        
+        #send comment like to T404 server
+        if "https://c404-5f70eb0b3255.herokuapp.com" in post['id']:
+            #T404 does not support TeamA posts
+            return JsonResponse({'error': 'feature-not-supported'}, status=501)
+
+        full_url = f"{follower_inbox}/"
+        headers = {
+            "Referer": "https://chimp-chat-1e0cca1cc8ce.herokuapp.com/",
+            "accept": "application/json",
+            'Content-Type': 'application/json'
+        }
+        auth = nodes.get_auth_for_host(follower_host)
+
+        #fix some common description faults
+        try:
+            description = post['description']
+        except:
+            description = ""
+        if not description: description = ""
+
+        try:
+            post_details = {
+                "type": "post",
+                "title": post['title'],
+                "id": post['id'],
+                "source": post['source'],
+                "origin": post['origin'],
+                "description": description,
+                "contentType": post['contentType'],
+                "content": post['content'],
+                "author": post['author'],
+                "categories": [],
+                "count": post['count'],
+                "comments": post['comments'],
+                "commentsSrc": "",
+                "published": post['published'],
+                "visibility": post['visibility'],
+                "unlisted": post['unlisted'],
+                "updatedAt": None
+            }
+        except Exception as e:
+            print(e)
+            return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        
+        post_details_json = json.dumps(post_details)
+        if auth is None: return JsonResponse({'error': 'feature-not-supported'}, status=501)
+        response = requests.post(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), data=post_details_json) #Send the post object to the posting author's inbox
+        
+    else:
+        #Otherwise we dont support liking comments for this host
+        return JsonResponse({'error': 'feature-not-supported'}, status=501)
+    
+    if response.ok:
+        return JsonResponse({})
+    else:
+        print(f"API error when sharing post.")
+        return JsonResponse({'error': ''}, status=501)
+        
 
 def test(request):
     return render(request, 'posts/test.html')
