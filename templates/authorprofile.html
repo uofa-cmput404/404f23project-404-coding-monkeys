@@ -125,6 +125,10 @@
 
           </div>
 
+
+          {%empty%}
+            <p style="opacity:0.6; margin-left:29px;">Find a friend to follow...</p>
+
         {% endfor %}
       </div>
 
@@ -152,10 +156,42 @@
             <img src="{{ liked.contentAuthor.profileImage }}" class="user_icon" style="width: 50px; height: 50px; border-color:#FFD553; margin-left: 5px; margin-right: 5px;">
             <p style="margin-top: 20px;">{{ liked.contentAuthor.displayName }}</p>
           </div>
+
+          {%empty%}
+            <p style="opacity:0.6; margin-left:29px;">Try finding something you like...</p>
+
         {% endfor %}
       </div>
 
       <h2 style="margin-top:0; margin-top:20px; margin-bottom:15px;"><u>Github Activity</u></h2>
+
+      {% for activity in github %}<!--See line 223 on pages views.py. print activity variable. also line 155 on get_github_activity-->
+
+        <div class="list_profiles_gradience" style="margin-left:18px; margin-bottom:4px;"></div>
+
+
+        <div class="row-flex" style=" margin-top:5px; padding:5px; margin-left:30px; max-width:550px; background: rgba(255, 213, 83, 0.66); border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);">
+
+
+          <img src="{{ activity.repo_avatar }}" class="" style="width: 40px; height: 40px; border-radius:4px; margin-left:34px; margin-right: 5px;">
+          <a style="margin-top:7px;" href="{{activity.repo_url}}">{{activity.repo}}</a>
+
+        </div>
+
+
+
+        <div class="row-flex" style="padding:5px; margin-left:38px; margin-bottom:5px;">
+          
+          <img src="{{ activity.actor_avatar }}" class="user_icon" style="width: 40px; height: 40px; margin-left:34px; margin-right: 5px;">
+          <a style="margin-top:13px;" href="{{activity.actor_url}}">{{activity.actor}} did a {{activity.type}} action</a>
+
+        </div>
+
+
+        {%empty%}
+          <p style="opacity:0.6; margin-left:29px;">No activity found. Try linking your Github account...</p>
+
+      {% endfor %}
   
     </div>
 
