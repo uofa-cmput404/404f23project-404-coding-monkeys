@@ -388,9 +388,17 @@ def personal_stream(request):
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
 def sort_posts(request, all_posts):
-    author_cache = AuthorCache()
-    author_cache.update()
-    
+    try:
+        author_cache = AuthorCache()
+        if request.user.uuid not in author_cache.keys():
+            try: author = AuthorUser.objects.get(uuid=request.user.id)
+            except: author = None
+            if author:
+                serialized = AuthorUserSerializer(author_cache.get(request.user.uuid))
+                author_cache.add(request.user.uuid, serialized.data)
+    except Exception as e:
+        print(e)
+
     toReturn = []
 
     post_cache = PostCache()
