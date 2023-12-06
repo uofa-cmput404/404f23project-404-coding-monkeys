@@ -388,6 +388,9 @@ def personal_stream(request):
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
 def sort_posts(request, all_posts):
+    author_cache = AuthorCache()
+    author_cache.update()
+    
     toReturn = []
 
     post_cache = PostCache()
