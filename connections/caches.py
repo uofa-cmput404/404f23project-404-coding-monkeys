@@ -70,10 +70,10 @@ class Cache():
 
     def get(self, key):
         self.initialize()
-        res = self.cache.get(key, {})
+        res = self.cache.get(key)
         if not res:
             self.update()
-        return self.cache.get(key, {})
+        return self.cache.get(key)
     
     def remove(self, key):
         self.initialize()
