@@ -192,32 +192,50 @@ class PostCache(Cache):
     def update(self):
         count_thread = threading.Thread(target=self.updateDBCounts)
         count_thread.start()
-        
-        post_thread = threading.Thread(target=self.pull_authors)
-        post_thread.start()
 
-    # TODO grab all local then mess with remotes
-    def pull_authors(self):
+        self.pull_posts_local()
+        self.grab_all_posts()
+
+    def pull_posts_local(self):
         author_cache = AuthorCache()
-        node_singleton = Nodes()
 
         for post in Posts.objects.all():
-            # update likes if diff detected
-            likes = Likes.objects.filter(liked_object_type='post', liked_id=post.uuid)
-            if len(likes) != post.likeCount:
-                post.likeCount = len(likes)
-                post.save()
             
             if post.uuid.endswith("_pic"):
                 continue
 
             author_override = author_cache.get(str(post.author_uuid))
             self.cache[post.uuid] = format_local_post(post, author_override)
-        
+
+    def sort_posts(self):
+        author_cache = AuthorCache()
+        node_singleton = Nodes()
+
+        node_post_list = [[],[],[],[],[]]
+
         for author, details in author_cache.items():
             try:
+                index = HOSTS.index(strip_slash(details['host']))
+                node_post_list[index].append((author, details))
+            except:
+                continue
+        
+        return node_post_list
+
+    def grab_all_posts(self):
+        master_list = self.sort_posts()
+        for i in range(len(master_list)):
+            node_authors = master_list[i]
+            thread = threading.Thread(target=self.pull_authors, args=(node_authors, i))
+            thread.start()
+
+    # TODO grab all local then mess with remotes
+    def pull_authors(self, node_authors, node_index):
+        node_singleton = Nodes()
+        for author, details in node_authors:
+            try:
                 # skip local posts
-                if strip_slash(details['host']) == strip_slash(HOSTS[0]):
+                if strip_slash(details['host']) != node_index:
                     continue
                 
                 index = HOSTS.index(strip_slash(details['host']))
