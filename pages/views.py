@@ -140,7 +140,7 @@ def get_github_actvity(uuid):
     author= author_cache.get(uuid)
     github_url=author["github"]
 
-    #print("THE URL IS THIS!!!!!",github_url)
+   
     
     if github_url is not None:
         
@@ -149,7 +149,7 @@ def get_github_actvity(uuid):
 
         github_events_url=f"https://api.github.com/users/{username}/events"
         
-        response = requests.get(github_events_url, auth=HTTPBasicAuth('NimaShariatz','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'))#the only way to bypass github api call rate limit of 60/hr. now at 1000/hr
+        response = requests.get(github_events_url)#limited to 60 calls per hour. see https://docs.github.com/en/rest/overview/rate-limits-for-the-rest-api?apiVersion=2022-11-28 
         retrived_events = []
         
         counter=0;
@@ -161,14 +161,14 @@ def get_github_actvity(uuid):
                 if(counter == 12):#limit the number of activites to grab to 12 for now. delete this if you dont want that...
                     break
                 
-                response2 = requests.get(event['actor']['url'], auth=HTTPBasicAuth('NimaShariatz','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'))#the only way to bypass github api call rate limit of 60/hr. now at 1000/hr
+                response2 = requests.get(event['actor']['url'])#limited to 60 calls per hour. see https://docs.github.com/en/rest/overview/rate-limits-for-the-rest-api?apiVersion=2022-11-28 
                 if(response.status_code==200):
                     userData = response2.json()
                     #print(userData,"\n")
                     
 
                 
-                    response3 = requests.get(event['repo']['url'], auth=HTTPBasicAuth('NimaShariatz','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'))#the only way to bypass github api call rate limit of 60/hr. now at 1000/hr
+                    response3 = requests.get(event['repo']['url'])#limited to 60 calls per hour. see https://docs.github.com/en/rest/overview/rate-limits-for-the-rest-api?apiVersion=2022-11-28 
                     if(response3.status_code==200):
                         RepoData = response3.json()
                         #print(RepoData,"\n")
