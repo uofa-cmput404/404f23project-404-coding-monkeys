@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('<str:uuid>/', views.view_user_posts, name='view_author_posts'),
     path('authors/<str:author_id>/posts/detail/', views.view_posts, name='detail'),
     path('authors/<str:author_id>/posts/<str:post_uuid>/edit', views.edit_post, name='edit_post'),
     path('<str:post_uuid>/delete', views.delete_post, name='delete_post'),
