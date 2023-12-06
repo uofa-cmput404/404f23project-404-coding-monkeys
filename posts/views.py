@@ -442,6 +442,8 @@ def sort_posts(request, all_posts):
     pickled = pickle.dumps(post_list)
     fixed_posts = pickle.loads(pickled)
 
+    print(fixed_posts)
+
     for post in fixed_posts:
         try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
         except: post["author_index"] = 0
@@ -482,7 +484,7 @@ def sort_posts(request, all_posts):
         if post.get("contentType") == "text/markdown":
             post["content"] = commonmark.commonmark(post["content"])
         # custom logic for 404 not found's group
-        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post.get("contentType") not in ("text/plain", "text/markdown"):
+        elif len(HOSTS) >= 2 and post["content"] and post.get("id") == HOSTS[1] and post.get("contentType") not in ("text/plain", "text/markdown"):
             post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)
 
