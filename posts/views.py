@@ -373,20 +373,14 @@ def post_stream(request):
         if post['unlisted'] == True and post["author_uuid"] != request.user.uuid:
             continue
 
-        # filter out posts that shouldn't be shared with current user
-        # if post["origin"] == strip_slash(ENDPOINT):
-        if post.get("origin") and post.get("origin").startswith(strip_slash(ENDPOINT)):
-            try: post_obj = Posts.objects.get(uuid=post["uuid"])
-            except Posts.DoesNotExist: post_obj = None
-            if post_obj:
-                sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
-                # don't serve post if not shared with logged in author
-                if post_obj.visibility != "PUBLIC" and request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
-                    continue
-                elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
-                    continue
-            # dont serve if post is deleted
-            else:
+        try: post_obj = Posts.objects.get(uuid=post["uuid"])
+        except Posts.DoesNotExist: post_obj = None
+        if post_obj:
+            sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
+            # don't serve post if not shared with logged in author
+            if post_obj.visibility != "PUBLIC" and request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
+                continue
+            elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
                 continue
 
         contentType = "contentType" if post["author_index"] != 2 else "content_type"
@@ -1388,7 +1382,7 @@ def api_post_likes(request, uuid, post_id):
             "author": author_cache.get(str(like.author_uuid)),
             "object": like.liked_object
         })
-        
+
     like_count = post.likeCount
     post.likeCount = like_count + 1
     post.save()
