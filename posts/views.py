@@ -417,7 +417,7 @@ def sort_posts(request, all_posts):
             traversed_uuids = [p["uuid"] for p in toReturn]
             if post["uuid"] in traversed_uuids:
                 continue
-            elif post["visibility"] == "PUBLIC":
+            if post['visibility'] == "PUBLIC" and post["author_uuid"] != request.user.uuid:
                 continue
 
         if post['unlisted'] == True and post["author_uuid"] != request.user.uuid:
