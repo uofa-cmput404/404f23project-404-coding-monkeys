@@ -624,7 +624,7 @@ def single_posts(request):
   post = update_post_with_like_count_from_API(post) #This replaces the likeCount value from the database with a value from the api. Note, this is SLOW (One api call per post)
   post_data = format_local_post_from_db(post)
 
-  return render(request, "single_unlisted_post.html", {"post": post_data})
+  return render(request, "dashboard.html", {"all_posts": [post_data], 'base_url': ENDPOINT})
 
 def like_post_handler(request):
     nodes = Nodes()
@@ -924,7 +924,7 @@ def unlisted_post(request, author_uuid, post_uuid):
 
     if post and post.unlisted == True:
         post_data = format_local_post_from_db(post)
-        return render(request, 'single_unlisted_post.html', {"post": post_data})
+        return render(request, 'dashboard.html', {"all_posts": [post_data], 'base_url': ENDPOINT})
     
     return HttpResponse(status=404)
 
@@ -1339,6 +1339,10 @@ def api_comments(request, uuid, post_id):
         post_id = get_part_from_url(comment_url, "posts")
         post = get_object_or_404(Posts, uuid=post_id)
 
+        comment_count = post.count
+        post.count = comment_count + 1
+        post.save()
+
         Comments.objects.update_or_create(comment=data["comment"], contentType=data["contentType"], uuid=comment_uuid, post=post, author_uuid=author_uuid, author_host=author_host, author_url=author_url)
 
         return Response(status=200, data=serializer.validated_data)
@@ -1369,6 +1373,7 @@ def api_post_likes(request, uuid, post_id):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     post = get_object_or_404(Posts, uuid=post_id)
 
+
     # TODO check if user should be able to see this post
     if post.visibility != "PUBLIC":
         return Response(status=404)
@@ -1383,6 +1388,10 @@ def api_post_likes(request, uuid, post_id):
             "author": author_cache.get(str(like.author_uuid)),
             "object": like.liked_object
         })
+        
+    like_count = post.likeCount
+    post.likeCount = like_count + 1
+    post.save()
     
     return Response(status=200, data={"type": "likes", "items": formatted})
         

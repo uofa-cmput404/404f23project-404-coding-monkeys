@@ -391,6 +391,12 @@ def api_inbox(request, uuid):
 
             obj_type = get_object_type(data["object"])
 
+            if obj_type == "post":
+                post = get_object_or_404(Posts, uuid=liked_id)
+                likeCount = post.likeCount
+                post.likeCount = likeCount + 1
+                post.save()
+
             Likes.objects.update_or_create(context = data["context"], liked_id=liked_id, summary = data["summary"], author_uuid=author_uuid, author_host=author_host, author_url=author_url, liked_object_type=obj_type, liked_object=data["object"])
 
             like = Likes.objects.get(author_uuid=author_uuid, liked_object=data["object"])
@@ -419,6 +425,10 @@ def api_inbox(request, uuid):
 
             post_id = get_part_from_url(comment_url, "posts")
             post = get_object_or_404(Posts, uuid=post_id)
+
+            comment_count = post.count
+            post.count = comment_count + 1
+            post.save()
 
             Comments.objects.update_or_create(comment=data["comment"], contentType=data["contentType"], uuid=comment_uuid, post=post, author_uuid=author_uuid, author_host=author_host, author_url=author_url)
 

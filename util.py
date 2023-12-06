@@ -131,7 +131,7 @@ def format_local_post_from_db(post: Posts):
     post_data.update({
         "author": author,
         "type": "post",
-        "id": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}",
+        "id": f"{strip_slash(post.host)}/authors/{post.author_uuid}/posts/{post.uuid}",
         "published": str(post.published),
         "author_uuid": post.author_uuid,
         "uuid": post.uuid,
@@ -146,7 +146,7 @@ def format_local_post_from_db(post: Posts):
 def format_local_post(post, author_details=None):
     post_data = model_to_dict(post)
     post_data["type"] = "post"
-    post_data["id"] = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
+    post_data["id"] = f"{strip_slash(post.host)}/authors/{post.author_uuid}/posts/{post.uuid}"
     post_data["published"] = str(post.published)
 
     if not author_details:

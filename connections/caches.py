@@ -4,7 +4,7 @@ from accounts.models import ForeignAuthor
 from django_project import settings
 from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
-from posts.models import Likes, Posts
+from posts.models import Comments, Likes, Posts
 from static.vars import ENDPOINT, HOSTS
 import threading
 
@@ -171,6 +171,15 @@ class PostCache(Cache):
     def __init__(self):
         super().__init__()
 
+    def updateDBCounts(self):
+        for post in Posts.objects.all():
+            likes = Likes.objects.filter(liked_object_type='post', liked_id=post.uuid)
+            post.likeCount = len(likes)
+
+            comments = Comments.objects.filter(post=post)
+            post.count = len(comments)
+            post.save()
+
     def incrementLikeCount(self, post_id):
         self.initialize()
         post = self.cache.get(post_id)
@@ -181,8 +190,11 @@ class PostCache(Cache):
             self.cache[post_id] = post
 
     def update(self):
-        thread = threading.Thread(target=self.pull_authors)
-        thread.start()
+        count_thread = threading.Thread(target=self.updateDBCounts)
+        count_thread.start()
+        
+        post_thread = threading.Thread(target=self.pull_authors)
+        post_thread.start()
 
     # TODO grab all local then mess with remotes
     def pull_authors(self):
