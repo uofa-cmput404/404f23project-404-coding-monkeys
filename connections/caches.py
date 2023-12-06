@@ -237,7 +237,7 @@ class PostCache(Cache):
         for author, details in node_authors:
             try:
                 # skip local posts
-                if node_index == 0 or strip_slash(details['host']) != HOSTS[node_index]:
+                if node_index == 0 or strip_slash(details.get('host')) != HOSTS[node_index]:
                     continue
                 
                 index = HOSTS.index(strip_slash(details['host']))
@@ -357,7 +357,7 @@ class PostCache(Cache):
             except Exception as e:
                 print(e)
         
-        # print(self.cache)
+        print(self.cache)
 
 # NODE DATA SINGLETON - for peer-to-peer requests and connection
 # ====================================================================================================
