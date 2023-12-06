@@ -143,7 +143,7 @@ class AuthorCache(Cache):
                             if not author["profileImage"]:
                                 author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
 
-                            if self.cache.get(uuid) and self.cache[uuid]["host"].startswith(strip_slash(host)):
+                            if self.cache.get(uuid) and self.cache[uuid].get("host").startswith(strip_slash(host)):
                                 continue
 
                             self.cache[uuid] = author

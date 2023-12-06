@@ -387,7 +387,52 @@ def personal_stream(request):
 
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
+def view_user_posts(request, uuid):
+    post_cache = PostCache()
+    toReturn = []
+
+    for post in post_cache:
+        author_uuid = get_part_from_url(post["author"]["id"], "authors")
+
+        if author_uuid != uuid:
+            continue
+        
+        if post["visibility"] != "PUBLIC":
+            try: 
+                post_obj = Posts.objects.get(uuid=post["uuid"])
+            except Posts.DoesNotExist:
+                continue
+            
+            if post_obj:
+                sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
+                # don't serve post if not shared with logged in author
+                if request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
+                    continue
+                elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
+                    continue
+        
+        if post.get("contentType") == "text/markdown":
+            post["content"] = commonmark.commonmark(post["content"])
+        # custom logic for 404 not found's group
+        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post.get("contentType") not in ("text/plain", "text/markdown"):
+            post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
+        
+        toReturn.append(post)
+    
+    sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
+    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts, 'base_url': ENDPOINT})
+
+
 def sort_posts(request, all_posts):
+    author_cache = AuthorCache()
+    if request.user.uuid not in author_cache.keys():
+        try: author = AuthorUser.objects.get(uuid=request.user.uuid)
+        except: author = None
+
+        if author:
+            serializer = AuthorUserSerializer(author, many=False)
+            author_cache.add(request.user.uuid, dict(serializer.data))
+
     toReturn = []
 
     post_cache = PostCache()

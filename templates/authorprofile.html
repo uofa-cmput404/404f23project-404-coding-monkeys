@@ -109,7 +109,7 @@
 
 
     <form>
-      <button class="post_button" type="submit" style=" padding:0; font-size:20px; margin-left:14px; width:100px;">Posts</button>
+      <a class="post_button" href="{% 'view_author_posts' uuid=author.uuid % }" style=" padding:0; font-size:20px; margin-left:14px; width:100px;">Posts</a>
     </form>
 
     <h2 style="margin-top:0; margin-left:12px; margin-top:20px; margin-bottom:15px;"><u>Followers</u></h2>
