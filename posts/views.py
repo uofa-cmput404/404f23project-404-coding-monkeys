@@ -997,7 +997,15 @@ def serve_image(request, uuid, post_id):
     pic_post = get_object_or_404(Posts, uuid=unique_id_pic, author_uuid=uuid)
 
     if pic_post.visibility != "PUBLIC":
-        return HttpResponse(status=404)
+        try: parent_post = Posts.objects.get(uuid=post_id)
+        except: parent_post = None
+
+        if not parent_post:
+            return HttpResponse(status=404)
+        
+        sharedIDs = [author["uuid"] for author in parent_post.sharedWith]
+        if request.user.uuid not in sharedIDs:
+            return HttpResponse(status=404)
 
     content_type = pic_post.contentType.split(";")[0]
 
