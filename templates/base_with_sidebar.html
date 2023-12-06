@@ -30,14 +30,15 @@
 
         <div class="container">
             <section id="sidebar">
-                <a class="sidebar_button" style="top:4em;" href="{% url 'stream' %}"><i class="material-symbols-outlined">home</i></a>
-                <a class="sidebar_button" style="top:9em;" href="{% url 'new_post' %}"><i class="material-symbols-outlined">add_circle</i></a>
-                <div class="divider" style="top:13.8em;"></div>
-                <a class="sidebar_button" style="top:14.5em;" href="{% url 'author_detail' host_id=0 uuid=user.uuid %}"><i class="material-symbols-outlined">account_circle</i></a>
-                <a class="sidebar_button" style="top:19.5em;" href="{% url 'authors_list' %}"><i class="material-symbols-outlined">groups</i></a>
-                <a class="sidebar_button" style="top:24.5em;" href="{% url 'inbox' %}"><i class="material-symbols-outlined">inventory_2</i></a>
-                <div class="divider" style="top:29.3em;"></div>
-                <a class="logout_button" style="top:30em;" href="{% url 'logout' %}"><i class="material-symbols-outlined" style="color:white;">logout</i></a>
+                <a class="sidebar_button" style="top:4em;" href="{% url 'personal_stream' %}"><i class="material-symbols-outlined">home</i></a>
+                <a class="sidebar_button" style="top:9em;" href="{% url 'stream' %}"><i class="material-symbols-outlined">explore</i></a>
+                <a class="sidebar_button" style="top:14em;" href="{% url 'new_post' %}"><i class="material-symbols-outlined">add_circle</i></a>
+                <div class="divider" style="top:18.8em;"></div>
+                <a class="sidebar_button" style="top:19.5em;" href="{% url 'author_detail' host_id=0 uuid=user.uuid %}"><i class="material-symbols-outlined">account_circle</i></a>
+                <a class="sidebar_button" style="top:24.5em;" href="{% url 'authors_list' %}"><i class="material-symbols-outlined">groups</i></a>
+                <a class="sidebar_button" style="top:29.5em;" href="{% url 'inbox' %}"><i class="material-symbols-outlined">inventory_2</i></a>
+                <div class="divider" style="top:34.1em;"></div>
+                <a class="logout_button" style="top:35em;" href="{% url 'logout' %}"><i class="material-symbols-outlined" style="color:white;">logout</i></a>
                 <div class="grow-flex"></div>
             </section>
             <section id="content">

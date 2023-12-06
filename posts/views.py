@@ -351,7 +351,43 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-def post_stream(request):
+def personal_stream(request):
+    author_id = request.user.uuid
+    viewable = []
+    determined_friends = set()
+    # exclude picture posts since they're dealt with in the html template
+    posts = Posts.objects.order_by('-published')
+
+    try:
+        row = Followers.objects.get(author_id=author_id)
+        current_followers = [follower['uuid'] for follower in row.followers]
+    except Followers.DoesNotExist:
+        current_followers = []
+
+    for post in posts:
+        if post.author_uuid == author_id:
+            viewable.append(post)
+
+        elif post.visibility == "FRIENDS":
+            if post.author_uuid in determined_friends or determine_if_friends(current_followers, author_id, post.author_uuid):
+                viewable.append(post)
+                determined_friends.add(post.author_uuid)
+
+        elif post.visibility == "PRIVATE":
+            sharedIDs = [author["uuid"] for author in post.sharedWith]
+            if author_id in sharedIDs:
+                viewable.append(post)
+
+    formatted = []
+    for post in viewable:
+        if post.contentType == "text/markdown":
+            post.content = commonmark.commonmark(post.content)
+        post_data = format_local_post_from_db(post)
+        formatted.append(post_data)
+
+    return render(request, 'posts/dashboard.html', {'all_posts': formatted})
+
+def sort_posts(request, all_posts):
     toReturn = []
 
     post_cache = PostCache()
@@ -361,7 +397,13 @@ def post_stream(request):
     pickled = pickle.dumps(post_list)
     fixed_posts = pickle.loads(pickled)
 
-    base_url = ENDPOINT
+    if not all_posts:
+        db_posts = Posts.objects.all()
+        for post in db_posts:
+            try: 
+                fixed_posts.append(format_local_post(post))
+            except: 
+                continue
 
     for post in fixed_posts:
         try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
@@ -370,11 +412,25 @@ def post_stream(request):
         post["uuid"] = get_part_from_url(post["id"], "posts")
         post["delta"] = time_since_posted(post["published"], post["author_index"])
 
+        # since db ones may be repeated in cache
+        if not all_posts:
+            traversed_uuids = [p["uuid"] for p in toReturn]
+            if post["uuid"] in traversed_uuids:
+                continue
+            elif post["visibility"] == "PUBLIC":
+                continue
+
         if post['unlisted'] == True and post["author_uuid"] != request.user.uuid:
             continue
 
-        try: post_obj = Posts.objects.get(uuid=post["uuid"])
-        except Posts.DoesNotExist: post_obj = None
+        try: 
+            post_obj = Posts.objects.get(uuid=post["uuid"])
+        except Posts.DoesNotExist:
+            if all_posts:
+                post_obj = None
+            else:
+                continue
+        
         if post_obj:
             sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
             # don't serve post if not shared with logged in author
@@ -392,9 +448,21 @@ def post_stream(request):
         elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post[contentType] not in ("text/plain", "text/markdown"):
             post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)
+
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
 
-    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts, 'base_url': base_url})
+    return sorted_posts
+
+
+def post_stream(request):
+    posts = sort_posts(request, True)
+
+    return render(request, 'posts/dashboard.html', {'all_posts': posts, 'base_url': ENDPOINT})
+
+def personal_stream(request):
+    posts = sort_posts(request, False)
+
+    return render(request, 'posts/dashboard.html', {'all_posts': posts, 'base_url': ENDPOINT})
 
 def update_post_with_like_count_from_API(post):
     #Takes a post object and updates the like count property based on the number of likes returned by the API
