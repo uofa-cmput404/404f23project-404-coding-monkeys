@@ -235,7 +235,7 @@ class PostCache(Cache):
         for author, details in node_authors:
             try:
                 # skip local posts
-                if strip_slash(details['host']) != node_index:
+                if strip_slash(details['host']) != HOSTS[node_index]:
                     continue
                 
                 index = HOSTS.index(strip_slash(details['host']))
