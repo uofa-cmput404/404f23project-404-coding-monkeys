@@ -447,7 +447,7 @@
                     <span title="{{ post.likeCount}} people liked this post" class="material-symbols-outlined button-icon" style="margin:0;">thumb_up</span>
                 </a>
 
-                <p class="likes" style="margin-top:7px;" id="result-{{ post.uuid }}">{{ post.likeCount}} </p>
+                <p class="likes" style="margin-top:7px; margin-left:4px;" id="result-{{ post.uuid }}">{{ post.likeCount}} </p>
 
                 <!-- comment button-->
                 <!-- Old Comment Button -->
@@ -456,6 +456,7 @@
                     <span title="{{ post.count}} people commented on this" class="material-symbols-outlined button-icon" style="margin:0;">tooltip</span>
                 </a>
 
+                <p class="likes" style="margin-top:7px; margin-left:4px;">{{ post.count}} </p>
 
                 {% if user.uuid == post.author_uuid %} <!-- only allow users to update their own posts; current user username must match that of author-->
                     <div class="flex_grow"></div>
