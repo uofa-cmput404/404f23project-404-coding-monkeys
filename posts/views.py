@@ -351,7 +351,8 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-def personal_stream(request):
+@DeprecationWarning
+def personal_stream_old(request):
     author_id = request.user.uuid
     viewable = []
     determined_friends = set()
