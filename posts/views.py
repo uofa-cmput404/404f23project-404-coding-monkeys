@@ -430,8 +430,8 @@ def view_user_posts(request, uuid):
 
 
 def sort_posts(request, all_posts):
-    author_cache = AuthorCache()
-    author_cache.update()
+    # author_cache = AuthorCache()
+    # author_cache.update()
 
     toReturn = []
 
@@ -441,14 +441,6 @@ def sort_posts(request, all_posts):
     post_list = list(posts)
     pickled = pickle.dumps(post_list)
     fixed_posts = pickle.loads(pickled)
-
-    if not all_posts:
-        db_posts = Posts.objects.all()
-        for post in db_posts:
-            try: 
-                fixed_posts.append(format_local_post(post))
-            except: 
-                continue
 
     for post in fixed_posts:
         try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
