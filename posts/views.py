@@ -388,10 +388,15 @@ def personal_stream(request):
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
 def view_user_posts(request, uuid):
-    post_cache = PostCache()
     toReturn = []
 
-    for post_uuid, post in post_cache.items():
+    post_cache = PostCache()
+    posts = post_cache.values()
+    post_list = list(posts)
+    pickled = pickle.dumps(post_list)
+    fixed_posts = pickle.loads(pickled)
+
+    for post in fixed_posts:
         author_uuid = get_part_from_url(post["author"]["id"], "authors")
 
         if author_uuid != uuid:
