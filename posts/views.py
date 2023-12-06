@@ -194,11 +194,13 @@ def update_or_create_post(request, post_uuid):
 
     if request.POST.get('sharedWith') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('sharedWith')
-        send_to_inbox(post, [selected_author_id])
+        thread = threading.Thread(send_to_inbox, args=(post, [selected_author_id],))
+        thread.start()
 
     elif post.visibility == "FRIENDS":
         followers = get_follower_ids(request.user.uuid)
-        send_to_inbox(post, followers)
+        thread = threading.Thread(send_to_inbox, args=(post, followers))
+        thread.start()
     
     # deal with embedded pictures
     # we already dealt with post if post is an image
@@ -209,7 +211,6 @@ def update_or_create_post(request, post_uuid):
         
         # update existing or make new
         elif request.FILES.get('picture'):
-            print("here")
             image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
             
             if not post_pic:
@@ -221,10 +222,9 @@ def update_or_create_post(request, post_uuid):
             post_pic.content = image_base64
             post_pic.visibility = post.visibility
             post_pic.author_uuid = post.author_uuid
-            print(post_pic.content)
             post_pic.save()
 
-    return redirect('stream')
+    return redirect('personal_stream')
 
 def edit_post(request, author_id, post_uuid):
     if request.method == 'GET':
@@ -442,10 +442,10 @@ def sort_posts(request, all_posts):
         contentType = "contentType" if post["author_index"] != 2 else "content_type"
 
         # pass html rendered as commonmark into dashboard view
-        if post[contentType] == "text/markdown":
+        if post.get("contentType") == "text/markdown":
             post["content"] = commonmark.commonmark(post["content"])
         # custom logic for 404 not found's group
-        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post[contentType] not in ("text/plain", "text/markdown"):
+        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post.get("contentType") not in ("text/plain", "text/markdown"):
             post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)
 

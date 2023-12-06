@@ -69,19 +69,7 @@ class Cache():
         self.locks[key].release()
 
     def get(self, key):
-        self.initialize()
-        res = self.cache.get(key)
-        if not res:
-            try: foreign = ForeignAuthor.objects.get(uuid=key)
-            except: foreign = None
-            if not foreign:
-                print(f"Error getting {key} from cache, updating cache...")
-                self.update()
-            else:
-                return foreign.author_json
-        
-        # This case should not happen but is a safety
-        return self.cache.get(key)
+        return self.cache.get(key, {})
     
     def remove(self, key):
         self.initialize()
@@ -108,6 +96,23 @@ class AuthorCache(Cache):
     def __init__(self):
         super().__init__()
     
+    def get(self, key):
+        self.initialize()
+        res = self.cache.get(key)
+        if not res:
+            try: foreign = ForeignAuthor.objects.get(uuid=key)
+            except: foreign = None
+            if not foreign:
+                obj = {"displayName":"An Unknown Remote Author", "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg"}
+                fa = ForeignAuthor(uuid=key, author_json=obj)
+                self.cache[key] = obj
+                fa.save()
+            else:
+                return foreign.author_json
+        
+        # This case should not happen but is a safety
+        return self.cache.get(key)
+
     def update(self):
         node_singleton = Nodes()
 
