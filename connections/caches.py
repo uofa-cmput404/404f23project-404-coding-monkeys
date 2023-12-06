@@ -69,6 +69,7 @@ class Cache():
         self.locks[key].release()
 
     def get(self, key):
+        self.initialize()
         return self.cache.get(key, {})
     
     def remove(self, key):
