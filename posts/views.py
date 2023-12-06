@@ -442,53 +442,58 @@ def sort_posts(request, all_posts):
     pickled = pickle.dumps(post_list)
     fixed_posts = pickle.loads(pickled)
 
-    print(fixed_posts)
-
     for post in fixed_posts:
         try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
         except: post["author_index"] = 0
-        post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
-        post["uuid"] = get_part_from_url(post["id"], "posts")
-        post["delta"] = time_since_posted(post["published"], post["author_index"])
 
-        # since db ones may be repeated in cache
-        if not all_posts:
-            traversed_uuids = [p["uuid"] for p in toReturn]
-            if post["uuid"] in traversed_uuids:
-                continue
-            if post['visibility'] == "PUBLIC" and post["author_uuid"] != request.user.uuid:
+        try:
+            post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
+            post["uuid"] = get_part_from_url(post["id"], "posts")
+            post["delta"] = time_since_posted(post["published"], post["author_index"])
+
+            # since db ones may be repeated in cache
+            if not all_posts:
+                traversed_uuids = [p["uuid"] for p in toReturn]
+                if post["uuid"] in traversed_uuids:
+                    continue
+                if post['visibility'] == "PUBLIC" and post["author_uuid"] != request.user.uuid:
+                    continue
+
+            if post['unlisted'] == True and post["author_uuid"] != request.user.uuid:
                 continue
 
-        if post['unlisted'] == True and post["author_uuid"] != request.user.uuid:
+            try: 
+                post_obj = Posts.objects.get(uuid=post["uuid"])
+            except Posts.DoesNotExist:
+                if all_posts:
+                    post_obj = None
+                else:
+                    continue
+            
+            if post_obj:
+                sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
+                # don't serve post if not shared with logged in author
+                if post_obj.visibility != "PUBLIC" and request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
+                    continue
+                elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
+                    continue
+
+            contentType = "contentType" if post["author_index"] != 2 else "content_type"
+
+            # pass html rendered as commonmark into dashboard view
+            if post.get("contentType") == "text/markdown":
+                post["content"] = commonmark.commonmark(post["content"])
+            # custom logic for 404 not found's group
+            elif len(HOSTS) >= 2 and post["content"] and post.get("id") == HOSTS[1] and post.get("contentType") not in ("text/plain", "text/markdown"):
+                post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
+            
+        except Exception as e:
+            print(e)
             continue
-
-        try: 
-            post_obj = Posts.objects.get(uuid=post["uuid"])
-        except Posts.DoesNotExist:
-            if all_posts:
-                post_obj = None
-            else:
-                continue
-        
-        if post_obj:
-            sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
-            # don't serve post if not shared with logged in author
-            if post_obj.visibility != "PUBLIC" and request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
-                continue
-            elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
-                continue
-
-        contentType = "contentType" if post["author_index"] != 2 else "content_type"
-
-        # pass html rendered as commonmark into dashboard view
-        if post.get("contentType") == "text/markdown":
-            post["content"] = commonmark.commonmark(post["content"])
-        # custom logic for 404 not found's group
-        elif len(HOSTS) >= 2 and post["content"] and post.get("id") == HOSTS[1] and post.get("contentType") not in ("text/plain", "text/markdown"):
-            post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
         toReturn.append(post)
 
-    sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
+    try: sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
+    except: sorted_posts = toReturn
 
     return sorted_posts
 
