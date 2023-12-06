@@ -176,15 +176,6 @@ class PostCache(Cache):
     def __init__(self):
         super().__init__()
 
-    def updateDBCounts(self):
-        for post in Posts.objects.all():
-            likes = Likes.objects.filter(liked_object_type='post', liked_id=post.uuid)
-            post.likeCount = len(likes)
-
-            comments = Comments.objects.filter(post=post)
-            post.count = len(comments)
-            post.save()
-
     def incrementLikeCount(self, post_id):
         self.initialize()
         post = self.cache.get(post_id)
@@ -195,9 +186,6 @@ class PostCache(Cache):
             self.cache[post_id] = post
 
     def update(self):
-        count_thread = threading.Thread(target=self.updateDBCounts)
-        count_thread.start()
-
         self.pull_posts_local()
         self.grab_all_posts()
 
@@ -205,6 +193,13 @@ class PostCache(Cache):
         author_cache = AuthorCache()
 
         for post in Posts.objects.all():
+
+            likes = Likes.objects.filter(liked_object_type='post', liked_id=post.uuid)
+            post.likeCount = len(likes)
+
+            comments = Comments.objects.filter(post=post)
+            post.count = len(comments)
+            post.save()
             
             if post.uuid.endswith("_pic"):
                 continue
