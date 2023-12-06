@@ -487,10 +487,12 @@ def sort_posts(request, all_posts):
             elif len(HOSTS) >= 2 and post["content"] and post.get("id") == HOSTS[1] and post.get("contentType") not in ("text/plain", "text/markdown"):
                 post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
             
+            toReturn.append(post)
+            print("appended")
+        
         except Exception as e:
             print(e)
             continue
-        toReturn.append(post)
 
     try: sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
     except: sorted_posts = toReturn
