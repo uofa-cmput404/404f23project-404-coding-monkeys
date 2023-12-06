@@ -391,7 +391,7 @@ def view_user_posts(request, uuid):
     post_cache = PostCache()
     toReturn = []
 
-    for post in post_cache:
+    for post_uuid, post in post_cache.items():
         author_uuid = get_part_from_url(post["author"]["id"], "authors")
 
         if author_uuid != uuid:
