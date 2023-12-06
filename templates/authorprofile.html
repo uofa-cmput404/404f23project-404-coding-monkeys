@@ -38,6 +38,11 @@
         }
       });
     });
+
+    $(".post_button").click(function () {
+      var user_uuid = $(this).data("user-uuid");
+      window.location.href = '/posts/' + user_uuid;
+    });
   });
 </script>
 
@@ -109,7 +114,7 @@
 
 
     <form>
-      <a class="post_button" href="{ % 'view_author_posts' uuid=author.uuid % }" style=" padding:0; font-size:20px; margin-left:14px; width:100px;">Posts</a>
+      <button class="post_button" data-user-uuid="{{ author.uuid }}" style=" padding:0; font-size:20px; margin-left:14px; width:100px;">Posts</button>
     </form>
 
     <h2 style="margin-top:0; margin-left:12px; margin-top:20px; margin-bottom:15px;"><u>Followers</u></h2>
