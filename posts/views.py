@@ -431,13 +431,7 @@ def view_user_posts(request, uuid):
 
 def sort_posts(request, all_posts):
     author_cache = AuthorCache()
-    if request.user.uuid not in author_cache.keys():
-        try: author = AuthorUser.objects.get(uuid=request.user.uuid)
-        except: author = None
-
-        if author:
-            serializer = AuthorUserSerializer(author, many=False)
-            author_cache.add(request.user.uuid, dict(serializer.data))
+    author_cache.update()
 
     toReturn = []
 
