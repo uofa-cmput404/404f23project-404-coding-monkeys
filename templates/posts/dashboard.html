@@ -405,18 +405,18 @@
 
 
                 {% if post.visibility == 'PUBLIC'%}
-                <span title="{{ post.count}} people commented on this" class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Public</span>
+                    <span class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Public</span>
             
                 {%elif post.visibility == 'FRIENDS'%}
-                    <span title="{{ post.count}} people commented on this" class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Group</span>
+                    <span class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Group</span>
                 
 
                 {%elif post.visibility == 'UNLISTED'%}
-                    <span title="{{ post.count}} people commented on this" class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Lock_Open</span>
+                    <span class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Lock_Open</span>
                 
 
                 {%elif post.visibility == 'PRIVATE'%}
-                    <span title="{{ post.count}} people commented on this" class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Lock</span>
+                    <span class="material-symbols-outlined" style="margin:0; height:20px; width:20px;">Lock</span>
                 {%endif%}
 
             </section>
@@ -446,12 +446,17 @@
                 <a class="button-icon-link like-button">
                     <span title="{{ post.likeCount}} people liked this post" class="material-symbols-outlined button-icon" style="margin:0;">thumb_up</span>
                 </a>
+
+                <p class="likes" style="margin-top:7px;" id="result-{{ post.uuid }}">{{ post.likeCount}} </p>
+
                 <!-- comment button-->
                 <!-- Old Comment Button -->
                 <!-- <button style="padding-top: 10px;" type="button"class="comment-button"><i class="material-symbols-outlined">tooltip</i></button> -->
                 <a class="button-icon-link comment-button" style="margin-left: 10px;">
                     <span title="{{ post.count}} people commented on this" class="material-symbols-outlined button-icon" style="margin:0;">tooltip</span>
                 </a>
+
+
                 {% if user.uuid == post.author_uuid %} <!-- only allow users to update their own posts; current user username must match that of author-->
                     <div class="flex_grow"></div>
                     <div class="context_menu" id="context_menu">
