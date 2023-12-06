@@ -140,26 +140,61 @@ def get_github_actvity(uuid):
     author= author_cache.get(uuid)
     github_url=author["github"]
 
-    username=github_url.split("/")[-1]
-
-    github_events_url=f"https://api.github.com/users/{username}/events"
+    #print("THE URL IS THIS!!!!!",github_url)
     
-    response = requests.get(github_events_url)
-    retrived_events = []
-    if response.status_code==200:
-        events=response.json()
-        for event in events:
-            extracted_data={
-            'id': event['id'],
-            'actor': event['actor']['display_login'],
-            'actor_url': event['actor']['url'],
-            'actor_avatar': event['actor']['avatar_url'],
-            'type': event['type'],
-            'repo': event['repo']['name'],
-            'repo': event['repo']['url'],
-            'created_at': event['created_at']}
-            retrived_events.append(extracted_data)
-        return retrived_events
+    if github_url is not None:
+        
+        
+        username=github_url.split("/")[-1]
+
+        github_events_url=f"https://api.github.com/users/{username}/events"
+        
+        response = requests.get(github_events_url, auth=HTTPBasicAuth('NimaShariatz','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'))#the only way to bypass github api call rate limit of 60/hr. now at 1000/hr
+        retrived_events = []
+        
+        counter=0;
+        
+        if response.status_code==200:
+            events=response.json()
+            for event in events:
+                counter+=1#just get the first 12 activities. delete this if you dont want that...
+                if(counter == 12):#limit the number of activites to grab to 12 for now. delete this if you dont want that...
+                    break
+                
+                response2 = requests.get(event['actor']['url'], auth=HTTPBasicAuth('NimaShariatz','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'))#the only way to bypass github api call rate limit of 60/hr. now at 1000/hr
+                if(response.status_code==200):
+                    userData = response2.json()
+                    #print(userData,"\n")
+                    
+
+                
+                    response3 = requests.get(event['repo']['url'], auth=HTTPBasicAuth('NimaShariatz','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'))#the only way to bypass github api call rate limit of 60/hr. now at 1000/hr
+                    if(response3.status_code==200):
+                        RepoData = response3.json()
+                        #print(RepoData,"\n")
+                        
+                        event_type= event['type'].replace('Event','')
+                        event_type = ''.join([' '+ s if s.isupper()  else s for s in event_type]).lstrip()#adds spacing between capital letters. thanks to https://stackoverflow.com/questions/199059/a-pythonic-way-to-insert-a-space-before-capital-letters 
+                        
+                        extracted_data={
+                        'actor': userData['login'],
+                        'actor_url': userData['html_url'],
+                        'actor_avatar': userData['avatar_url'],
+                        'type': event_type,
+                        'repo': RepoData['full_name'],
+                        'repo_url': RepoData['html_url'],
+                        'repo_avatar': RepoData['owner']['avatar_url'],
+                        'created_at': event['created_at']}
+                        retrived_events.append(extracted_data)
+                        
+                    else:
+                        break
+                else:
+                    break
+                
+            return retrived_events
+        else:
+            return None
     else:
         return None
 
