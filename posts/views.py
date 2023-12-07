@@ -199,7 +199,7 @@ def update_or_create_post(request, post_uuid):
 
     elif post.visibility == "FRIENDS":
         followers = get_follower_ids(request.user.uuid)
-        thread = threading.Thread(send_to_inbox, args=(post, followers))
+        thread = threading.Thread(send_to_inbox, args=(post, followers,))
         thread.start()
     
     # deal with embedded pictures
@@ -509,6 +509,46 @@ def update_post_with_like_count_from_API(post):
 
     return post
 
+def view_user_posts(request, uuid):
+    toReturn = []
+
+    post_cache = PostCache()
+    posts = post_cache.values()
+    post_list = list(posts)
+    pickled = pickle.dumps(post_list)
+    fixed_posts = pickle.loads(pickled)
+
+    for post in fixed_posts:
+        author_uuid = get_part_from_url(post["author"]["id"], "authors")
+
+        if author_uuid != uuid:
+            continue
+        
+        if post["visibility"] != "PUBLIC":
+            try: 
+                post_obj = Posts.objects.get(uuid=post["uuid"])
+            except Posts.DoesNotExist:
+                continue
+            
+            if post_obj:
+                sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
+                # don't serve post if not shared with logged in author
+                if request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
+                    continue
+                elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
+                    continue
+        
+        if post.get("contentType") == "text/markdown":
+            post["content"] = commonmark.commonmark(post["content"])
+        # custom logic for 404 not found's group
+        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post.get("contentType") not in ("text/plain", "text/markdown"):
+            post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
+        
+        toReturn.append(post)
+    
+    sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
+    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts, 'base_url': ENDPOINT})
+
 def view_posts(request):
     author_id = request.user.uuid
     viewable = []
@@ -700,7 +740,7 @@ def single_posts(request):
   post = update_post_with_like_count_from_API(post) #This replaces the likeCount value from the database with a value from the api. Note, this is SLOW (One api call per post)
   post_data = format_local_post_from_db(post)
 
-  return render(request, "dashboard.html", {"all_posts": [post_data], 'base_url': ENDPOINT})
+  return render(request, "posts/dashboard.html", {"all_posts": [post_data], 'base_url': ENDPOINT})
 
 def like_post_handler(request):
     nodes = Nodes()
@@ -1000,7 +1040,7 @@ def unlisted_post(request, author_uuid, post_uuid):
 
     if post and post.unlisted == True:
         post_data = format_local_post_from_db(post)
-        return render(request, 'dashboard.html', {"all_posts": [post_data], 'base_url': ENDPOINT})
+        return render(request, 'posts/dashboard.html', {"all_posts": [post_data], 'base_url': ENDPOINT})
     
     return HttpResponse(status=404)
 

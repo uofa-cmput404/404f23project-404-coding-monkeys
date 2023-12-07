@@ -59,4 +59,6 @@ urlpatterns = [
     path("authors/<str:uuid>/unfollowed/<str:rq_uuid>/", views.unfollow_author, name="author_unfollow"), # dummy url for unfollowing an author
 
     path('authors/<str:author_uuid>/posts/<str:post_uuid>/unlisted', post_views.unlisted_post, name='single_post_view'),
+
+    path('published_posts/<str:uuid>', post_views.view_user_posts, name='published_posts'),
 ]
