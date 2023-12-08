@@ -1437,7 +1437,7 @@ def api_comments(request, uuid, post_id):
         sharedWith = [author["uuid"] for author in post.sharedWith]
         if post.visibility != "PUBLIC":
             if request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
-                return Response(status=404)
+                return Response(status=401)
         
         comments = Comments.objects.filter(post_id=post_id).order_by('-published')
 
