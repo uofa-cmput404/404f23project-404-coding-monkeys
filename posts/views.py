@@ -401,8 +401,18 @@ def view_user_posts(request, uuid):
 
     for post in fixed_posts:
         author_uuid = get_part_from_url(post["author"]["id"], "authors")
-
         if author_uuid != uuid:
+            continue
+        
+        try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
+        except: post["author_index"] = 0
+        
+        post["author_uuid"] = author_uuid
+        post["uuid"] = get_part_from_url(post["id"], "posts")
+        
+        try:
+            post["delta"] = time_since_posted(post["published"], post["author_index"])
+        except Exception as e:
             continue
         
         if post["visibility"] != "PUBLIC":

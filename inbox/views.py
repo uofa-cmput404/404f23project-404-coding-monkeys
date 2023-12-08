@@ -178,6 +178,7 @@ def inbox_view(request):
             requester = model_to_dict(fq)
             requester["author"] = data
             requests.append(requester)
+        
         index += 1
     
     return render(request, 'inbox.html', {'requests_list': requests, 'posts': posts, 'likes': likes, 'comments': comments})
