@@ -644,9 +644,13 @@ def open_comments_handler(request):
             "page": 1,
             "size": 10
         }
-        print(auth)
         auth = nodes.get_auth_for_host(post_host)
+        print(auth)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), params=params)
+        print(full_url)
+        print(response)
+        print(response.json)
+        print(response.text)
         returned_comments = response.json()
         for comment in returned_comments['comments']:
             comments.append(comment)
