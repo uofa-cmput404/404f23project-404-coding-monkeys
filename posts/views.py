@@ -1177,8 +1177,9 @@ def api_posts(request, uuid, post_id):
 
     if request.method == 'GET':
         sharedWith = [author["uuid"] for author in post.sharedWith]
-        if post.visibility != "PUBLIC" and request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
-            return Response(status=404)
+        if post.visibility != "PUBLIC":
+            if request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
+                return Response(status=404)
         
         post_data = format_local_post(post)
         
@@ -1434,8 +1435,9 @@ def api_comments(request, uuid, post_id):
         post = get_object_or_404(Posts, uuid=post_id, author_uuid=uuid)
 
         sharedWith = [author["uuid"] for author in post.sharedWith]
-        if post.visibility != "PUBLIC" and request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
-            return Response(status=404)
+        if post.visibility != "PUBLIC":
+            if request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
+                return Response(status=404)
         
         comments = Comments.objects.filter(post_id=post_id).order_by('-published')
 
@@ -1533,8 +1535,9 @@ def api_post_likes(request, uuid, post_id):
     post = get_object_or_404(Posts, uuid=post_id)
 
     sharedWith = [author["uuid"] for author in post.sharedWith]
-    if post.visibility != "PUBLIC" and request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
-        return Response(status=404)
+    if post.visibility != "PUBLIC":
+        if request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
+            return Response(status=404)
 
     likes = Likes.objects.filter(liked_object_type="post", liked_id=post_id).exclude(author_uuid=uuid)
     formatted = []
@@ -1581,8 +1584,9 @@ def api_comment_likes(request, uuid, post_id, comment_id):
     comment = get_object_or_404(Comments, uuid=comment_id)
 
     sharedWith = [author["uuid"] for author in post.sharedWith]
-    if post.visibility != "PUBLIC" and request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
-        return Response(status=404)
+    if post.visibility != "PUBLIC":
+        if request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
+            return Response(status=404)
 
     likes = Likes.objects.filter(liked_object_type="comment", liked_id=comment_id).exclude(author_uuid=uuid)
     formatted = []
