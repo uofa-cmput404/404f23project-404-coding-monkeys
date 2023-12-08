@@ -190,7 +190,9 @@ def update_or_create_post(request, post_uuid):
     post.save()
 
     post_cache = PostCache()
-    post_cache.add(str(post.uuid), format_local_post(post))
+    post_cache_data = format_local_post(post)
+    post_cache_data["likeCount"] = 0
+    post_cache.add(str(post.uuid), post_cache_data)
 
     if request.POST.get('sharedWith') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('sharedWith')
