@@ -69,7 +69,11 @@ class Cache():
         self.locks[key].release()
 
     def get(self, key):
-        return self.cache.get(key, {})
+        self.initialize()
+        res = self.cache.get(key)
+        if not res:
+            self.update()
+        return self.cache.get(key)
     
     def remove(self, key):
         self.initialize()
@@ -184,19 +188,12 @@ class AuthorCache(Cache):
             except Exception as e:
                 print(e)
                 continue
+        
+        print(self.cache)
 
 class PostCache(Cache):
     def __init__(self):
         super().__init__()
-
-    def updateDBCounts(self):
-        for post in Posts.objects.all():
-            likes = Likes.objects.filter(liked_object_type='post', liked_id=post.uuid)
-            post.likeCount = len(likes)
-
-            comments = Comments.objects.filter(post=post)
-            post.count = len(comments)
-            post.save()
 
     def incrementLikeCount(self, post_id):
         self.initialize()
@@ -208,9 +205,6 @@ class PostCache(Cache):
             self.cache[post_id] = post
 
     def update(self):
-        count_thread = threading.Thread(target=self.updateDBCounts)
-        count_thread.start()
-
         self.pull_posts_local()
         self.grab_all_posts()
 
@@ -218,6 +212,13 @@ class PostCache(Cache):
         author_cache = AuthorCache()
 
         for post in Posts.objects.all():
+
+            likes = Likes.objects.filter(liked_object_type='post', liked_id=post.uuid)
+            post.likeCount = len(likes)
+
+            comments = Comments.objects.filter(post=post)
+            post.count = len(comments)
+            post.save()
             
             if post.uuid.endswith("_pic"):
                 continue
@@ -253,7 +254,7 @@ class PostCache(Cache):
         for author, details in node_authors:
             try:
                 # skip local posts
-                if strip_slash(details['host']) != HOSTS[node_index]:
+                if node_index == 0 or strip_slash(details.get('host')) != HOSTS[node_index]:
                     continue
                 
                 index = HOSTS.index(strip_slash(details['host']))
@@ -381,7 +382,7 @@ class PostCache(Cache):
             except Exception as e:
                 print(e)
         
-        # print(self.cache)
+        print(self.cache)
 
 # NODE DATA SINGLETON - for peer-to-peer requests and connection
 # ====================================================================================================

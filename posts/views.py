@@ -351,7 +351,8 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-def personal_stream(request):
+@DeprecationWarning
+def personal_stream_old(request):
     author_id = request.user.uuid
     viewable = []
     determined_friends = set()
@@ -387,17 +388,50 @@ def personal_stream(request):
 
     return render(request, 'posts/dashboard.html', {'all_posts': formatted})
 
+def view_user_posts(request, uuid):
+    toReturn = []
+
+    post_cache = PostCache()
+    posts = post_cache.values()
+    post_list = list(posts)
+    pickled = pickle.dumps(post_list)
+    fixed_posts = pickle.loads(pickled)
+
+    for post in fixed_posts:
+        author_uuid = get_part_from_url(post["author"]["id"], "authors")
+
+        if author_uuid != uuid:
+            continue
+        
+        if post["visibility"] != "PUBLIC":
+            try: 
+                post_obj = Posts.objects.get(uuid=post["uuid"])
+            except Posts.DoesNotExist:
+                continue
+            
+            if post_obj:
+                sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
+                # don't serve post if not shared with logged in author
+                if request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
+                    continue
+                elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
+                    continue
+        
+        if post.get("contentType") == "text/markdown":
+            post["content"] = commonmark.commonmark(post["content"])
+        # custom logic for 404 not found's group
+        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post.get("contentType") not in ("text/plain", "text/markdown"):
+            post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
+        
+        toReturn.append(post)
+    
+    sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
+    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts, 'base_url': ENDPOINT})
+
+
 def sort_posts(request, all_posts):
-    try:
-        author_cache = AuthorCache()
-        if request.user.uuid not in author_cache.keys():
-            try: author = AuthorUser.objects.get(uuid=request.user.id)
-            except: author = None
-            if author:
-                serialized = AuthorUserSerializer(author_cache.get(request.user.uuid))
-                author_cache.add(request.user.uuid, serialized.data)
-    except Exception as e:
-        print(e)
+    author_cache = AuthorCache()
+    author_cache.update()
 
     toReturn = []
 
@@ -407,14 +441,6 @@ def sort_posts(request, all_posts):
     post_list = list(posts)
     pickled = pickle.dumps(post_list)
     fixed_posts = pickle.loads(pickled)
-
-    if not all_posts:
-        db_posts = Posts.objects.all()
-        for post in db_posts:
-            try: 
-                fixed_posts.append(format_local_post(post))
-            except: 
-                continue
 
     for post in fixed_posts:
         try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
