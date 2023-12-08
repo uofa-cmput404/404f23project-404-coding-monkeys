@@ -105,11 +105,14 @@ def inbox_post(request, author_id, inbox_index):
 
     try: 
         post = Posts.objects.get(uuid=post_id)
+        author_id = post.author_uuid
+        author_cache = AuthorCache()
+        author_data = author_cache.get(author_id)
     except: 
         print("Post not found")
         raise Http404
 
-    return render(request, 'single_unlisted_post.html', {'post': format_local_post_from_db(post)})
+    return render(request, 'posts/dashboard.html', {'all_posts': [format_local_post_from_db(post, author_data)], 'base_url': ENDPOINT})
 
     
 def inbox_view(request):
@@ -144,9 +147,10 @@ def inbox_view(request):
             try: post = Posts.objects.get(uuid=item["id"])
             except: continue
 
+            author_data = author_cache.get(post.author_uuid)
             post_data = format_local_post_from_db(post)
             post_data["index"] = index
-            post_data["author"] = data
+            post_data["author"] = author_data
             posts.append(post_data)
 
         elif item["type"] == "like":
@@ -174,6 +178,7 @@ def inbox_view(request):
             requester = model_to_dict(fq)
             requester["author"] = data
             requests.append(requester)
+        
         index += 1
     
     return render(request, 'inbox.html', {'requests_list': requests, 'posts': posts, 'likes': likes, 'comments': comments})
@@ -391,6 +396,12 @@ def api_inbox(request, uuid):
 
             obj_type = get_object_type(data["object"])
 
+            if obj_type == "post":
+                post = get_object_or_404(Posts, uuid=liked_id)
+                likeCount = post.likeCount
+                post.likeCount = likeCount + 1
+                post.save()
+
             Likes.objects.update_or_create(context = data["context"], liked_id=liked_id, summary = data["summary"], author_uuid=author_uuid, author_host=author_host, author_url=author_url, liked_object_type=obj_type, liked_object=data["object"])
 
             like = Likes.objects.get(author_uuid=author_uuid, liked_object=data["object"])
@@ -419,6 +430,10 @@ def api_inbox(request, uuid):
 
             post_id = get_part_from_url(comment_url, "posts")
             post = get_object_or_404(Posts, uuid=post_id)
+
+            comment_count = post.count
+            post.count = comment_count + 1
+            post.save()
 
             Comments.objects.update_or_create(comment=data["comment"], contentType=data["contentType"], uuid=comment_uuid, post=post, author_uuid=author_uuid, author_host=author_host, author_url=author_url)
 

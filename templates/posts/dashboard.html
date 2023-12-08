@@ -53,7 +53,7 @@
             var post_json = $(this).siblings(".post-data").text(); // get the corresponding post as json from the html
             var post = JSON.parse(post_json); //parse the json into an object
             var commentContainer = $("#comment-box-container-" + post.uuid + " .scrollable-comments");
-
+            console.log(post_json);
             // Get existing comments for this post, and load them into the comments container
             $.ajax({
                     url: '{% url "open_comments" %}',
@@ -282,7 +282,7 @@
             var post_json = $(this).closest('.post-container').find(".comment-post-data").text();
             post_json = encodeURIComponent(post_json)
             var user_uuid = $(this).data("user-uuid")
-            var username = 'api_dev' 
+            var username = 'api' 
             var password = 'apiadminuser'
 
             $.ajax({

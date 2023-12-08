@@ -29,7 +29,7 @@ from django.test import Client
 from django.core.files.base import ContentFile
 from PIL import Image
 from drf_yasg.utils import swagger_auto_schema
-from static.vars import ENDPOINT, HOSTS
+from static.vars import ADMINS, ENDPOINT, HOSTS
 from django.http import HttpResponse
 from django.core.serializers import serialize
 from drf_yasg.utils import swagger_auto_schema
@@ -190,15 +190,19 @@ def update_or_create_post(request, post_uuid):
     post.save()
 
     post_cache = PostCache()
-    post_cache.add(str(post.uuid), format_local_post(post))
+    post_cache_data = format_local_post(post)
+    post_cache_data["likeCount"] = 0
+    post_cache.add(str(post.uuid), post_cache_data)
 
     if request.POST.get('sharedWith') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('sharedWith')
-        send_to_inbox(post, [selected_author_id])
+        thread = threading.Thread(target=send_to_inbox, args=(post, [selected_author_id],))
+        thread.start()
 
     elif post.visibility == "FRIENDS":
         followers = get_follower_ids(request.user.uuid)
-        send_to_inbox(post, followers)
+        thread = threading.Thread(target=send_to_inbox, args=(post, followers,))
+        thread.start()
     
     # deal with embedded pictures
     # we already dealt with post if post is an image
@@ -209,7 +213,6 @@ def update_or_create_post(request, post_uuid):
         
         # update existing or make new
         elif request.FILES.get('picture'):
-            print("here")
             image_base64, contentType_pic = get_picture_info(request.FILES.get('picture'))
             
             if not post_pic:
@@ -221,10 +224,9 @@ def update_or_create_post(request, post_uuid):
             post_pic.content = image_base64
             post_pic.visibility = post.visibility
             post_pic.author_uuid = post.author_uuid
-            print(post_pic.content)
             post_pic.save()
 
-    return redirect('stream')
+    return redirect('personal_stream')
 
 def edit_post(request, author_id, post_uuid):
     if request.method == 'GET':
@@ -351,7 +353,98 @@ def determine_if_friends(current_followers : list, user_id : str, post_author_id
     
     return post_author_id in current_followers and user_id in author_followers
 
-def post_stream(request):
+@DeprecationWarning
+def personal_stream_old(request):
+    author_id = request.user.uuid
+    viewable = []
+    determined_friends = set()
+    # exclude picture posts since they're dealt with in the html template
+    posts = Posts.objects.order_by('-published')
+
+    try:
+        row = Followers.objects.get(author_id=author_id)
+        current_followers = [follower['uuid'] for follower in row.followers]
+    except Followers.DoesNotExist:
+        current_followers = []
+
+    for post in posts:
+        if post.author_uuid == author_id:
+            viewable.append(post)
+
+        elif post.visibility == "FRIENDS":
+            if post.author_uuid in determined_friends or determine_if_friends(current_followers, author_id, post.author_uuid):
+                viewable.append(post)
+                determined_friends.add(post.author_uuid)
+
+        elif post.visibility == "PRIVATE":
+            sharedIDs = [author["uuid"] for author in post.sharedWith]
+            if author_id in sharedIDs:
+                viewable.append(post)
+
+    formatted = []
+    for post in viewable:
+        if post.contentType == "text/markdown":
+            post.content = commonmark.commonmark(post.content)
+        post_data = format_local_post_from_db(post)
+        formatted.append(post_data)
+
+    return render(request, 'posts/dashboard.html', {'all_posts': formatted})
+
+def view_user_posts(request, uuid):
+    toReturn = []
+
+    post_cache = PostCache()
+    posts = post_cache.values()
+    post_list = list(posts)
+    pickled = pickle.dumps(post_list)
+    fixed_posts = pickle.loads(pickled)
+
+    for post in fixed_posts:
+        author_uuid = get_part_from_url(post["author"]["id"], "authors")
+        if author_uuid != uuid:
+            continue
+        
+        try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
+        except: post["author_index"] = 0
+        
+        post["author_uuid"] = author_uuid
+        post["uuid"] = get_part_from_url(post["id"], "posts")
+        
+        try:
+            post["delta"] = time_since_posted(post["published"], post["author_index"])
+        except Exception as e:
+            continue
+        
+        if post["visibility"] != "PUBLIC":
+            try: 
+                post_obj = Posts.objects.get(uuid=post["uuid"])
+            except Posts.DoesNotExist:
+                continue
+            
+            if post_obj:
+                sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
+                # don't serve post if not shared with logged in author
+                if request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
+                    continue
+                elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
+                    continue
+        
+        if post.get("contentType") == "text/markdown":
+            post["content"] = commonmark.commonmark(post["content"])
+        # custom logic for 404 not found's group
+        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post.get("contentType") not in ("text/plain", "text/markdown"):
+            post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
+        
+        toReturn.append(post)
+    
+    sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
+    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts, 'base_url': ENDPOINT})
+
+
+def sort_posts(request, all_posts):
+    author_cache = AuthorCache()
+    author_cache.update()
+
     toReturn = []
 
     post_cache = PostCache()
@@ -361,23 +454,33 @@ def post_stream(request):
     pickled = pickle.dumps(post_list)
     fixed_posts = pickle.loads(pickled)
 
-    base_url = ENDPOINT
-
     for post in fixed_posts:
         try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
         except: post["author_index"] = 0
-        post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
-        post["uuid"] = get_part_from_url(post["id"], "posts")
-        post["delta"] = time_since_posted(post["published"], post["author_index"])
+        try:
+            post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
+            post["uuid"] = get_part_from_url(post["id"], "posts")
+            post["delta"] = time_since_posted(post["published"], post["author_index"])
 
-        if post['unlisted'] == True and post["author_uuid"] != request.user.uuid:
-            continue
+            # since db ones may be repeated in cache
+            if not all_posts:
+                traversed_uuids = [p["uuid"] for p in toReturn]
+                if post["uuid"] in traversed_uuids:
+                    continue
+                if post['visibility'] == "PUBLIC" and post["author_uuid"] != request.user.uuid:
+                    continue
 
-        # filter out posts that shouldn't be shared with current user
-        # if post["origin"] == strip_slash(ENDPOINT):
-        if post.get("origin") and post.get("origin").startswith(strip_slash(ENDPOINT)):
-            try: post_obj = Posts.objects.get(uuid=post["uuid"])
-            except Posts.DoesNotExist: post_obj = None
+            if post['unlisted'] == True and post["author_uuid"] != request.user.uuid:
+                continue
+
+            try: 
+                post_obj = Posts.objects.get(uuid=post["uuid"])
+            except Posts.DoesNotExist:
+                if all_posts:
+                    post_obj = None
+                else:
+                    continue
+            
             if post_obj:
                 sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
                 # don't serve post if not shared with logged in author
@@ -385,22 +488,33 @@ def post_stream(request):
                     continue
                 elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
                     continue
-            # dont serve if post is deleted
-            else:
-                continue
 
-        contentType = "contentType" if post["author_index"] != 2 else "content_type"
+            contentType = "contentType" if post["author_index"] != 2 else "content_type"
 
-        # pass html rendered as commonmark into dashboard view
-        if post[contentType] == "text/markdown":
-            post["content"] = commonmark.commonmark(post["content"])
-        # custom logic for 404 not found's group
-        elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post[contentType] not in ("text/plain", "text/markdown"):
-            post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
-        toReturn.append(post)
+            # pass html rendered as commonmark into dashboard view
+            if post.get("contentType") == "text/markdown":
+                post["content"] = commonmark.commonmark(post["content"])
+            # custom logic for 404 not found's group
+            elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post.get("contentType") not in ("text/plain", "text/markdown"):
+                post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
+            toReturn.append(post)
+        except Exception as e:
+            print(e)
+
     sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
 
-    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts, 'base_url': base_url})
+    return sorted_posts
+
+
+def post_stream(request):
+    posts = sort_posts(request, True)
+
+    return render(request, 'posts/dashboard.html', {'all_posts': posts, 'base_url': ENDPOINT})
+
+def personal_stream(request):
+    posts = sort_posts(request, False)
+
+    return render(request, 'posts/dashboard.html', {'all_posts': posts, 'base_url': ENDPOINT})
 
 def update_post_with_like_count_from_API(post):
     #Takes a post object and updates the like count property based on the number of likes returned by the API
@@ -432,6 +546,49 @@ def update_post_with_like_count_from_API(post):
     post.likeCount = len(returned_likes["items"])
 
     return post
+
+def view_user_posts(request, uuid):
+    toReturn = []
+
+    post_cache = PostCache()
+    posts = post_cache.values()
+    post_list = list(posts)
+    pickled = pickle.dumps(post_list)
+    fixed_posts = pickle.loads(pickled)
+
+    for post in fixed_posts:
+        try:
+            author_uuid = get_part_from_url(post["author"]["id"], "authors")
+
+            if author_uuid != uuid:
+                continue
+            
+            if post["visibility"] != "PUBLIC":
+                try: 
+                    post_obj = Posts.objects.get(uuid=post["uuid"])
+                except Posts.DoesNotExist:
+                    continue
+                
+                if post_obj:
+                    sharedIDs = [user["uuid"] for user in post_obj.sharedWith]
+                    # don't serve post if not shared with logged in author
+                    if request.user.uuid not in sharedIDs and post_obj.author_uuid != request.user.uuid:
+                        continue
+                    elif post_obj.unlisted == True and post_obj.author_uuid != request.user.uuid:
+                        continue
+            
+            if post.get("contentType") == "text/markdown":
+                post["content"] = commonmark.commonmark(post["content"])
+            # custom logic for 404 not found's group
+            elif len(HOSTS) >= 2 and post["content"] and post["id"].startswith(HOSTS[1]) and post.get("contentType") not in ("text/plain", "text/markdown"):
+                post["content"] = post["content"].split(",")[1] if len(post["content"].split(",")) == 2 else post["content"]
+            
+            toReturn.append(post)
+        except Exception as e:
+            print(e)
+    
+    sorted_posts = sorted(toReturn, key=lambda x: x["published"], reverse=True)
+    return render(request, 'posts/dashboard.html', {'all_posts': sorted_posts, 'base_url': ENDPOINT})
 
 def view_posts(request):
     author_id = request.user.uuid
@@ -624,7 +781,7 @@ def single_posts(request):
   post = update_post_with_like_count_from_API(post) #This replaces the likeCount value from the database with a value from the api. Note, this is SLOW (One api call per post)
   post_data = format_local_post_from_db(post)
 
-  return render(request, "single_unlisted_post.html", {"post": post_data})
+  return render(request, "posts/dashboard.html", {"all_posts": [post_data], 'base_url': ENDPOINT})
 
 def like_post_handler(request):
     nodes = Nodes()
@@ -924,18 +1081,35 @@ def unlisted_post(request, author_uuid, post_uuid):
 
     if post and post.unlisted == True:
         post_data = format_local_post_from_db(post)
-        return render(request, 'single_unlisted_post.html', {"post": post_data})
+        return render(request, 'posts/dashboard.html', {"all_posts": [post_data], 'base_url': ENDPOINT})
     
     return HttpResponse(status=404)
+
+def user_can_see(request_uuid, author_uuid, shared_with):
+    if request_uuid == author_uuid:
+        return True
+
+    if request_uuid in shared_with:
+        return True
+    
+    if request_uuid in ADMINS:
+        return True
+
+    return False
 
 @api_view(['GET'])
 def serve_image(request, uuid, post_id):
     unique_id_pic = str(post_id) + "_pic"
     author = get_object_or_404(AuthorUser, uuid=uuid)
     pic_post = get_object_or_404(Posts, uuid=unique_id_pic, author_uuid=uuid)
+    
+    try: assoc_post = Posts.objects.get(uuid=post_id[:-4])
+    except: assoc_post = None
 
-    if pic_post.visibility != "PUBLIC":
-        return HttpResponse(status=404)
+    if assoc_post and assoc_post.visibility != "PUBLIC":
+        sharedIDs = [user["uuid"] for user in assoc_post.sharedWith]
+        if not user_can_see(request.user.uuid, pic_post.author_uuid, sharedIDs):
+            return HttpResponse(status=404)
 
     content_type = pic_post.contentType.split(";")[0]
 
@@ -1024,9 +1198,10 @@ def api_posts(request, uuid, post_id):
         pic_post = None
 
     if request.method == 'GET':
-
+        sharedWith = [author["uuid"] for author in post.sharedWith]
         if post.visibility != "PUBLIC":
-            return Response(status=404)
+            if not user_can_see(request.user.uuid, post.author_uuid, sharedWith):
+                return Response(status=404)
         
         post_data = format_local_post(post)
         
@@ -1060,6 +1235,9 @@ def api_posts(request, uuid, post_id):
         return Response(status=400, data=serializer.errors)
     
     elif request.method == 'DELETE':
+        if request.user.uuid not in ADMINS and request.user.uuid != uuid:
+            return Response(status=401, data="Unauthorized")
+        
         post.delete()
         if pic_post:
             pic_post.delete()
@@ -1121,6 +1299,9 @@ def get_image_post(request, author_id, post_id):
 
     if request.method == 'GET':
         try:
+            if request.user.uuid not in ADMINS or request.user.uuid != pic_post.author_uuid and pic_post.visibility != "PUBLIC":
+                return Response(status=404)
+            
             # Set the appropriate content type for the image
             return HttpResponse(pic_post.content, content_type=pic_post.contentType)
         except Exception as e:
@@ -1231,7 +1412,7 @@ def api_post_creation(request, uuid):
         response = {"type": "posts", "items": serializer.validated_data}
         return Response(response)
     elif request.method == 'POST':
-        pass
+        return Response(status=501)
 
 
 
@@ -1275,8 +1456,10 @@ def api_comments(request, uuid, post_id):
         # check if post exists
         post = get_object_or_404(Posts, uuid=post_id, author_uuid=uuid)
 
+        sharedWith = [author["uuid"] for author in post.sharedWith]
         if post.visibility != "PUBLIC":
-            return Response(status=404)
+            if not user_can_see(request.user.uuid, post.author_uuid, sharedWith):
+                return Response(status=401)
         
         comments = Comments.objects.filter(post_id=post_id).order_by('-published')
 
@@ -1311,13 +1494,8 @@ def api_comments(request, uuid, post_id):
                          "post": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post_id}",
                          "id": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post_id}/comments",
                          "comments": formatted}
-        
-        serialized = CommentListSerializer(data=response_data)
 
-        if not serialized.is_valid():
-            return Response(status=500, data=serialized.errors)
-
-        return Response(status=200, data=serialized.validated_data)
+        return Response(status=200, data=response_data)
 
     elif request.method == 'POST':
         serializer = CommentSerializer(data=request.data)
@@ -1338,6 +1516,10 @@ def api_comments(request, uuid, post_id):
 
         post_id = get_part_from_url(comment_url, "posts")
         post = get_object_or_404(Posts, uuid=post_id)
+
+        comment_count = post.count
+        post.count = comment_count + 1
+        post.save()
 
         Comments.objects.update_or_create(comment=data["comment"], contentType=data["contentType"], uuid=comment_uuid, post=post, author_uuid=author_uuid, author_host=author_host, author_url=author_url)
 
@@ -1369,9 +1551,10 @@ def api_post_likes(request, uuid, post_id):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     post = get_object_or_404(Posts, uuid=post_id)
 
-    # TODO check if user should be able to see this post
+    sharedWith = [author["uuid"] for author in post.sharedWith]
     if post.visibility != "PUBLIC":
-        return Response(status=404)
+        if not user_can_see(request.user.uuid, post.author_uuid, sharedWith):
+            return Response(status=404)
 
     likes = Likes.objects.filter(liked_object_type="post", liked_id=post_id).exclude(author_uuid=uuid)
     formatted = []
@@ -1383,6 +1566,10 @@ def api_post_likes(request, uuid, post_id):
             "author": author_cache.get(str(like.author_uuid)),
             "object": like.liked_object
         })
+
+    like_count = post.likeCount
+    post.likeCount = like_count + 1
+    post.save()
     
     return Response(status=200, data={"type": "likes", "items": formatted})
         
@@ -1412,6 +1599,11 @@ def api_comment_likes(request, uuid, post_id, comment_id):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     post = get_object_or_404(Posts, uuid=post_id)
     comment = get_object_or_404(Comments, uuid=comment_id)
+
+    sharedWith = [author["uuid"] for author in post.sharedWith]
+    if post.visibility != "PUBLIC":
+        if not user_can_see(request.user.uuid, post.author_uuid, sharedWith):
+            return Response(status=404)
 
     likes = Likes.objects.filter(liked_object_type="comment", liked_id=comment_id).exclude(author_uuid=uuid)
     formatted = []

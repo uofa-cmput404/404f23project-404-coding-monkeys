@@ -4,6 +4,7 @@ from django.views.generic import CreateView, UpdateView
 import jwt
 from accounts.models import AuthorUser
 from accounts.serializers import TokenSerializer
+from connections.caches import AuthorCache
 from django_project import settings
 from .forms import AuthorCreationForm
 from accounts.forms import AuthorUpdateForm

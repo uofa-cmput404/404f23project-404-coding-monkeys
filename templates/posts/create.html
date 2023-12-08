@@ -75,10 +75,12 @@
             authorList.style.display = "none";
         }
 
+        
         // Add an event listener for changes
         visibilityField.addEventListener("change", function () {
             if (this.value === "PRIVATE") {
                 authorList.style.display = "flex";
+                document.getElementById("{{ form.sharedWith.id_for_label }}").value = authorDropdown.value;
             } else {
                 authorList.style.display = "none";
             }

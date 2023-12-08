@@ -38,7 +38,7 @@ from requests.auth import HTTPBasicAuth
 # DFB pg. 60
 def home_page_view(request): # basic generic view that just displays template
     if (request.user.is_authenticated): # if user is logged in, immediately redirect to posts stream
-        return redirect('stream')
+        return redirect('personal_stream')
     
     return render(request, 'home.html') # otherwise they're not logged in, and should be prompted with the homepage to login or signup
 
@@ -86,7 +86,8 @@ def list_profiles(request):
         toReturn = authors
     
     for a in toReturn:
-        a["index"] = HOSTS.index(strip_slash(a["host"]))
+        try: a["index"] = HOSTS.index(strip_slash(a["host"]))
+        except: a["index"] = 0
 
     sorted_list = sorted(toReturn, key=lambda x: x['displayName'].lower())
 
@@ -138,6 +139,9 @@ def author_user_detail(request, uuid):
 def get_github_actvity(uuid):
     author_cache = AuthorCache()
     author= author_cache.get(uuid)
+    if not author.get("github"):
+        return None
+
     github_url=author["github"]
 
    
@@ -236,8 +240,8 @@ def gather_info_local(request, uuid):
     following = False
     formatted_followers = []
     for f in followers:
-        formatted_followers.append(author_cache.get(f["uuid"]))
-        if f["uuid"] == request.user.uuid:
+        formatted_followers.append(author_cache.get(f.get("uuid")))
+        if f.get("uuid") == request.user.uuid:
             following = True
     
     follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)

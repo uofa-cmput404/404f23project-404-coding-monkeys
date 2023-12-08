@@ -38,6 +38,11 @@
         }
       });
     });
+
+    $("#post_button").click(function () {
+      var user_uuid = $(this).data("user-uuid");
+      window.location.href = '/published_posts/' + user_uuid;
+    });
   });
 </script>
 
@@ -108,9 +113,7 @@
     
 
 
-    <form>
-      <button class="post_button" type="submit" style=" padding:0; font-size:20px; margin-left:14px; width:100px;">Posts</button>
-    </form>
+    <button id="post_button" data-user-uuid="{{ author.uuid }}" class="post_button" type="button" style=" padding:0; font-size:20px; margin-left:14px; width:100px;">Posts</button>
 
     <h2 style="margin-top:0; margin-left:12px; margin-top:20px; margin-bottom:15px;"><u>Followers</u></h2>
     <ul style="list-style-type: none; padding:10px;"><!--Set padding to something to remove discrepencies between Firefox and Chrome, as Firefox as a default and chrome doesnt-->

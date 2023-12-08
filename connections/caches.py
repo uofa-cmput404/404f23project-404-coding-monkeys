@@ -1,10 +1,10 @@
 import requests
 from cryptography.fernet import Fernet
-from accounts.models import ForeignAuthor
+from accounts.models import AuthorUser, ForeignAuthor
 from django_project import settings
 from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
-from posts.models import Likes, Posts
+from posts.models import Comments, Likes, Posts
 from static.vars import ENDPOINT, HOSTS
 import threading
 
@@ -72,15 +72,7 @@ class Cache():
         self.initialize()
         res = self.cache.get(key)
         if not res:
-            try: foreign = ForeignAuthor.objects.get(uuid=key)
-            except: foreign = None
-            if not foreign:
-                print(f"Error getting {key} from cache, updating cache...")
-                self.update()
-            else:
-                return foreign.author_json
-        
-        # This case should not happen but is a safety
+            self.update()
         return self.cache.get(key)
     
     def remove(self, key):
@@ -108,6 +100,27 @@ class AuthorCache(Cache):
     def __init__(self):
         super().__init__()
     
+    def get(self, key):
+        self.initialize()
+        res = self.cache.get(key)
+        if not res:
+            self.update()
+            try: foreign = ForeignAuthor.objects.get(uuid=key)
+            except: foreign = None
+
+            if self.cache.get(key):
+                return self.cache.get(key)
+            elif not foreign:
+                obj = {"displayName":"An Unknown Remote Author", "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg"}
+                fa = ForeignAuthor(uuid=key, author_json=obj)
+                self.cache[key] = obj
+                fa.save()
+            else:
+                return foreign.author_json
+        
+        # This case should not happen but is a safety
+        return self.cache.get(key)
+
     def update(self):
         node_singleton = Nodes()
 
@@ -115,7 +128,19 @@ class AuthorCache(Cache):
         for f in foreigns:
             self.cache[str(f.uuid)] = f.author_json
 
-        for i in range(len(HOSTS)):
+        authors = AuthorUser.objects.all()
+        for a in authors:
+            url = f"{strip_slash(ENDPOINT)}/authors/{a.uuid}"
+            author_json = {"id": url,
+                           "type": "author",
+                           "displayName": a.username,
+                           "github": a.github,
+                           "profileImage": a.profile_image,
+                           "url": url,
+                           "host": a.host}
+            self.cache[str(a.uuid)] = author_json
+
+        for i in range(1, len(HOSTS)):
             host = HOSTS[i]
 
             auth = node_singleton.get_auth_for_host(host)
@@ -137,9 +162,6 @@ class AuthorCache(Cache):
                             
                             if not author["profileImage"]:
                                 author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
-
-                            if self.cache.get(uuid) and self.cache[uuid]["host"].startswith(strip_slash(host)):
-                                continue
 
                             self.cache[uuid] = author
                 else:
@@ -166,7 +188,7 @@ class AuthorCache(Cache):
             except Exception as e:
                 print(e)
                 continue
-
+        
 class PostCache(Cache):
     def __init__(self):
         super().__init__()
@@ -181,31 +203,56 @@ class PostCache(Cache):
             self.cache[post_id] = post
 
     def update(self):
-        thread = threading.Thread(target=self.pull_authors)
-        thread.start()
+        self.pull_posts_local()
+        self.grab_all_posts()
 
-    # TODO grab all local then mess with remotes
-    def pull_authors(self):
+    def pull_posts_local(self):
         author_cache = AuthorCache()
-        node_singleton = Nodes()
 
         for post in Posts.objects.all():
-            # update likes if diff detected
+
             likes = Likes.objects.filter(liked_object_type='post', liked_id=post.uuid)
-            if len(likes) != post.likeCount:
-                post.likeCount = len(likes)
-                post.save()
+            post.likeCount = len(likes)
+
+            comments = Comments.objects.filter(post=post)
+            post.count = len(comments)
+            post.save()
             
             if post.uuid.endswith("_pic"):
                 continue
 
             author_override = author_cache.get(str(post.author_uuid))
             self.cache[post.uuid] = format_local_post(post, author_override)
-        
+
+    def sort_posts(self):
+        author_cache = AuthorCache()
+        node_singleton = Nodes()
+
+        node_post_list = [[],[],[],[],[]]
+
         for author, details in author_cache.items():
             try:
+                index = HOSTS.index(strip_slash(details['host']))
+                node_post_list[index].append((author, details))
+            except:
+                continue
+        
+        return node_post_list
+
+    def grab_all_posts(self):
+        master_list = self.sort_posts()
+        for i in range(len(master_list)):
+            node_authors = master_list[i]
+            thread = threading.Thread(target=self.pull_authors, args=(node_authors, i))
+            thread.start()
+
+    # TODO grab all local then mess with remotes
+    def pull_authors(self, node_authors, node_index):
+        node_singleton = Nodes()
+        for author, details in node_authors:
+            try:
                 # skip local posts
-                if strip_slash(details['host']) == strip_slash(HOSTS[0]):
+                if node_index == 0 or strip_slash(details.get('host')) != HOSTS[node_index]:
                     continue
                 
                 index = HOSTS.index(strip_slash(details['host']))
@@ -232,6 +279,8 @@ class PostCache(Cache):
                                     if response.ok:
                                         likes = response.json()
                                         post["likeCount"] = len(likes)
+                                    else:
+                                        post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
                                 self.cache[uuid] = post
@@ -261,6 +310,8 @@ class PostCache(Cache):
                                     if response.ok:
                                         likes = response.json()
                                         post["likeCount"] = len(likes["items"])
+                                    else:
+                                        post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
                                 self.cache[uuid] = post
@@ -286,6 +337,8 @@ class PostCache(Cache):
                                     if response.ok:
                                         likes = response.json()
                                         post["likeCount"] = len(likes["items"])
+                                    else:
+                                        post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
                                 self.cache[uuid] = post
@@ -313,6 +366,8 @@ class PostCache(Cache):
                                     if response.ok:
                                         likes = response.json()
                                         post["likeCount"] = len(likes["items"])
+                                    else:
+                                        post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
                                 
@@ -325,7 +380,6 @@ class PostCache(Cache):
             except Exception as e:
                 print(e)
         
-        # print(self.cache)
 
 # NODE DATA SINGLETON - for peer-to-peer requests and connection
 # ====================================================================================================

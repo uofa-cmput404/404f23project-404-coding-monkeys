@@ -42,7 +42,7 @@ class AuthorDetail():
                 "host": self.host,
                 "url": self.url,
                 "github": None,
-                "displayName": "User Not Found",
+                "displayName": "An Unknown Remote Author",
                 "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg"}
         
         if self.isLocal:
@@ -122,16 +122,18 @@ def time_since_posted(created_at, host_index):
     # Use humanize to get a human-readable representation
     return humanize.naturaltime(time_difference)
 
-def format_local_post_from_db(post: Posts):
+def format_local_post_from_db(post: Posts, author_details=None):
     post_data = model_to_dict(post)
 
-    ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
-    author = ad.formatAuthorInfo()
+    if not author_details:
+        ad = AuthorDetail(post.author_uuid, post.author_url, post.author_host)
+        post_data["author"] = ad.formatAuthorInfo()
+    else:
+        post_data["author"] = author_details
 
     post_data.update({
-        "author": author,
         "type": "post",
-        "id": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}",
+        "id": f"{strip_slash(post.author_host)}/authors/{post.author_uuid}/posts/{post.uuid}",
         "published": str(post.published),
         "author_uuid": post.author_uuid,
         "uuid": post.uuid,
@@ -146,7 +148,7 @@ def format_local_post_from_db(post: Posts):
 def format_local_post(post, author_details=None):
     post_data = model_to_dict(post)
     post_data["type"] = "post"
-    post_data["id"] = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}"
+    post_data["id"] = f"{strip_slash(post.author_host)}/authors/{post.author_uuid}/posts/{post.uuid}"
     post_data["published"] = str(post.published)
 
     if not author_details:
