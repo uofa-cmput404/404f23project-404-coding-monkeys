@@ -454,7 +454,7 @@ button, .context_button {
     box-shadow: 0 0 10px rgb(24, 23, 23)
 }
 
-/* CHATGPT SEE BOOKMARK */
+/* CHATGPT - 2023-12-8 Prompt #3 */
 .follower-item {
     display: flex;
     align-items: center;
@@ -476,4 +476,4 @@ button, .context_button {
     border-radius: 50%; /* Make it circular */
     margin-right: 10px; /* Adjust as needed */
 }
-
+/* Reference End */
