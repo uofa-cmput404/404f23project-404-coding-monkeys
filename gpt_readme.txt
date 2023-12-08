@@ -1,5 +1,7 @@
 This file contains all major usages of AI. The lines in the code where the prompt was used or applied 
-in some way are noted with the corresponding date and prompt #.
+in some way are noted with the corresponding date and prompt #. 
+
+Note: in later instances a link to the entire conversation has been provided, with notes on what specifically was used.
 
 EXAMPLE FORMAT:
 AI name - date - prompt #
