@@ -213,3 +213,95 @@ class FollowRequestsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
 
 Note: used suggestions as-is for overriding test_func to check if the user is allowed to view a given fq list
+
+CHATGPT - 2023-12-8 Prompt #1
+
+See conversation: https://chat.openai.com/share/89a42d03-3fa1-47f9-8315-979cc716f9f1
+
+$(".share_button").click(function () {
+    console.log("share triggered");
+    var author_uuid = 'a02e3525-bb5a-44eb-852d-0f93f63d1a22'; // TODO how to get user uuid like above?
+
+    // TODO forced to log-in?
+    $.ajax({
+        url: 'http://127.0.0.1:8000/authors/' + author_uuid + '/followers/', //TODO change from localhost to live
+        method: 'GET',
+        contentType: 'application/json',
+
+        success: function (data) {
+            var array_of_followers = data.items;
+
+            // Clear existing content in the share_modal
+            $("#share_modal .followers-list").empty();
+
+            // Create and append new HTML elements for each follower
+            for (let i = 0; i < array_of_followers.length; i++) {
+                var user_name = array_of_followers[i].displayName;
+                var profile_picture = array_of_followers[i].profileImage;
+
+                // Create HTML elements for follower info
+                var followerElement = '<div class="follower-item">' +
+                    '<img src="' + profile_picture + '" class="follower-profile-picture" alt="Profile Picture">' +
+                    '<p class="follower-username">' + user_name + '</p>' +
+                    '</div>';
+
+                // Append followerElement to the followers-list in share_modal
+                $("#share_modal .followers-list").append(followerElement);
+            }
+
+            // Show the share_modal
+            $("#share_modal").show();
+        },
+        error: function (data) {
+            alert("Error fetching followers. Please try again.");
+        }
+    });
+});
+
+Note: Used most of the code as-is for implementing the front-end of the sharing functionality.
+
+CHATGPT - 2023-12-8 Prompt #2
+
+See conversation: https://chat.openai.com/share/89a42d03-3fa1-47f9-8315-979cc716f9f1
+
+<dialog class="share_modal" id="share_modal">
+    <div class="col-flex">
+        <h1>Share with Followers</h1>
+        <p style="color:white; font-size: 20px;">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus eligendi ex, omnis ut modi officiis ducimus esse eveniet, quasi illum ipsa voluptates? Itaque enim cum, accusantium laborum sint explicabo rem?</p>
+        <!-- Container for follower information -->
+        <div class="followers-list"></div>
+        <button style="margin-right: 10px;" class="share-close-button" type="button">Cancel</button>
+    </div>
+</dialog>
+
+
+Note: Used most of the code as-is for implementing the share modal.
+
+CHATGPT - 2023-12-8 Prompt #3
+
+/* Add this CSS to your existing styles or create a new section for follower styling */
+.follower-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* Adjust as needed */
+}
+
+.follower-details {
+    display: flex;
+    align-items: center;
+}
+
+.follower-username {
+    margin-right: 10px; /* Adjust as needed */
+}
+
+.follower-profile-picture {
+    width: 30px; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    border-radius: 50%; /* Make it circular */
+    margin-right: 10px; /* Adjust as needed */
+}
+
+See conversation: https://chat.openai.com/share/025608bc-5a95-4d28-90e0-a9fb18d034a1
+Note: Used most of the code as-is for styling the share modal.
+
