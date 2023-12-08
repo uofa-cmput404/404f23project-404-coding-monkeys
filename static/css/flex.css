@@ -18,3 +18,69 @@
     padding: 0;
     margin: 0;
 }
+
+/* Tooltip Container */
+.tooltip {
+    position: relative;
+}
+
+/* Tooltip Content */
+.tooltip .tooltip-content {
+    position: absolute;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    display: none;
+    z-index: 1;
+    width: 200px; /* Adjust the width as needed */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #333;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Tooltip Arrow */
+.tooltip .tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 8px 0 8px;
+    border-color: #ccc transparent transparent transparent;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -8px;
+}
+
+/* Tooltip List */
+.tooltip ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tooltip ul li {
+    margin-bottom: 5px;
+}
+
+/* Info Icon */
+.info-icon {
+    cursor: pointer;
+    position: relative;
+}
+
+.info-icon:hover + .tooltip .tooltip-content {
+    display: block;
+    opacity: 1;
+}
+
+.tooltip .tooltip-arrow {
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
+}
+
+.tooltip:hover .tooltip-arrow {
+    opacity: 1;
+}
