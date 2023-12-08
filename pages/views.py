@@ -226,7 +226,9 @@ def get_liked_author(url):
 
 def gather_info_local(request, uuid):
     try: author_object = AuthorUser.objects.get(uuid=uuid)
-    except: return HttpResponse(content=f"Author not found: {uuid}", status=404)
+    except:
+        my_error= (f"Author not found: {uuid}")
+        return render(request, 'errorPage.html', {'errorCode':my_error})
 
     # author info
     author_cache = AuthorCache()
@@ -241,8 +243,12 @@ def gather_info_local(request, uuid):
     formatted_followers = []
     for f in followers:
         formatted_followers.append(author_cache.get(f.get("uuid")))
-        if f.get("uuid") == request.user.uuid:
-            following = True
+        try:
+            if f["uuid"] == request.user.uuid:
+                following = True
+        except:
+            my_error= "You cannot have access to this profile without logging in"
+            return render(request, 'errorPage.html', {'errorCode':my_error})
     
     follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)
     requested = len(follow_rq) > 0
@@ -303,11 +309,11 @@ def render_author_detail(request, host_id, uuid):
             if host_id == 4:
                 author["profileImage"] = author.pop("profilePicture")
         else:
-            # TODO render and error page
-            return HttpResponse(content="Author not found", status=response.status_code)
+            my_error= ("Author not found")
+            return render(request, 'errorPage.html', {'errorCode':my_error})
     except:
-        # TODO render and error page
-        return HttpResponse(content="Author not found", status=404)
+        my_error= ("Author not found")
+        return render(request, 'errorPage.html', {'errorCode':my_error})
 
     # grab the followers information
     all_followers = []
