@@ -1,6 +1,6 @@
 import requests
 from cryptography.fernet import Fernet
-from accounts.models import ForeignAuthor
+from accounts.models import AuthorUser, ForeignAuthor
 from django_project import settings
 from django_project.settings import FERNET_KEY
 from requests.auth import HTTPBasicAuth
@@ -100,9 +100,13 @@ class AuthorCache(Cache):
         self.initialize()
         res = self.cache.get(key)
         if not res:
+            self.update()
             try: foreign = ForeignAuthor.objects.get(uuid=key)
             except: foreign = None
-            if not foreign:
+
+            if self.cache.get(key):
+                return self.cache.get(key)
+            elif not foreign:
                 obj = {"displayName":"An Unknown Remote Author", "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg"}
                 fa = ForeignAuthor(uuid=key, author_json=obj)
                 self.cache[key] = obj
@@ -120,7 +124,19 @@ class AuthorCache(Cache):
         for f in foreigns:
             self.cache[str(f.uuid)] = f.author_json
 
-        for i in range(len(HOSTS)):
+        authors = AuthorUser.objects.all()
+        for a in authors:
+            url = f"{strip_slash(ENDPOINT)}/authors/{a.uuid}"
+            author_json = {"id": url,
+                           "type": "author",
+                           "displayName": a.username,
+                           "github": a.github,
+                           "profileImage": a.profile_image,
+                           "url": url,
+                           "host": a.host}
+            self.cache[str(a.uuid)] = author_json
+
+        for i in range(1, len(HOSTS)):
             host = HOSTS[i]
 
             auth = node_singleton.get_auth_for_host(host)
@@ -142,9 +158,6 @@ class AuthorCache(Cache):
                             
                             if not author["profileImage"]:
                                 author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
-
-                            if self.cache.get(uuid) and self.cache[uuid]["host"].startswith(strip_slash(host)):
-                                continue
 
                             self.cache[uuid] = author
                 else:
@@ -267,6 +280,8 @@ class PostCache(Cache):
                                     if response.ok:
                                         likes = response.json()
                                         post["likeCount"] = len(likes)
+                                    else:
+                                        post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
                                 self.cache[uuid] = post
@@ -296,6 +311,8 @@ class PostCache(Cache):
                                     if response.ok:
                                         likes = response.json()
                                         post["likeCount"] = len(likes["items"])
+                                    else:
+                                        post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
                                 self.cache[uuid] = post
@@ -321,6 +338,8 @@ class PostCache(Cache):
                                     if response.ok:
                                         likes = response.json()
                                         post["likeCount"] = len(likes["items"])
+                                    else:
+                                        post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
                                 self.cache[uuid] = post
@@ -348,6 +367,8 @@ class PostCache(Cache):
                                     if response.ok:
                                         likes = response.json()
                                         post["likeCount"] = len(likes["items"])
+                                    else:
+                                        post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
                                 
