@@ -84,3 +84,7 @@
 .tooltip:hover .tooltip-arrow {
     opacity: 1;
 }
+.info-icon:hover .tooltip .tooltip-content {
+    display: block;
+    opacity: 1;
+}
