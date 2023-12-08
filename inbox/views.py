@@ -147,9 +147,10 @@ def inbox_view(request):
             try: post = Posts.objects.get(uuid=item["id"])
             except: continue
 
+            author_data = AuthorCache.get(post.author_uuid)
             post_data = format_local_post_from_db(post)
             post_data["index"] = index
-            post_data["author"] = data
+            post_data["author"] = author_data
             posts.append(post_data)
 
         elif item["type"] == "like":
