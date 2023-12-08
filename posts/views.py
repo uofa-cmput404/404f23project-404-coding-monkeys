@@ -93,9 +93,12 @@ def send_to_inbox(post, recipients):
             host = author.get("host")
             inbox_url = f"{strip_slash(host)}/authors/{author_uuid}/inbox/"
             auth = nodes.get_auth_for_host(host)
-            response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
-            with open("log.txt", "a") as f:
-                f.write(json.dumps(payload))
+
+            if strip_slash(host) == HOSTS[1]:
+                headers = {"Referer": nodes.get_host_for_index(0)}
+                response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+            else:
+                response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
             
             if response.ok:
                 print("Sent to inbox")
@@ -177,23 +180,25 @@ def update_or_create_post(request, post_uuid):
     elif post.uuid.endswith("_pic"):
         post.uuid = post.uuid[:-4]
 
+    post_cache = PostCache()
+    post_cache_data = format_local_post(post)
+    post_cache_data["likeCount"] = 0
+    
     # add images and links to content
     if cType != "Image" and request.FILES.get('picture') is not None or post_pic and request.POST.get('imageRemoved') == "False":
         source = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/image"
         if post.contentType == "text/plain":
             image_tag = f"<img src=\"{source}\" alt=\"{post.title}\" />"
             post.content += "\n" + image_tag
+            post_cache_data["image"] = f"{strip_slash(post.origin)}/image/"
         elif post.contentType == "text/markdown":
             image_tag = f"![{post.title}]({source})"
             post.content += "\n" + image_tag
+            post_cache_data["image"] = f"{strip_slash(post.origin)}/image/"
 
     post.save()
-
-    post_cache = PostCache()
-    post_cache_data = format_local_post(post)
-    post_cache_data["likeCount"] = 0
     post_cache.add(str(post.uuid), post_cache_data)
-
+    
     if request.POST.get('sharedWith') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('sharedWith')
         thread = threading.Thread(target=send_to_inbox, args=(post, [selected_author_id],))
@@ -401,7 +406,7 @@ def view_user_posts(request, uuid):
 
     for post in fixed_posts:
         author_uuid = get_part_from_url(post["author"]["id"], "authors")
-        if author_uuid != uuid:
+        if author_uuid != uuid or author_uuid in (None, ""):
             continue
         
         try: post["author_index"] = HOSTS.index(strip_slash(post["author"]["host"]))
@@ -461,6 +466,9 @@ def sort_posts(request, all_posts):
             post["author_uuid"] = get_part_from_url(post["author"]["id"], "authors")
             post["uuid"] = get_part_from_url(post["id"], "posts")
             post["delta"] = time_since_posted(post["published"], post["author_index"])
+
+            if post.get("author") and post.get("author").get("profileImage") in (None, ""):
+                post["author"]["profileImage"] = 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'
 
             # since db ones may be repeated in cache
             if not all_posts:

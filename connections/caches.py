@@ -7,6 +7,7 @@ from requests.auth import HTTPBasicAuth
 from posts.models import Comments, Likes, Posts
 from static.vars import ENDPOINT, HOSTS
 import threading
+import bleach
 
 from util import format_local_post, get_id_from_url, strip_slash, format_local_post_from_db
 from .models import Node
@@ -111,7 +112,7 @@ class AuthorCache(Cache):
             if self.cache.get(key):
                 return self.cache.get(key)
             elif not foreign:
-                obj = {"displayName":"An Unknown Remote Author", "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg"}
+                obj = {"displayName":"An Unknown Remote Author", "profileImage": 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'}
                 fa = ForeignAuthor(uuid=key, author_json=obj)
                 self.cache[key] = obj
                 fa.save()
@@ -131,6 +132,10 @@ class AuthorCache(Cache):
         authors = AuthorUser.objects.all()
         for a in authors:
             url = f"{strip_slash(ENDPOINT)}/authors/{a.uuid}"
+
+            if not a.profile_image:
+                a.profile_image = 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'
+
             author_json = {"id": url,
                            "type": "author",
                            "displayName": a.username,
@@ -138,6 +143,7 @@ class AuthorCache(Cache):
                            "profileImage": a.profile_image,
                            "url": url,
                            "host": a.host}
+            
             self.cache[str(a.uuid)] = author_json
 
         for i in range(1, len(HOSTS)):
@@ -160,8 +166,8 @@ class AuthorCache(Cache):
                         for author in authors["items"]:
                             uuid = get_id_from_url(author["id"])
                             
-                            if not author["profileImage"]:
-                                author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
+                            if author["profileImage"] in (None, ""):
+                                author["profileImage"] = 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'
 
                             self.cache[uuid] = author
                 else:
@@ -173,15 +179,14 @@ class AuthorCache(Cache):
 
                         for author in authors["items"]:
                             uuid = author["id"]
-                            
                             author["profileImage"] = author.pop("profilePicture")
 
                             for k in ("is_active", "created", "updated", "followed", "following"):
                                 try: author.pop(k)
                                 except: continue
                             
-                            if not author["profileImage"]:
-                                author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
+                            if author["profileImage"] in (None, ""):
+                                author["profileImage"] = 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'
                             
                             self.cache[uuid] = author
             
@@ -218,11 +223,28 @@ class PostCache(Cache):
             post.count = len(comments)
             post.save()
             
-            if post.uuid.endswith("_pic"):
-                continue
-
             author_override = author_cache.get(str(post.author_uuid))
-            self.cache[post.uuid] = format_local_post(post, author_override)
+
+            if post.uuid.endswith("_pic"):
+                try: 
+                    parent_post = Posts.objects.get(uuid=post.uuid[:-4])
+                    post_dict = format_local_post(parent_post, author_override)
+                    post_dict["image"] = f"{strip_slash(parent_post.origin)}/image/"
+
+                    content_embedded_img = parent_post.content
+                    split = content_embedded_img.split("\n")
+                    pure_content = split[:-1]
+                    post_dict["content"] = "\n".join(pure_content)
+
+                    post = parent_post
+
+                except Exception as e:
+                    print(e)
+                    continue
+            else:
+                post_dict = format_local_post(post, author_override)
+            
+            self.cache[post.uuid] = post_dict
 
     def sort_posts(self):
         author_cache = AuthorCache()
@@ -283,6 +305,16 @@ class PostCache(Cache):
                                         post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
+
+                                try:
+                                    url = f"{strip_slash(post['origin'])}/image/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        post["image"] = url
+                                except Exception as e:
+                                    print(e)
+
                                 self.cache[uuid] = post
 
                     except Exception as e:
@@ -314,6 +346,16 @@ class PostCache(Cache):
                                         post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
+                                
+                                try:
+                                    url = f"{strip_slash(post['origin'])}/image/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        post["image"] = url
+                                except Exception as e:
+                                    print(e)
+
                                 self.cache[uuid] = post
 
                     except Exception as e:
@@ -341,6 +383,16 @@ class PostCache(Cache):
                                         post["likeCount"] = 0
                                 except:
                                     post["likeCount"] = 0
+
+                                try:
+                                    url = f"{strip_slash(post['origin'])}/image/"
+                                    response = requests.get(url, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+
+                                    if response.ok:
+                                        post["image"] = url
+                                except Exception as e:
+                                    print(e)
+                                
                                 self.cache[uuid] = post
 
                     except Exception as e:

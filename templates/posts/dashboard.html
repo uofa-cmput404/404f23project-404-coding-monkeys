@@ -429,8 +429,12 @@
                 {% endif %}
             </section>
             {% if post.contentType == "application/base64" or post.contentType == "image/jpeg;base64" or post.contentType == "image/png;base64" %}
-                <div style=" margin-bottom:2px;" >
+                <div style="background-color: #2a2a2a; padding:10px;" >
                     <img class="postImage" src="data:{{ post.contentType }},{{ post.content }}" alt="Image for {{ post.title }}" />
+                </div>
+            {% elif post.image %}
+                <div style="background-color: #2a2a2a; padding:10px;" >
+                    <img class="postImage" src="{{ post.image }}" alt="Image for {{ post.title }}" />
                 </div>
             {% endif %}
             <div class="flex_grow" style="background-color: #2a2a2a;"></div>
