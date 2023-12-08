@@ -1,0 +1,25 @@
+meta {
+  name: GET public posts by the author (paginated).
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/authors/{{userUuid}}/posts/?page=1&size=5
+  body: none
+  auth: basic
+}
+
+query {
+  page: 1
+  size: 5
+}
+
+auth:basic {
+  username: TestUser1_dev
+  password: helloPassword7&
+}
+
+assert {
+  res.status: eq 200
+}

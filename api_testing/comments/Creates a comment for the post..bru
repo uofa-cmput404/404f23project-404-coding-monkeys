@@ -1,0 +1,35 @@
+meta {
+  name: Creates a comment for the post.
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/authors/{{dinoId}}/posts/fe2b240f-e6aa-437e-ba6a-29dcbdf801a1/comments/
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: dino_dev
+  password: dinouser
+}
+
+body:json {
+  {
+    "type": "comment",
+    "author": {
+      "type": "author",
+      "id": "string",
+      "url": "string",
+      "host": "string",
+      "github": "string",
+      "displayName": "string",
+      "profileImage": "string"
+    },
+    "comment": "string",
+    "contentType": "string",
+    "published": "string",
+    "id": "string"
+  }
+}

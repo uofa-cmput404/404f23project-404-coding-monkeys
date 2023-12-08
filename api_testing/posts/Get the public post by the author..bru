@@ -1,0 +1,20 @@
+meta {
+  name: Get the public post by the author.
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/authors/{{userUuid}}/posts/1424480c-c872-4cf4-9c85-1b228ff28a58/
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: TestUser1_dev
+  password: helloPassword7&
+}
+
+assert {
+  res.status: eq 200
+}
