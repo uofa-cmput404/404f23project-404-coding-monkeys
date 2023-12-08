@@ -147,7 +147,7 @@ def inbox_view(request):
             try: post = Posts.objects.get(uuid=item["id"])
             except: continue
 
-            author_data = AuthorCache.get(post.author_uuid)
+            author_data = author_cache.get(post.author_uuid)
             post_data = format_local_post_from_db(post)
             post_data["index"] = index
             post_data["author"] = author_data
