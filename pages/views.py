@@ -305,9 +305,12 @@ def render_author_detail(request, host_id, uuid):
             # already validated from the originating view, so do not have to check for serialization
             author["uuid"] = uuid
             author["index"] = host_id
-
+            
             if host_id == 4:
                 author["profileImage"] = author.pop("profilePicture")
+            
+            if author.get("profileImage") in (None, ""):
+                author["profileImage"] = 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'
         else:
             my_error= ("Author not found")
             return render(request, 'errorPage.html', {'errorCode':my_error})
