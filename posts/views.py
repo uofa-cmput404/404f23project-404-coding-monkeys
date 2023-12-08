@@ -645,12 +645,7 @@ def open_comments_handler(request):
             "size": 10
         }
         auth = nodes.get_auth_for_host(post_host)
-        print(auth)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), params=params)
-        print(full_url)
-        print(response)
-        print(response.json)
-        print(response.text)
         returned_comments = response.json()
         for comment in returned_comments['comments']:
             comments.append(comment)
@@ -1477,13 +1472,8 @@ def api_comments(request, uuid, post_id):
                          "post": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post_id}",
                          "id": f"{ENDPOINT}authors/{post.author_uuid}/posts/{post_id}/comments",
                          "comments": formatted}
-        
-        serialized = CommentListSerializer(data=response_data)
 
-        if not serialized.is_valid():
-            return Response(status=500, data=serialized.errors)
-
-        return Response(status=200, data=serialized.validated_data)
+        return Response(status=200, data=response_data)
 
     elif request.method == 'POST':
         serializer = CommentSerializer(data=request.data)
