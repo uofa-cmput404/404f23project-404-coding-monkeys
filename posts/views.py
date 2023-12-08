@@ -194,12 +194,12 @@ def update_or_create_post(request, post_uuid):
 
     if request.POST.get('sharedWith') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('sharedWith')
-        thread = threading.Thread(send_to_inbox, args=(post, [selected_author_id],))
+        thread = threading.Thread(target=send_to_inbox, args=(post, [selected_author_id],))
         thread.start()
 
     elif post.visibility == "FRIENDS":
         followers = get_follower_ids(request.user.uuid)
-        thread = threading.Thread(send_to_inbox, args=(post, followers,))
+        thread = threading.Thread(target=send_to_inbox, args=(post, followers,))
         thread.start()
     
     # deal with embedded pictures
