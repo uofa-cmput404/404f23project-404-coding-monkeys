@@ -105,11 +105,14 @@ def inbox_post(request, author_id, inbox_index):
 
     try: 
         post = Posts.objects.get(uuid=post_id)
+        author_id = post.author_uuid
+        author_cache = AuthorCache()
+        author_data = author_cache.get(author_id)
     except: 
         print("Post not found")
         raise Http404
 
-    return render(request, 'single_unlisted_post.html', {'post': format_local_post_from_db(post)})
+    return render(request, 'posts/dashboard.html', {'all_posts': [format_local_post_from_db(post, author_data)], 'base_url': ENDPOINT})
 
     
 def inbox_view(request):
