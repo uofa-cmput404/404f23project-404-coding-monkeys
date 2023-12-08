@@ -644,6 +644,7 @@ def open_comments_handler(request):
             "page": 1,
             "size": 10
         }
+        print(auth)
         auth = nodes.get_auth_for_host(post_host)
         response = requests.get(full_url, headers=headers, auth=HTTPBasicAuth(auth[0], auth[1]), params=params)
         returned_comments = response.json()
