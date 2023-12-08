@@ -29,7 +29,7 @@ from django.test import Client
 from django.core.files.base import ContentFile
 from PIL import Image
 from drf_yasg.utils import swagger_auto_schema
-from static.vars import ENDPOINT, HOSTS
+from static.vars import ADMINS, ENDPOINT, HOSTS
 from django.http import HttpResponse
 from django.core.serializers import serialize
 from drf_yasg.utils import swagger_auto_schema
@@ -1080,17 +1080,14 @@ def serve_image(request, uuid, post_id):
     unique_id_pic = str(post_id) + "_pic"
     author = get_object_or_404(AuthorUser, uuid=uuid)
     pic_post = get_object_or_404(Posts, uuid=unique_id_pic, author_uuid=uuid)
+    
+    try: assoc_post = Posts.objects.get(uuid=post_id[:-4])
+    except: assoc_post = None
 
-    # if pic_post.visibility != "PUBLIC":
-    #     try: parent_post = Posts.objects.get(uuid=post_id)
-    #     except: parent_post = None
-
-    #     if not parent_post:
-    #         return HttpResponse(status=404)
-        
-    #     sharedIDs = [author["uuid"] for author in parent_post.sharedWith]
-    #     if request.user.uuid not in sharedIDs or request.user.uuid != uuid:
-    #         return HttpResponse(status=404)
+    if assoc_post and assoc_post.visibility != "PUBLIC":
+        sharedIDs = [user["uuid"] for user in assoc_post.sharedWith]
+        if str(request.user.uuid) not in ADMINS or request.user.uuid not in sharedIDs or request.user.uuid != uuid:
+            return HttpResponse(status=404)
 
     content_type = pic_post.contentType.split(";")[0]
 
@@ -1179,8 +1176,8 @@ def api_posts(request, uuid, post_id):
         pic_post = None
 
     if request.method == 'GET':
-
-        if post.visibility != "PUBLIC":
+        sharedWith = [author["uuid"] for author in post.sharedWith]
+        if post.visibility != "PUBLIC" and str(request.user.uuid) not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
             return Response(status=404)
         
         post_data = format_local_post(post)
@@ -1215,6 +1212,9 @@ def api_posts(request, uuid, post_id):
         return Response(status=400, data=serializer.errors)
     
     elif request.method == 'DELETE':
+        if str(request.user.uuid) not in ADMINS or request.user.uuid != uuid:
+            return Response(status=401, data="Unauthorized")
+        
         post.delete()
         if pic_post:
             pic_post.delete()
@@ -1276,6 +1276,9 @@ def get_image_post(request, author_id, post_id):
 
     if request.method == 'GET':
         try:
+            if str(request.user.uuid) not in ADMINS or request.user.uuid != pic_post.author_uuid and pic_post.visibility != "PUBLIC":
+                return Response(status=404)
+            
             # Set the appropriate content type for the image
             return HttpResponse(pic_post.content, content_type=pic_post.contentType)
         except Exception as e:
@@ -1386,7 +1389,7 @@ def api_post_creation(request, uuid):
         response = {"type": "posts", "items": serializer.validated_data}
         return Response(response)
     elif request.method == 'POST':
-        pass
+        return Response(status=501)
 
 
 
@@ -1430,7 +1433,8 @@ def api_comments(request, uuid, post_id):
         # check if post exists
         post = get_object_or_404(Posts, uuid=post_id, author_uuid=uuid)
 
-        if str(request.user.uuid) != "e6a9d26c-92f2-4010-871d-a58713175a52" and post.visibility != "PUBLIC":
+        sharedWith = [author["uuid"] for author in post.sharedWith]
+        if post.visibility != "PUBLIC" and str(request.user.uuid) not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
             return Response(status=404)
         
         comments = Comments.objects.filter(post_id=post_id).order_by('-published')
@@ -1528,9 +1532,8 @@ def api_post_likes(request, uuid, post_id):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     post = get_object_or_404(Posts, uuid=post_id)
 
-
-    # TODO check if user should be able to see this post
-    if post.visibility != "PUBLIC":
+    sharedWith = [author["uuid"] for author in post.sharedWith]
+    if post.visibility != "PUBLIC" and str(request.user.uuid) not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
         return Response(status=404)
 
     likes = Likes.objects.filter(liked_object_type="post", liked_id=post_id).exclude(author_uuid=uuid)
@@ -1576,6 +1579,10 @@ def api_comment_likes(request, uuid, post_id, comment_id):
     author = get_object_or_404(AuthorUser, uuid=uuid)
     post = get_object_or_404(Posts, uuid=post_id)
     comment = get_object_or_404(Comments, uuid=comment_id)
+
+    sharedWith = [author["uuid"] for author in post.sharedWith]
+    if post.visibility != "PUBLIC" and str(request.user.uuid) not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
+        return Response(status=404)
 
     likes = Likes.objects.filter(liked_object_type="comment", liked_id=comment_id).exclude(author_uuid=uuid)
     formatted = []
