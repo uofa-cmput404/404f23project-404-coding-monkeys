@@ -93,9 +93,12 @@ def send_to_inbox(post, recipients):
             host = author.get("host")
             inbox_url = f"{strip_slash(host)}/authors/{author_uuid}/inbox/"
             auth = nodes.get_auth_for_host(host)
-            response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
-            with open("log.txt", "a") as f:
-                f.write(json.dumps(payload))
+
+            if strip_slash(host) == HOSTS[1]:
+                headers = {"Referer": nodes.get_host_for_index(0)}
+                response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]), headers=headers)
+            else:
+                response = requests.post(inbox_url, json=payload, auth=HTTPBasicAuth(auth[0], auth[1]))
             
             if response.ok:
                 print("Sent to inbox")

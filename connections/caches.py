@@ -111,7 +111,7 @@ class AuthorCache(Cache):
             if self.cache.get(key):
                 return self.cache.get(key)
             elif not foreign:
-                obj = {"displayName":"An Unknown Remote Author", "profileImage": f"{ENDPOINT}static/images/monkey_icon.jpg"}
+                obj = {"displayName":"An Unknown Remote Author", "profileImage": 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'}
                 fa = ForeignAuthor(uuid=key, author_json=obj)
                 self.cache[key] = obj
                 fa.save()
@@ -131,6 +131,10 @@ class AuthorCache(Cache):
         authors = AuthorUser.objects.all()
         for a in authors:
             url = f"{strip_slash(ENDPOINT)}/authors/{a.uuid}"
+
+            if not a.profile_image:
+                a.profile_image = 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'
+
             author_json = {"id": url,
                            "type": "author",
                            "displayName": a.username,
@@ -161,7 +165,7 @@ class AuthorCache(Cache):
                             uuid = get_id_from_url(author["id"])
                             
                             if not author["profileImage"]:
-                                author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
+                                author["profileImage"] = 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'
 
                             self.cache[uuid] = author
                 else:
@@ -181,7 +185,7 @@ class AuthorCache(Cache):
                                 except: continue
                             
                             if not author["profileImage"]:
-                                author["profileImage"] = f"{ENDPOINT}static/images/monkey_icon.jpg"
+                                author["profileImage"] = 'https://t3.ftcdn.net/jpg/05/71/08/24/360_F_571082432_Qq45LQGlZsuby0ZGbrd79aUTSQikgcgc.jpg'
                             
                             self.cache[uuid] = author
             
