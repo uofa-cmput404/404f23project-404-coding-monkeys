@@ -86,7 +86,8 @@ def list_profiles(request):
         toReturn = authors
     
     for a in toReturn:
-        a["index"] = HOSTS.index(strip_slash(a["host"]))
+        try: a["index"] = HOSTS.index(strip_slash(a["host"]))
+        except: a["index"] = 0
 
     sorted_list = sorted(toReturn, key=lambda x: x['displayName'].lower())
 
