@@ -403,6 +403,30 @@ a{
     background-color: #FFD553;
   }
 
+  .dot {
+    height: 25px;
+    width: 25px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .hostBanner {
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: row;
+
+    max-height: 40px;
+    
+    background-color: #464646;
+    border-radius: 8px;
+    border-style: none;
+    border-color: #FFD553;
+    padding: 1em;
+    margin: 1em;
+  }
+
   .itemBacking {
     background-color: #464646;
     border-radius: 8px;
