@@ -1177,7 +1177,7 @@ def api_posts(request, uuid, post_id):
 
     if request.method == 'GET':
         sharedWith = [author["uuid"] for author in post.sharedWith]
-        if post.visibility != "PUBLIC" and str(request.user.uuid) not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
+        if post.visibility != "PUBLIC" and request.user.uuid not in ADMINS or request.user.uuid != post.author_uuid or request.user.uuid not in sharedWith:
             return Response(status=404)
         
         post_data = format_local_post(post)
