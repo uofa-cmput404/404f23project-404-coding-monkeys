@@ -189,8 +189,6 @@ class AuthorCache(Cache):
                 print(e)
                 continue
         
-        print(self.cache)
-
 class PostCache(Cache):
     def __init__(self):
         super().__init__()
@@ -382,7 +380,6 @@ class PostCache(Cache):
             except Exception as e:
                 print(e)
         
-        print(self.cache)
 
 # NODE DATA SINGLETON - for peer-to-peer requests and connection
 # ====================================================================================================

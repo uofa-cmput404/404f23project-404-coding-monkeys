@@ -240,8 +240,8 @@ def gather_info_local(request, uuid):
     following = False
     formatted_followers = []
     for f in followers:
-        formatted_followers.append(author_cache.get(f["uuid"]))
-        if f["uuid"] == request.user.uuid:
+        formatted_followers.append(author_cache.get(f.get("uuid")))
+        if f.get("uuid") == request.user.uuid:
             following = True
     
     follow_rq = FollowRequests.objects.filter(requester_uuid=request.user.uuid , recipient_uuid=uuid)
