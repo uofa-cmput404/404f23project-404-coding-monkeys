@@ -77,7 +77,7 @@ Helpful info for Database Development:
 > - [x] As an author, I want to feel safe about sharing images and posts with my friends – images shared to friends should only be visible to friends. [public images are public] `all images and APIs are only shared with those who should have access`
 > - [x] As an author, when someone sends me a friends only-post I want to see the likes.
 > - [x] As an author, comments on friend posts are private only to me the original author.
-> - [ ] As an author, I want un-befriend local and remote authors `this is functional but isn't pretty`
+> - [ ] As an author, I want un-befriend local and remote authors `this is functional but isn't pretty on local; uncertain about remote`
 > - [x] As an author, I want to be able to use my web-browser to manage my profile
 > - [x] As an author, I want to be able to use my web-browser to manage/author my posts
 > - [x] As a server admin, I want to be able add, modify, and remove authors.
