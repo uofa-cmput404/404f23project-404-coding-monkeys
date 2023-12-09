@@ -236,15 +236,16 @@ class PostCache(Cache):
                     pure_content = split[:-1]
                     post_dict["content"] = "\n".join(pure_content)
 
-                    post = parent_post
+                    self.cache[parent_post.uuid] = post_dict
 
                 except Exception as e:
                     print(e)
                     continue
             else:
-                post_dict = format_local_post(post, author_override)
-            
-            self.cache[post.uuid] = post_dict
+                # avoid race condition with image posts
+                if post.uuid not in self.cache.keys():
+                    post_dict = format_local_post(post, author_override)
+                    self.cache[post.uuid] = post_dict
 
     def sort_posts(self):
         author_cache = AuthorCache()

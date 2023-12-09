@@ -84,6 +84,7 @@ def send_to_inbox(post, recipients):
     
     author_cache = AuthorCache()
     nodes = Nodes()
+    author["profileImage"] = author.pop("profilePicture")
     
     payload = format_local_post(post, author_details=author_cache.get(post.author_uuid))
 
@@ -179,25 +180,32 @@ def update_or_create_post(request, post_uuid):
         post.uuid = oldUuid
     elif post.uuid.endswith("_pic"):
         post.uuid = post.uuid[:-4]
-
-    post_cache = PostCache()
-    post_cache_data = format_local_post(post)
-    post_cache_data["likeCount"] = 0
     
+    attachedImage = None
     # add images and links to content
     if cType != "Image" and request.FILES.get('picture') is not None or post_pic and request.POST.get('imageRemoved') == "False":
         source = f"{ENDPOINT}authors/{post.author_uuid}/posts/{post.uuid}/image"
         if post.contentType == "text/plain":
             image_tag = f"<img src=\"{source}\" alt=\"{post.title}\" />"
             post.content += "\n" + image_tag
-            post_cache_data["image"] = f"{strip_slash(post.origin)}/image/"
+            attachedImage = f"{strip_slash(post.origin)}/image/"
         elif post.contentType == "text/markdown":
             image_tag = f"![{post.title}]({source})"
             post.content += "\n" + image_tag
-            post_cache_data["image"] = f"{strip_slash(post.origin)}/image/"
+            attachedImage = f"{strip_slash(post.origin)}/image/"
 
     post.save()
-    post_cache.add(str(post.uuid), post_cache_data)
+
+    # add to post cache
+    post_cache = PostCache()
+    post_cache_data = format_local_post(post, author_cache.get(post.author_uuid))
+    post_cache_data["likeCount"] = 0
+
+    if attachedImage:
+        post_cache_data["image"] = attachedImage
+        post_cache_data["content"] = bleached
+
+    post_cache.add(post.uuid, post_cache_data)
     
     if request.POST.get('sharedWith') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('sharedWith')
