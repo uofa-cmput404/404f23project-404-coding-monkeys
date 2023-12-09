@@ -84,6 +84,7 @@ def send_to_inbox(post, recipients):
     
     author_cache = AuthorCache()
     nodes = Nodes()
+                author["profileImage"] = author.pop("profilePicture")
     
     payload = format_local_post(post, author_details=author_cache.get(post.author_uuid))
 
@@ -197,7 +198,7 @@ def update_or_create_post(request, post_uuid):
             post_cache_data["image"] = f"{strip_slash(post.origin)}/image/"
 
     post.save()
-    post_cache.add(str(post.uuid), post_cache_data)
+    post_cache.add(post.uuid, post_cache_data)
     
     if request.POST.get('sharedWith') and post.visibility == "PRIVATE":
         selected_author_id = request.POST.get('sharedWith')
