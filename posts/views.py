@@ -84,7 +84,7 @@ def send_to_inbox(post, recipients):
     
     author_cache = AuthorCache()
     nodes = Nodes()
-                author["profileImage"] = author.pop("profilePicture")
+    author["profileImage"] = author.pop("profilePicture")
     
     payload = format_local_post(post, author_details=author_cache.get(post.author_uuid))
 
