@@ -5,6 +5,11 @@ Chimp Chat: CMPUT404-project-socialdistribution
 **Group Name:** `Coding Monkeys`  
 **CMPUT 404 Project Name:** `Chimp Chat`
 
+**Description:** Chimp Chat is a social media platform that allows you to create and share posts with your friends.
+Unlike traditional social platforms, Chimp Chat is able to interface with other platforms through its API, allowing for interaction between users of different services.
+
+Created with Django.
+
 ### Demo Video
 [![IMAGE ALT TEXT HERE](https://i.imgur.com/3tGj4pW.png)](https://www.youtube.com/watch?v=8FuEcxVs9IE)
 
