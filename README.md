@@ -1,11 +1,12 @@
 Chimp Chat: CMPUT404-project-socialdistribution
 ===================================
 
-<img style="height:150px; width:150px;" src="https://github.com/uofa-cmput404/404f23project-404-coding-monkeys/assets/97320246/932ae0b3-291e-4890-b0b6-3104d6ff1ca3"></img>
-
 ### Information
 **Group Name:** `Coding Monkeys`  
-**CMPUT 404 Project Name:** `Chimp Chat`  
+**CMPUT 404 Project Name:** `Chimp Chat`
+
+### Demo Video
+[![IMAGE ALT TEXT HERE](https://i.imgur.com/3tGj4pW.png)](https://www.youtube.com/watch?v=8FuEcxVs9IE)
 
 ### Links
 [Public URI](https://chimp-chat-1e0cca1cc8ce.herokuapp.com/)  
