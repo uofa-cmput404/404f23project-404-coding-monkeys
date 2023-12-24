@@ -16,7 +16,6 @@ Created with Django.
 ### Links
 [Public URI](https://chimp-chat-1e0cca1cc8ce.herokuapp.com/)  
 [API Documentation](https://chimp-chat-1e0cca1cc8ce.herokuapp.com/api/)  
-[Video](https://www.youtube.com/watch?v=8FuEcxVs9IE)  
 [Project requirements](https://github.com/uofa-cmput404/project-socialdistribution/blob/master/project.org) 
 
 <br>
