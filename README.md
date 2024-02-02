@@ -28,7 +28,7 @@ Authors:
 * Aidan Lynch alynch1@ualberta.ca
 * Sophia Ruduke sruduke@ualberta.ca
 * Matthew Wood mwood2@ualberta.ca
-* Davicheanin Meas meas@ualberta.ca - **Joined November 3rd, 2023**
+* Davin meas@ualberta.ca - **Joined November 3rd, 2023**
 
 <br> 
 
